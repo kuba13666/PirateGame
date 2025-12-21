@@ -29,6 +29,9 @@ public class EnemyController : MonoBehaviour
     // Reference to the sprite renderer for color
     private SpriteRenderer spriteRenderer;
 
+    // Reference to Rigidbody2D for physics-based movement
+    private Rigidbody2D rb;
+
     void Start()
     {
         // Initialize health
@@ -51,6 +54,9 @@ public class EnemyController : MonoBehaviour
         {
             spriteRenderer.color = enemyColor;
         }
+
+        // Get Rigidbody2D component
+        rb = GetComponent<Rigidbody2D>();
     }
 
     void Update()
@@ -70,8 +76,11 @@ public class EnemyController : MonoBehaviour
         // Calculate direction to player
         Vector2 direction = (playerTransform.position - transform.position).normalized;
 
-        // Move in that direction
-        transform.Translate(direction * moveSpeed * Time.deltaTime);
+        // Move using Rigidbody2D for proper physics interaction
+        if (rb != null)
+        {
+            rb.MovePosition(rb.position + direction * moveSpeed * Time.deltaTime);
+        }
     }
 
     /// <summary>
@@ -134,6 +143,7 @@ public class EnemyController : MonoBehaviour
             if (player != null)
             {
                 player.TakeDamage(collisionDamage);
+                Debug.Log("Enemy hit player!");
             }
 
             // Enemy dies after hitting player (like a kamikaze)

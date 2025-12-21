@@ -59,12 +59,17 @@ public class CannonController : MonoBehaviour
 
         // Create the projectile
         GameObject projectile = Instantiate(projectilePrefab, spawnPosition, Quaternion.identity);
+        Debug.Log($"Cannon {gameObject.name} fired projectile at {spawnPosition}");
 
         // Set the projectile's direction
         Projectile projectileScript = projectile.GetComponent<Projectile>();
         if (projectileScript != null)
         {
             projectileScript.SetDirection(fireDirection);
+        }
+        else
+        {
+            Debug.LogError("Projectile prefab missing Projectile script!");
         }
     }
 

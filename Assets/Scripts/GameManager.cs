@@ -36,7 +36,7 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         // Find UI Manager in the scene
-        uiManager = FindObjectOfType<UIManager>();
+        uiManager = FindFirstObjectByType<UIManager>();
 
         // Initialize kill count display
         if (uiManager != null)
@@ -91,7 +91,7 @@ public class GameManager : MonoBehaviour
         Debug.Log($"Game Over! Final Score: {killCount} kills");
 
         // Stop enemy spawning
-        EnemySpawner spawner = FindObjectOfType<EnemySpawner>();
+        EnemySpawner spawner = FindFirstObjectByType<EnemySpawner>();
         if (spawner != null)
         {
             spawner.enabled = false;

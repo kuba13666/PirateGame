@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 /// <summary>
 /// Controls the player ship movement and health
@@ -58,21 +59,20 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     void HandleTouchInput()
     {
-        // Check for touch input (mobile)
-        if (Input.touchCount > 0)
+        // Check for touch input (mobile) using new Input System
+        if (Touchscreen.current != null && Touchscreen.current.primaryTouch.press.isPressed)
         {
-            Touch touch = Input.GetTouch(0);
-
-            // Only respond to the moment the finger touches the screen
-            if (touch.phase == TouchPhase.Began)
+            if (Touchscreen.current.primaryTouch.press.wasPressedThisFrame)
             {
-                SetTargetPosition(touch.position);
+                Vector2 touchPosition = Touchscreen.current.primaryTouch.position.ReadValue();
+                SetTargetPosition(touchPosition);
             }
         }
         // Also support mouse click for testing in Unity Editor
-        else if (Input.GetMouseButtonDown(0))
+        else if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
         {
-            SetTargetPosition(Input.mousePosition);
+            Vector2 mousePosition = Mouse.current.position.ReadValue();
+            SetTargetPosition(mousePosition);
         }
     }
 

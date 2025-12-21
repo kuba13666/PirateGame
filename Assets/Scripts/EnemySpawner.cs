@@ -20,17 +20,8 @@ public class EnemySpawner : MonoBehaviour
     public float spawnIntervalDecreaseRate = 0.01f;
 
     [Header("Map Boundaries")]
-    [Tooltip("Left edge of the map")]
-    public float mapMinX = -8f;
-
-    [Tooltip("Right edge of the map")]
-    public float mapMaxX = 8f;
-
-    [Tooltip("Bottom edge of the map")]
-    public float mapMinY = -4f;
-
-    [Tooltip("Top edge of the map")]
-    public float mapMaxY = 4f;
+    [Tooltip("Distance from player to spawn enemies")]
+    public float spawnDistance = 4f;
 
     [Header("Enemy Types")]
     [Tooltip("Percentage chance for each enemy type (should add up to 100)")]
@@ -40,6 +31,9 @@ public class EnemySpawner : MonoBehaviour
 
     // Timer for spawning
     private float spawnTimer = 0f;
+
+    // Reference to player transform
+    private Transform playerTransform;
 
     // Enemy type configurations
     private struct EnemyType
@@ -51,6 +45,17 @@ public class EnemySpawner : MonoBehaviour
 
     void Start()
     {
+        // Find the player
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
+        {
+            playerTransform = player.transform;
+        }
+        else
+        {
+            Debug.LogWarning("Player not found! Enemies will spawn at world origin.");
+        }
+
         // Start spawning immediately
         spawnTimer = spawnInterval;
     }
@@ -103,28 +108,32 @@ public class EnemySpawner : MonoBehaviour
     }
 
     /// <summary>
-    /// Returns a random position along the edges of the map
+    /// Returns a random position along the edges relative to player position
     /// </summary>
     Vector3 GetRandomEdgePosition()
     {
+        // Get player position (or use origin if no player)
+        Vector3 playerPos = playerTransform != null ? playerTransform.position : Vector3.zero;
+
         // Pick a random edge: 0=top, 1=bottom, 2=left, 3=right
         int edge = Random.Range(0, 4);
 
         Vector3 position = Vector3.zero;
+        float randomOffset = Random.Range(-spawnDistance * 0.7f, spawnDistance * 0.7f);
 
         switch (edge)
         {
             case 0: // Top edge
-                position = new Vector3(Random.Range(mapMinX, mapMaxX), mapMaxY, 0);
+                position = playerPos + new Vector3(randomOffset, spawnDistance, 0);
                 break;
             case 1: // Bottom edge
-                position = new Vector3(Random.Range(mapMinX, mapMaxX), mapMinY, 0);
+                position = playerPos + new Vector3(randomOffset, -spawnDistance, 0);
                 break;
             case 2: // Left edge
-                position = new Vector3(mapMinX, Random.Range(mapMinY, mapMaxY), 0);
+                position = playerPos + new Vector3(-spawnDistance, randomOffset, 0);
                 break;
             case 3: // Right edge
-                position = new Vector3(mapMaxX, Random.Range(mapMinY, mapMaxY), 0);
+                position = playerPos + new Vector3(spawnDistance, randomOffset, 0);
                 break;
         }
 
@@ -168,20 +177,32 @@ public class EnemySpawner : MonoBehaviour
     }
 
     /// <summary>
-    /// Visualize map boundaries in Unity Editor
+    /// Visualize spawn area in Unity Editor (relative to player)
     /// </summary>
     void OnDrawGizmos()
     {
-        // Draw map boundaries
+        // Get player position for visualization
+        Vector3 center = Vector3.zero;
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
+        {
+            center = player.transform.position;
+        }
+
+        // Draw spawn boundaries around player
         Gizmos.color = Color.yellow;
 
         // Top edge
-        Gizmos.DrawLine(new Vector3(mapMinX, mapMaxY, 0), new Vector3(mapMaxX, mapMaxY, 0));
+        Gizmos.DrawLine(center + new Vector3(-spawnDistance, spawnDistance, 0), 
+                       center + new Vector3(spawnDistance, spawnDistance, 0));
         // Bottom edge
-        Gizmos.DrawLine(new Vector3(mapMinX, mapMinY, 0), new Vector3(mapMaxX, mapMinY, 0));
+        Gizmos.DrawLine(center + new Vector3(-spawnDistance, -spawnDistance, 0), 
+                       center + new Vector3(spawnDistance, -spawnDistance, 0));
         // Left edge
-        Gizmos.DrawLine(new Vector3(mapMinX, mapMinY, 0), new Vector3(mapMinX, mapMaxY, 0));
+        Gizmos.DrawLine(center + new Vector3(-spawnDistance, -spawnDistance, 0), 
+                       center + new Vector3(-spawnDistance, spawnDistance, 0));
         // Right edge
-        Gizmos.DrawLine(new Vector3(mapMaxX, mapMinY, 0), new Vector3(mapMaxX, mapMaxY, 0));
+        Gizmos.DrawLine(center + new Vector3(spawnDistance, -spawnDistance, 0), 
+                       center + new Vector3(spawnDistance, spawnDistance, 0));
     }
 }

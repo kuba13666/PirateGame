@@ -23,12 +23,18 @@ public class Projectile : MonoBehaviour
     {
         // Destroy the projectile after lifetime expires
         Destroy(gameObject, lifetime);
+        
+        Debug.Log($"Projectile spawned with direction {direction}");
     }
 
     void Update()
     {
-        // Move the projectile in its direction
-        transform.Translate(direction * speed * Time.deltaTime);
+        // Move the projectile in its direction using Rigidbody2D
+        Rigidbody2D rb = GetComponent<Rigidbody2D>();
+        if (rb != null)
+        {
+            rb.linearVelocity = direction * speed;
+        }
     }
 
     /// <summary>
@@ -39,6 +45,7 @@ public class Projectile : MonoBehaviour
     public void SetDirection(Vector2 newDirection)
     {
         direction = newDirection.normalized;
+        Debug.Log($"Projectile direction set to: {direction}");
     }
 
     /// <summary>
@@ -46,6 +53,8 @@ public class Projectile : MonoBehaviour
     /// </summary>
     void OnTriggerEnter2D(Collider2D collision)
     {
+        Debug.Log($"Projectile triggered by: {collision.gameObject.name} with tag: {collision.tag}");
+        
         // Check if we hit an enemy
         if (collision.CompareTag("Enemy"))
         {
@@ -54,6 +63,7 @@ public class Projectile : MonoBehaviour
             if (enemy != null)
             {
                 enemy.TakeDamage(damage);
+                Debug.Log("Projectile hit enemy!");
             }
 
             // Destroy the projectile after hitting
