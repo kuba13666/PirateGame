@@ -9,11 +9,24 @@ public class PlayerController : MonoBehaviour
 {
     [Header("Movement Settings")]
     [Tooltip("How fast the ship moves toward the target position")]
-    public float moveSpeed = 5f;
+    public float moveSpeed = GameConstants.PLAYER_MOVE_SPEED;
 
     [Header("Health Settings")]
     [Tooltip("Starting health of the player ship")]
-    public int maxHealth = 10;
+    public int maxHealth = GameConstants.PLAYER_MAX_HEALTH;
+
+    [Header("Map Boundaries")]
+    [Tooltip("Minimum X boundary")]
+    public float minX = GameConstants.MAP_MIN_X;
+    
+    [Tooltip("Maximum X boundary")]
+    public float maxX = GameConstants.MAP_MAX_X;
+    
+    [Tooltip("Minimum Y boundary")]
+    public float minY = GameConstants.MAP_MIN_Y;
+    
+    [Tooltip("Maximum Y boundary")]
+    public float maxY = GameConstants.MAP_MAX_Y;
 
     // Current health (private, modified through TakeDamage)
     private int currentHealth;
@@ -106,6 +119,12 @@ public class PlayerController : MonoBehaviour
             targetPosition,
             moveSpeed * Time.deltaTime
         );
+
+        // Clamp position within boundaries
+        Vector3 clampedPosition = transform.position;
+        clampedPosition.x = Mathf.Clamp(clampedPosition.x, minX, maxX);
+        clampedPosition.y = Mathf.Clamp(clampedPosition.y, minY, maxY);
+        transform.position = clampedPosition;
 
         // Stop moving when we reach the target (within a small threshold)
         if (Vector3.Distance(transform.position, targetPosition) < 0.1f)

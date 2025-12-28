@@ -54,8 +54,8 @@ public class CannonController : MonoBehaviour
             return;
         }
 
-        // Calculate spawn position (cannon position + offset)
-        Vector3 spawnPosition = transform.position + (Vector3)spawnOffset;
+        // Spawn projectile at cannon's world position
+        Vector3 spawnPosition = transform.position;
 
         // Create the projectile
         GameObject projectile = Instantiate(projectilePrefab, spawnPosition, Quaternion.identity);

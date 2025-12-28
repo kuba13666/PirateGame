@@ -14,7 +14,7 @@ public class GameManager : MonoBehaviour
     private int killCount = 0;
 
     // Reference to UI manager
-    private UIManager uiManager;
+    public UIManager uiManager;
 
     // Game state
     private bool isGameOver = false;

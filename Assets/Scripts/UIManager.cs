@@ -20,6 +20,19 @@ public class UIManager : MonoBehaviour
     [Tooltip("Final score text on game over screen")]
     public TextMeshProUGUI finalScoreText;
 
+    [Header("Loot Display")]
+    [Tooltip("Text elements for loot counts")]
+    public TextMeshProUGUI goldCountText;
+    public TextMeshProUGUI woodCountText;
+    public TextMeshProUGUI canvasCountText;
+    public TextMeshProUGUI metalCountText;
+
+    // Loot inventory
+    private int goldCount = 0;
+    private int woodCount = 0;
+    private int canvasCount = 0;
+    private int metalCount = 0;
+
     void Start()
     {
         // Make sure game over panel is hidden at start
@@ -51,6 +64,32 @@ public class UIManager : MonoBehaviour
         if (killCountText != null)
         {
             killCountText.text = $"Kills: {kills}";
+        }
+    }
+
+    /// <summary>
+    /// Adds loot to inventory and updates display
+    /// </summary>
+    public void AddLoot(LootType lootType)
+    {
+        switch (lootType)
+        {
+            case LootType.Gold:
+                goldCount++;
+                if (goldCountText != null) goldCountText.text = goldCount.ToString();
+                break;
+            case LootType.Wood:
+                woodCount++;
+                if (woodCountText != null) woodCountText.text = woodCount.ToString();
+                break;
+            case LootType.Canvas:
+                canvasCount++;
+                if (canvasCountText != null) canvasCountText.text = canvasCount.ToString();
+                break;
+            case LootType.Metal:
+                metalCount++;
+                if (metalCountText != null) metalCountText.text = metalCount.ToString();
+                break;
         }
     }
 

@@ -8,10 +8,10 @@ public class EnemyController : MonoBehaviour
 {
     [Header("Enemy Settings")]
     [Tooltip("How fast the enemy moves")]
-    public float moveSpeed = 2f;
+    public float moveSpeed = GameConstants.ENEMY_MOVE_SPEED;
 
     [Tooltip("Damage dealt to player on collision")]
-    public int collisionDamage = 1;
+    public int collisionDamage = GameConstants.ENEMY_COLLISION_DAMAGE;
 
     [Header("Health")]
     [Tooltip("Health points for this enemy")]
@@ -19,7 +19,7 @@ public class EnemyController : MonoBehaviour
 
     [Header("Loot")]
     [Tooltip("Chance to drop loot on death (0 to 1)")]
-    public float lootDropChance = 1.0f;
+    public float lootDropChance = GameConstants.LOOT_DROP_CHANCE;
 
     [Tooltip("Loot prefabs to spawn")]
     public GameObject[] lootPrefabs;

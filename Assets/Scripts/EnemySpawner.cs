@@ -17,17 +17,17 @@ public class EnemySpawner : MonoBehaviour
     public GameObject mermaidEnemyPrefab;
 
     [Tooltip("Time between enemy spawns (in seconds)")]
-    public float spawnInterval = 2f;
+    public float spawnInterval = GameConstants.SPAWN_INTERVAL;
 
     [Tooltip("Minimum time between spawns")]
-    public float minSpawnInterval = 0.5f;
+    public float minSpawnInterval = GameConstants.MIN_SPAWN_INTERVAL;
 
     [Tooltip("How much to reduce spawn interval over time")]
     public float spawnIntervalDecreaseRate = 0.01f;
 
     [Header("Map Boundaries")]
     [Tooltip("Distance from player to spawn enemies")]
-    public float spawnDistance = 8f;
+    public float spawnDistance = GameConstants.ENEMY_SPAWN_DISTANCE;
 
     [Header("Enemy Types")]
     [Tooltip("Percentage chance for each enemy type (should add up to 100)")]
@@ -103,7 +103,7 @@ public class EnemySpawner : MonoBehaviour
         GameObject enemy = Instantiate(prefabToSpawn, spawnPosition, Quaternion.identity);
         
         // Set enemy scale
-        enemy.transform.localScale = new Vector3(0.019f, 0.023f, 0.2f);
+        enemy.transform.localScale = new Vector3(GameConstants.ENEMY_SPAWNED_SCALE_X, GameConstants.ENEMY_SPAWNED_SCALE_Y, GameConstants.ENEMY_SPAWNED_SCALE_Z);
     }
     
     /// <summary>
@@ -129,6 +129,12 @@ public class EnemySpawner : MonoBehaviour
     /// </summary>
     Vector3 GetRandomEdgePosition()
     {
+        // Map boundaries
+        float minX = GameConstants.ENEMY_SPAWN_MIN_X;
+        float maxX = GameConstants.ENEMY_SPAWN_MAX_X;
+        float minY = GameConstants.ENEMY_SPAWN_MIN_Y;
+        float maxY = GameConstants.ENEMY_SPAWN_MAX_Y;
+
         // Get player position (or use origin if no player)
         Vector3 playerPos = playerTransform != null ? playerTransform.position : Vector3.zero;
 
@@ -153,6 +159,10 @@ public class EnemySpawner : MonoBehaviour
                 position = playerPos + new Vector3(spawnDistance, randomOffset, 0);
                 break;
         }
+
+        // Clamp position within map boundaries
+        position.x = Mathf.Clamp(position.x, minX, maxX);
+        position.y = Mathf.Clamp(position.y, minY, maxY);
 
         return position;
     }

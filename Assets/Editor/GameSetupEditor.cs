@@ -59,6 +59,9 @@ public class GameSetupEditor : EditorWindow
         // Create UI
         CreateUI();
 
+        // Create map boundaries
+        CreateMapBoundaries();
+
         // Setup camera to follow player
         SetupCamera(player);
 
@@ -85,7 +88,7 @@ public class GameSetupEditor : EditorWindow
             Debug.LogWarning("Ship.png not found, using default sprite");
         }
         
-        player.transform.localScale = new Vector3(0.7f, 1.5f, 1f);
+        player.transform.localScale = new Vector3(GameConstants.PLAYER_SCALE_X, GameConstants.PLAYER_SCALE_Y, GameConstants.PLAYER_SCALE_Z);
         player.tag = "Player";
 
         // Add components
@@ -97,21 +100,25 @@ public class GameSetupEditor : EditorWindow
         col.isTrigger = true;
 
         PlayerController pc = player.AddComponent<PlayerController>();
-        pc.moveSpeed = 5f;
-        pc.maxHealth = 10;
+        pc.moveSpeed = GameConstants.PLAYER_MOVE_SPEED;
+        pc.maxHealth = GameConstants.PLAYER_MAX_HEALTH;
+        pc.minX = GameConstants.MAP_MIN_X;
+        pc.maxX = GameConstants.MAP_MAX_X;
+        pc.minY = GameConstants.MAP_MIN_Y;
+        pc.maxY = GameConstants.MAP_MAX_Y;
 
         // Create 6 cannons - 3 on left side, 3 on right side
-        CreateCannon(player.transform, "Cannon_Left_Top", new Vector3(-0.08f, 0.18f, 0), 
+        CreateCannon(player.transform, "Cannon_Left_Top", new Vector3(-GameConstants.CANNON_OFFSET_X, GameConstants.CANNON_OFFSET_Y, 0), 
             new Vector2(-1, 0), projectilePrefab);
-        CreateCannon(player.transform, "Cannon_Left_Mid", new Vector3(-0.08f, 0f, 0), 
+        CreateCannon(player.transform, "Cannon_Left_Mid", new Vector3(-GameConstants.CANNON_OFFSET_X, 0f, 0), 
             new Vector2(-1, 0), projectilePrefab);
-        CreateCannon(player.transform, "Cannon_Left_Bottom", new Vector3(-0.08f, -0.18f, 0), 
+        CreateCannon(player.transform, "Cannon_Left_Bottom", new Vector3(-GameConstants.CANNON_OFFSET_X, -GameConstants.CANNON_OFFSET_Y, 0), 
             new Vector2(-1, 0), projectilePrefab);
-        CreateCannon(player.transform, "Cannon_Right_Top", new Vector3(0.08f, 0.18f, 0), 
+        CreateCannon(player.transform, "Cannon_Right_Top", new Vector3(GameConstants.CANNON_OFFSET_X, GameConstants.CANNON_OFFSET_Y, 0), 
             new Vector2(1, 0), projectilePrefab);
-        CreateCannon(player.transform, "Cannon_Right_Mid", new Vector3(0.08f, 0f, 0), 
+        CreateCannon(player.transform, "Cannon_Right_Mid", new Vector3(GameConstants.CANNON_OFFSET_X, 0f, 0), 
             new Vector2(1, 0), projectilePrefab);
-        CreateCannon(player.transform, "Cannon_Right_Bottom", new Vector3(0.08f, -0.18f, 0), 
+        CreateCannon(player.transform, "Cannon_Right_Bottom", new Vector3(GameConstants.CANNON_OFFSET_X, -GameConstants.CANNON_OFFSET_Y, 0), 
             new Vector2(1, 0), projectilePrefab);
 
         Debug.Log("✓ Player ship created with 6 cannons (3 per side)");
@@ -128,14 +135,15 @@ public class GameSetupEditor : EditorWindow
         CannonController cc = cannon.AddComponent<CannonController>();
         cc.projectilePrefab = projectilePrefab;
         cc.fireDirection = fireDirection;
-        cc.fireRate = 1f;
+        cc.fireRate = GameConstants.CANNON_FIRE_RATE;
+        cc.spawnOffset = fireDirection * GameConstants.CANNON_PROJECTILE_SPAWN_OFFSET;
     }
 
     static GameObject CreateProjectilePrefab()
     {
         // Create temporary projectile object as 2D sprite
         GameObject projectile = new GameObject("Projectile");
-        projectile.transform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
+        projectile.transform.localScale = new Vector3(GameConstants.PROJECTILE_SCALE, GameConstants.PROJECTILE_SCALE, GameConstants.PROJECTILE_SCALE);
 
         // Add sprite renderer with circle sprite
         SpriteRenderer sr = projectile.AddComponent<SpriteRenderer>();
@@ -152,9 +160,9 @@ public class GameSetupEditor : EditorWindow
         col.isTrigger = true;
 
         Projectile proj = projectile.AddComponent<Projectile>();
-        proj.speed = 10f;
-        proj.lifetime = 3f;
-        proj.damage = 1;
+        proj.speed = GameConstants.PROJECTILE_SPEED;
+        proj.lifetime = GameConstants.PROJECTILE_LIFETIME;
+        proj.damage = GameConstants.PROJECTILE_DAMAGE;
 
         // Save as prefab
         string path = "Assets/Projectile.prefab";
@@ -170,16 +178,16 @@ public class GameSetupEditor : EditorWindow
         GameObject[] lootPrefabs = new GameObject[4];
         
         // Gold (yellow) - using custom sprite
-        lootPrefabs[0] = CreateSingleLootPrefab("Loot_Gold", new Color(1f, 0.84f, 0f), LootType.Gold, "Assets/GameAssets/gold_loot.png", new Vector3(0.02f, 0.02f, 0.15f));
+        lootPrefabs[0] = CreateSingleLootPrefab("Loot_Gold", new Color(1f, 0.84f, 0f), LootType.Gold, "Assets/GameAssets/gold_loot.png", new Vector3(GameConstants.LOOT_GOLD_SCALE_X, GameConstants.LOOT_GOLD_SCALE_Y, GameConstants.LOOT_GOLD_SCALE_Z));
         
         // Wood (brown) - using custom sprite
-        lootPrefabs[1] = CreateSingleLootPrefab("Loot_Wood", new Color(0.6f, 0.4f, 0.2f), LootType.Wood, "Assets/GameAssets/wood_loot.png", new Vector3(0.012f, 0.012f, 0.15f));
+        lootPrefabs[1] = CreateSingleLootPrefab("Loot_Wood", new Color(0.6f, 0.4f, 0.2f), LootType.Wood, "Assets/GameAssets/wood_loot.png", new Vector3(GameConstants.LOOT_WOOD_SCALE_X, GameConstants.LOOT_WOOD_SCALE_Y, GameConstants.LOOT_WOOD_SCALE_Z));
         
         // Canvas (beige/white) - using custom sprite
-        lootPrefabs[2] = CreateSingleLootPrefab("Loot_Canvas", new Color(0.96f, 0.87f, 0.7f), LootType.Canvas, "Assets/GameAssets/canvas_loot.png", new Vector3(0.008f, 0.008f, 0.15f));
+        lootPrefabs[2] = CreateSingleLootPrefab("Loot_Canvas", new Color(0.96f, 0.87f, 0.7f), LootType.Canvas, "Assets/GameAssets/canvas_loot.png", new Vector3(GameConstants.LOOT_CANVAS_SCALE_X, GameConstants.LOOT_CANVAS_SCALE_Y, GameConstants.LOOT_CANVAS_SCALE_Z));
         
         // Metal (gray) - using custom sprite
-        lootPrefabs[3] = CreateSingleLootPrefab("Loot_Metal", new Color(0.7f, 0.7f, 0.7f), LootType.Metal, "Assets/GameAssets/metal_loot.png", new Vector3(0.012f, 0.012f, 0.15f));
+        lootPrefabs[3] = CreateSingleLootPrefab("Loot_Metal", new Color(0.7f, 0.7f, 0.7f), LootType.Metal, "Assets/GameAssets/metal_loot.png", new Vector3(GameConstants.LOOT_METAL_SCALE_X, GameConstants.LOOT_METAL_SCALE_Y, GameConstants.LOOT_METAL_SCALE_Z));
         
         Debug.Log("✓ Created 4 loot prefabs (Gold, Wood, Canvas, Metal)");
         return lootPrefabs;
@@ -189,7 +197,7 @@ public class GameSetupEditor : EditorWindow
     {
         // Create loot object
         GameObject loot = new GameObject(prefabName);
-        loot.transform.localScale = scale ?? new Vector3(0.02f, 0.02f, 0.15f);
+        loot.transform.localScale = scale ?? new Vector3(GameConstants.LOOT_GOLD_SCALE_X, GameConstants.LOOT_GOLD_SCALE_Y, GameConstants.LOOT_GOLD_SCALE_Z);
         
         // Add sprite renderer
         SpriteRenderer sr = loot.AddComponent<SpriteRenderer>();
@@ -228,7 +236,7 @@ public class GameSetupEditor : EditorWindow
         // Add loot script
         LootItem lootItem = loot.AddComponent<LootItem>();
         lootItem.lootType = lootType;
-        lootItem.lifetime = 10f;
+        lootItem.lifetime = GameConstants.LOOT_LIFETIME;
         
         // Save as prefab
         string path = $"Assets/{prefabName}.prefab";
@@ -258,7 +266,7 @@ public class GameSetupEditor : EditorWindow
             Debug.LogWarning($"{spritePath} not found, using default sprite");
         }
         
-        enemy.transform.localScale = new Vector3(1.2f, 1.2f, 1.2f);
+        enemy.transform.localScale = new Vector3(GameConstants.ENEMY_SCALE, GameConstants.ENEMY_SCALE, GameConstants.ENEMY_SCALE);
         enemy.tag = "Enemy";
 
         // Add components
@@ -270,10 +278,10 @@ public class GameSetupEditor : EditorWindow
         col.isTrigger = true;
 
         EnemyController ec = enemy.AddComponent<EnemyController>();
-        ec.moveSpeed = 2f;
-        ec.collisionDamage = 1;
+        ec.moveSpeed = GameConstants.ENEMY_MOVE_SPEED;
+        ec.collisionDamage = GameConstants.ENEMY_COLLISION_DAMAGE;
         ec.maxHealth = health;
-        ec.lootDropChance = 0.2f;
+        ec.lootDropChance = GameConstants.LOOT_DROP_CHANCE;
         ec.lootPrefabs = lootPrefabs;
 
         // Save as prefab
@@ -292,9 +300,9 @@ public class GameSetupEditor : EditorWindow
         es.crabEnemyPrefab = crabPrefab;
         es.harpyEnemyPrefab = harpyPrefab;
         es.mermaidEnemyPrefab = mermaidPrefab;
-        es.spawnInterval = 2f;
-        es.minSpawnInterval = 0.5f;
-        es.spawnDistance = 8f;
+        es.spawnInterval = GameConstants.SPAWN_INTERVAL;
+        es.minSpawnInterval = GameConstants.MIN_SPAWN_INTERVAL;
+        es.spawnDistance = GameConstants.ENEMY_SPAWN_DISTANCE;
 
         Debug.Log("✓ Enemy spawner created with 3 enemy types");
     }
@@ -355,6 +363,31 @@ public class GameSetupEditor : EditorWindow
         killRect.pivot = new Vector2(1, 1);
         killRect.anchoredPosition = new Vector2(-10, -10);
         killRect.sizeDelta = new Vector2(200, 50);
+
+        // Create Loot Counter Panel (top-right, below kill count)
+        GameObject lootPanelObj = new GameObject("LootPanel");
+        lootPanelObj.transform.SetParent(canvasObj.transform);
+        RectTransform lootPanelRect = lootPanelObj.AddComponent<RectTransform>();
+        lootPanelRect.anchorMin = new Vector2(1, 1);
+        lootPanelRect.anchorMax = new Vector2(1, 1);
+        lootPanelRect.pivot = new Vector2(1, 1);
+        lootPanelRect.anchoredPosition = new Vector2(-10, -60);
+        lootPanelRect.sizeDelta = new Vector2(200, 40);
+
+        // Create horizontal layout
+        HorizontalLayoutGroup layoutGroup = lootPanelObj.AddComponent<HorizontalLayoutGroup>();
+        layoutGroup.spacing = 10;
+        layoutGroup.childAlignment = TextAnchor.MiddleRight;
+        layoutGroup.childControlWidth = false;
+        layoutGroup.childControlHeight = false;
+        layoutGroup.childForceExpandWidth = false;
+        layoutGroup.childForceExpandHeight = false;
+
+        // Create loot counters (Gold, Wood, Canvas, Metal)
+        TextMeshProUGUI goldText = CreateLootCounter(lootPanelObj.transform, "Assets/GameAssets/gold_loot.png", "GoldCounter");
+        TextMeshProUGUI woodText = CreateLootCounter(lootPanelObj.transform, "Assets/GameAssets/wood_loot.png", "WoodCounter");
+        TextMeshProUGUI canvasText = CreateLootCounter(lootPanelObj.transform, "Assets/GameAssets/canvas_loot.png", "CanvasCounter");
+        TextMeshProUGUI metalText = CreateLootCounter(lootPanelObj.transform, "Assets/GameAssets/metal_loot.png", "MetalCounter");
 
         // Create Game Over Panel
         GameObject panelObj = new GameObject("GameOverPanel");
@@ -431,11 +464,60 @@ public class GameSetupEditor : EditorWindow
         uiManager.killCountText = killText;
         uiManager.gameOverPanel = panelObj;
         uiManager.finalScoreText = scoreText;
+        uiManager.goldCountText = goldText;
+        uiManager.woodCountText = woodText;
+        uiManager.canvasCountText = canvasText;
+        uiManager.metalCountText = metalText;
 
         // Hook up button
         button.onClick.AddListener(() => uiManager.OnRestartButtonClicked());
 
-        Debug.Log("✓ UI created with health, kills, and game over screen");
+        Debug.Log("✓ UI created with health, kills, loot counters, and game over screen");
+    }
+
+    static TextMeshProUGUI CreateLootCounter(Transform parent, string iconPath, string name)
+    {
+        // Create container
+        GameObject container = new GameObject(name);
+        container.transform.SetParent(parent);
+        RectTransform containerRect = container.AddComponent<RectTransform>();
+        containerRect.sizeDelta = new Vector2(45, 40);
+
+        // Create icon
+        GameObject iconObj = new GameObject("Icon");
+        iconObj.transform.SetParent(container.transform);
+        Image icon = iconObj.AddComponent<Image>();
+        
+        Sprite iconSprite = AssetDatabase.LoadAssetAtPath<Sprite>(iconPath);
+        if (iconSprite != null)
+        {
+            icon.sprite = iconSprite;
+        }
+        
+        RectTransform iconRect = iconObj.GetComponent<RectTransform>();
+        iconRect.anchorMin = new Vector2(0, 0.5f);
+        iconRect.anchorMax = new Vector2(0, 0.5f);
+        iconRect.pivot = new Vector2(0, 0.5f);
+        iconRect.anchoredPosition = new Vector2(0, 0);
+        iconRect.sizeDelta = new Vector2(30, 30);
+
+        // Create text
+        GameObject textObj = new GameObject("Count");
+        textObj.transform.SetParent(container.transform);
+        TextMeshProUGUI text = textObj.AddComponent<TextMeshProUGUI>();
+        text.text = "0";
+        text.fontSize = 20;
+        text.color = Color.white;
+        text.alignment = TextAlignmentOptions.MidlineLeft;
+        
+        RectTransform textRect = textObj.GetComponent<RectTransform>();
+        textRect.anchorMin = new Vector2(0, 0.5f);
+        textRect.anchorMax = new Vector2(0, 0.5f);
+        textRect.pivot = new Vector2(0, 0.5f);
+        textRect.anchoredPosition = new Vector2(32, 0);
+        textRect.sizeDelta = new Vector2(30, 40);
+
+        return text;
     }
 
     /// <summary>
@@ -560,9 +642,72 @@ public class GameSetupEditor : EditorWindow
                 cameraFollow = mainCamera.gameObject.AddComponent<CameraFollow>();
             }
             cameraFollow.target = player.transform;
-            cameraFollow.smoothSpeed = 0.125f;
-            cameraFollow.offset = new Vector3(0, 0, -10f);
+            cameraFollow.smoothSpeed = GameConstants.CAMERA_SMOOTH_SPEED;
+            cameraFollow.offset = new Vector3(0, 0, GameConstants.CAMERA_OFFSET_Z);
             Debug.Log("✓ Camera set to follow player");
         }
+    }
+
+    /// <summary>
+    /// Creates visible boundary walls around the map edges
+    /// </summary>
+    static void CreateMapBoundaries()
+    {
+        float minX = GameConstants.MAP_MIN_X;
+        float maxX = GameConstants.MAP_MAX_X;
+        float minY = GameConstants.MAP_MIN_Y;
+        float maxY = GameConstants.MAP_MAX_Y;
+        float wallThickness = GameConstants.WALL_THICKNESS;
+        float mapWidth = GameConstants.MAP_WIDTH;
+        float mapHeight = GameConstants.MAP_HEIGHT;
+
+        // Top wall
+        CreateBoundaryWall("Boundary_Top", 
+            new Vector3(0, maxY + wallThickness/2, 0), 
+            new Vector3(mapWidth + wallThickness * 2, wallThickness, 1));
+
+        // Bottom wall
+        CreateBoundaryWall("Boundary_Bottom", 
+            new Vector3(0, minY - wallThickness/2, 0), 
+            new Vector3(mapWidth + wallThickness * 2, wallThickness, 1));
+
+        // Left wall (extend to cover full height including top/bottom walls)
+        CreateBoundaryWall("Boundary_Left", 
+            new Vector3(minX - wallThickness/2, 0, 0), 
+            new Vector3(wallThickness, mapHeight + wallThickness * 2, 1));
+
+        // Right wall (extend to cover full height including top/bottom walls)
+        CreateBoundaryWall("Boundary_Right", 
+            new Vector3(maxX + wallThickness/2, 0, 0), 
+            new Vector3(wallThickness, mapHeight + wallThickness * 2, 1));
+
+        // Set camera background to water blue
+        Camera mainCamera = Camera.main;
+        if (mainCamera != null)
+        {
+            mainCamera.backgroundColor = new Color(0.2f, 0.4f, 0.7f); // Ocean blue
+        }
+
+        Debug.Log("✓ Map boundaries created");
+    }
+
+    static void CreateBoundaryWall(string name, Vector3 position, Vector3 scale)
+    {
+        GameObject wall = new GameObject(name);
+        wall.transform.position = position;
+        wall.transform.localScale = new Vector3(1f, 1f, 10f);
+
+        // Add sprite renderer
+        SpriteRenderer sr = wall.AddComponent<SpriteRenderer>();
+        sr.sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
+        sr.color = new Color(0.3f, 0.2f, 0.1f, 1f); // Dark brown color
+        sr.drawMode = SpriteDrawMode.Tiled;
+        sr.size = new Vector2(scale.x, scale.y); // Set actual world size
+        sr.sortingOrder = -1; // Behind other objects
+
+        // Add collider to stop movement
+        BoxCollider2D col = wall.AddComponent<BoxCollider2D>();
+        col.size = new Vector2(scale.x, scale.y);
+        col.isTrigger = false; // Solid wall
     }
 }

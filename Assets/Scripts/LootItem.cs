@@ -14,7 +14,7 @@ public class LootItem : MonoBehaviour
     public float driftSpeed = 0.5f;
 
     [Tooltip("How long before the loot disappears")]
-    public float lifetime = 10f;
+    public float lifetime = GameConstants.LOOT_LIFETIME;
 
     // Timer for lifetime
     private float lifetimeTimer;
@@ -40,8 +40,12 @@ public class LootItem : MonoBehaviour
     /// </summary>
     public void Collect()
     {
-        // TODO: Add to player inventory
-        Debug.Log($"Collected {lootType}!");
+        // Add to player inventory via GameManager
+        if (GameManager.Instance != null && GameManager.Instance.uiManager != null)
+        {
+            GameManager.Instance.uiManager.AddLoot(lootType);
+            Debug.Log($"Collected {lootType}!");
+        }
 
         // Destroy the loot item
         Destroy(gameObject);

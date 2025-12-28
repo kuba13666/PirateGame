@@ -10,10 +10,10 @@ public class CameraFollow : MonoBehaviour
     public Transform target;
 
     [Tooltip("How smoothly the camera follows (lower = smoother)")]
-    public float smoothSpeed = 0.125f;
+    public float smoothSpeed = GameConstants.CAMERA_SMOOTH_SPEED;
 
     [Tooltip("Offset from the target position")]
-    public Vector3 offset = new Vector3(0, 0, -10f);
+    public Vector3 offset = new Vector3(0, 0, GameConstants.CAMERA_OFFSET_Z);
 
     void LateUpdate()
     {

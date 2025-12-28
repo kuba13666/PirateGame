@@ -8,13 +8,13 @@ public class Projectile : MonoBehaviour
 {
     [Header("Projectile Settings")]
     [Tooltip("How fast the projectile travels")]
-    public float speed = 10f;
+    public float speed = GameConstants.PROJECTILE_SPEED;
 
     [Tooltip("How long before the projectile destroys itself (in seconds)")]
-    public float lifetime = 3f;
+    public float lifetime = GameConstants.PROJECTILE_LIFETIME;
 
     [Tooltip("Damage dealt to enemies")]
-    public int damage = 1;
+    public int damage = GameConstants.PROJECTILE_DAMAGE;
 
     // Direction the projectile is moving
     private Vector2 direction;
