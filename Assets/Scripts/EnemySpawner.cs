@@ -7,8 +7,14 @@ using UnityEngine;
 public class EnemySpawner : MonoBehaviour
 {
     [Header("Spawn Settings")]
-    [Tooltip("Prefab to use for spawning enemies")]
-    public GameObject enemyPrefab;
+    [Tooltip("Crab enemy prefab (1 HP, common)")]
+    public GameObject crabEnemyPrefab;
+    
+    [Tooltip("Harpy enemy prefab (2 HP, uncommon)")]
+    public GameObject harpyEnemyPrefab;
+    
+    [Tooltip("Mermaid enemy prefab (3 HP, rare)")]
+    public GameObject mermaidEnemyPrefab;
 
     [Tooltip("Time between enemy spawns (in seconds)")]
     public float spawnInterval = 2f;
@@ -21,7 +27,7 @@ public class EnemySpawner : MonoBehaviour
 
     [Header("Map Boundaries")]
     [Tooltip("Distance from player to spawn enemies")]
-    public float spawnDistance = 4f;
+    public float spawnDistance = 8f;
 
     [Header("Enemy Types")]
     [Tooltip("Percentage chance for each enemy type (should add up to 100)")]
@@ -38,7 +44,6 @@ public class EnemySpawner : MonoBehaviour
     // Enemy type configurations
     private struct EnemyType
     {
-        public Color color;
         public int health;
         public string name;
     }
@@ -81,9 +86,13 @@ public class EnemySpawner : MonoBehaviour
     /// </summary>
     void SpawnEnemy()
     {
-        if (enemyPrefab == null)
+        // Get random enemy type based on chances
+        EnemyType enemyType = GetRandomEnemyType();
+        GameObject prefabToSpawn = GetPrefabForType(enemyType);
+        
+        if (prefabToSpawn == null)
         {
-            Debug.LogWarning("No enemy prefab assigned to spawner!");
+            Debug.LogWarning("No enemy prefab assigned for this type!");
             return;
         }
 
@@ -91,19 +100,27 @@ public class EnemySpawner : MonoBehaviour
         Vector3 spawnPosition = GetRandomEdgePosition();
 
         // Create the enemy
-        GameObject enemy = Instantiate(enemyPrefab, spawnPosition, Quaternion.identity);
-
-        // Set enemy type (color and HP)
-        EnemyType enemyType = GetRandomEnemyType();
-        EnemyController enemyController = enemy.GetComponent<EnemyController>();
-        if (enemyController != null)
+        GameObject enemy = Instantiate(prefabToSpawn, spawnPosition, Quaternion.identity);
+        
+        // Set enemy scale
+        enemy.transform.localScale = new Vector3(0.019f, 0.023f, 0.2f);
+    }
+    
+    /// <summary>
+    /// Returns the appropriate prefab for the enemy type
+    /// </summary>
+    GameObject GetPrefabForType(EnemyType enemyType)
+    {
+        switch (enemyType.name)
         {
-            enemyController.maxHealth = enemyType.health;
-            enemyController.enemyColor = enemyType.color;
-
-            // Restart the enemy so it picks up the new values
-            enemy.SetActive(false);
-            enemy.SetActive(true);
+            case "Crab":
+                return crabEnemyPrefab;
+            case "Harpy":
+                return harpyEnemyPrefab;
+            case "Mermaid":
+                return mermaidEnemyPrefab;
+            default:
+                return crabEnemyPrefab;
         }
     }
 
@@ -153,24 +170,21 @@ public class EnemySpawner : MonoBehaviour
         // Check which enemy type was rolled
         if (roll < redEnemyChance)
         {
-            // Red enemy: 1 HP
-            enemyType.color = Color.red;
+            // Crab enemy: 1 HP
             enemyType.health = 1;
-            enemyType.name = "Red";
+            enemyType.name = "Crab";
         }
         else if (roll < redEnemyChance + blueEnemyChance)
         {
-            // Blue enemy: 2 HP
-            enemyType.color = Color.blue;
+            // Harpy enemy: 2 HP
             enemyType.health = 2;
-            enemyType.name = "Blue";
+            enemyType.name = "Harpy";
         }
         else
         {
-            // Green enemy: 3 HP
-            enemyType.color = Color.green;
+            // Mermaid enemy: 3 HP
             enemyType.health = 3;
-            enemyType.name = "Green";
+            enemyType.name = "Mermaid";
         }
 
         return enemyType;

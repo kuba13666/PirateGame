@@ -13,12 +13,9 @@ public class EnemyController : MonoBehaviour
     [Tooltip("Damage dealt to player on collision")]
     public int collisionDamage = 1;
 
-    [Header("Health & Color")]
+    [Header("Health")]
     [Tooltip("Health points for this enemy")]
     public int maxHealth = 1;
-
-    [Tooltip("Color of this enemy (determines HP)")]
-    public Color enemyColor = Color.red;
 
     // Current health
     private int currentHealth;
@@ -48,12 +45,8 @@ public class EnemyController : MonoBehaviour
             Debug.LogWarning("Player not found! Make sure player has 'Player' tag.");
         }
 
-        // Get sprite renderer and set color
+        // Get sprite renderer for flash effect
         spriteRenderer = GetComponent<SpriteRenderer>();
-        if (spriteRenderer != null)
-        {
-            spriteRenderer.color = enemyColor;
-        }
 
         // Get Rigidbody2D component
         rb = GetComponent<Rigidbody2D>();

@@ -28,17 +28,27 @@ public class GameSetupEditor : EditorWindow
         EnsureTagExists("Player");
         EnsureTagExists("Enemy");
 
+        // Ensure Ship sprite is properly configured
+        EnsureShipSpriteImported();
+        
+        // Ensure enemy sprites are properly configured
+        EnsureEnemySpriteImported("Assets/GameAssets/enemy_giant_crab.png");
+        EnsureEnemySpriteImported("Assets/GameAssets/enemy_harpy.png");
+        EnsureEnemySpriteImported("Assets/GameAssets/enemy_mermaid.png");
+
         // Create Projectile Prefab first
         GameObject projectilePrefab = CreateProjectilePrefab();
 
-        // Create Enemy Prefab
-        GameObject enemyPrefab = CreateEnemyPrefab();
+        // Create Enemy Prefabs (3 types)
+        GameObject crabEnemy = CreateEnemyPrefab("Assets/GameAssets/enemy_giant_crab.png", "Enemy_Crab", Color.red, 1);
+        GameObject harpyEnemy = CreateEnemyPrefab("Assets/GameAssets/enemy_harpy.png", "Enemy_Harpy", Color.blue, 2);
+        GameObject mermaidEnemy = CreateEnemyPrefab("Assets/GameAssets/enemy_mermaid.png", "Enemy_Mermaid", Color.green, 3);
 
         // Create Player Ship with Cannons
         GameObject player = CreatePlayerShip(projectilePrefab);
 
-        // Create Enemy Spawner
-        CreateEnemySpawner(enemyPrefab);
+        // Create Enemy Spawner with all 3 enemy types
+        CreateEnemySpawner(crabEnemy, harpyEnemy, mermaidEnemy);
 
         // Create Game Manager
         CreateGameManager();
@@ -57,9 +67,22 @@ public class GameSetupEditor : EditorWindow
         // Create player sprite
         GameObject player = new GameObject("Player");
         SpriteRenderer sr = player.AddComponent<SpriteRenderer>();
-        sr.sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd");
-        sr.color = new Color(0.6f, 0.4f, 0.2f); // Brown color
-        player.transform.localScale = new Vector3(1f, 4f, 1f);
+        
+        // Try to load custom ship sprite
+        Sprite customSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/GameAssets/Ship.png");
+        if (customSprite != null)
+        {
+            sr.sprite = customSprite;
+        }
+        else
+        {
+            // Fallback to default sprite
+            sr.sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd");
+            sr.color = new Color(0.6f, 0.4f, 0.2f); // Brown color
+            Debug.LogWarning("Ship.png not found, using default sprite");
+        }
+        
+        player.transform.localScale = new Vector3(0.7f, 1.5f, 1f);
         player.tag = "Player";
 
         // Add components
@@ -75,17 +98,17 @@ public class GameSetupEditor : EditorWindow
         pc.maxHealth = 10;
 
         // Create 6 cannons - 3 on left side, 3 on right side
-        CreateCannon(player.transform, "Cannon_Left_Top", new Vector3(-0.08f, 0.08f, 0), 
+        CreateCannon(player.transform, "Cannon_Left_Top", new Vector3(-0.08f, 0.18f, 0), 
             new Vector2(-1, 0), projectilePrefab);
         CreateCannon(player.transform, "Cannon_Left_Mid", new Vector3(-0.08f, 0f, 0), 
             new Vector2(-1, 0), projectilePrefab);
-        CreateCannon(player.transform, "Cannon_Left_Bottom", new Vector3(-0.08f, -0.08f, 0), 
+        CreateCannon(player.transform, "Cannon_Left_Bottom", new Vector3(-0.08f, -0.18f, 0), 
             new Vector2(-1, 0), projectilePrefab);
-        CreateCannon(player.transform, "Cannon_Right_Top", new Vector3(0.08f, 0.08f, 0), 
+        CreateCannon(player.transform, "Cannon_Right_Top", new Vector3(0.08f, 0.18f, 0), 
             new Vector2(1, 0), projectilePrefab);
         CreateCannon(player.transform, "Cannon_Right_Mid", new Vector3(0.08f, 0f, 0), 
             new Vector2(1, 0), projectilePrefab);
-        CreateCannon(player.transform, "Cannon_Right_Bottom", new Vector3(0.08f, -0.08f, 0), 
+        CreateCannon(player.transform, "Cannon_Right_Bottom", new Vector3(0.08f, -0.18f, 0), 
             new Vector2(1, 0), projectilePrefab);
 
         Debug.Log("✓ Player ship created with 6 cannons (3 per side)");
@@ -139,13 +162,26 @@ public class GameSetupEditor : EditorWindow
         return prefab;
     }
 
-    static GameObject CreateEnemyPrefab()
+    static GameObject CreateEnemyPrefab(string spritePath, string prefabName, Color color, int health)
     {
         // Create enemy sprite
-        GameObject enemy = new GameObject("Enemy");
+        GameObject enemy = new GameObject(prefabName);
         SpriteRenderer sr = enemy.AddComponent<SpriteRenderer>();
-        sr.sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
-        sr.color = Color.red;
+        
+        // Try to load custom enemy sprite
+        Sprite customSprite = AssetDatabase.LoadAssetAtPath<Sprite>(spritePath);
+        if (customSprite != null)
+        {
+            sr.sprite = customSprite;
+        }
+        else
+        {
+            // Fallback to default sprite
+            sr.sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
+            sr.color = color;
+            Debug.LogWarning($"{spritePath} not found, using default sprite");
+        }
+        
         enemy.transform.localScale = new Vector3(1.2f, 1.2f, 1.2f);
         enemy.tag = "Enemy";
 
@@ -160,28 +196,29 @@ public class GameSetupEditor : EditorWindow
         EnemyController ec = enemy.AddComponent<EnemyController>();
         ec.moveSpeed = 2f;
         ec.collisionDamage = 1;
-        ec.maxHealth = 1;
-        ec.enemyColor = Color.red;
+        ec.maxHealth = health;
 
         // Save as prefab
-        string path = "Assets/Enemy.prefab";
+        string path = $"Assets/{prefabName}.prefab";
         GameObject prefab = PrefabUtility.SaveAsPrefabAsset(enemy, path);
         DestroyImmediate(enemy);
 
-        Debug.Log("✓ Enemy prefab created");
+        Debug.Log($"✓ {prefabName} prefab created");
         return prefab;
     }
 
-    static void CreateEnemySpawner(GameObject enemyPrefab)
+    static void CreateEnemySpawner(GameObject crabPrefab, GameObject harpyPrefab, GameObject mermaidPrefab)
     {
         GameObject spawner = new GameObject("EnemySpawner");
         EnemySpawner es = spawner.AddComponent<EnemySpawner>();
-        es.enemyPrefab = enemyPrefab;
+        es.crabEnemyPrefab = crabPrefab;
+        es.harpyEnemyPrefab = harpyPrefab;
+        es.mermaidEnemyPrefab = mermaidPrefab;
         es.spawnInterval = 2f;
         es.minSpawnInterval = 0.5f;
-        es.spawnDistance = 12f;
+        es.spawnDistance = 8f;
 
-        Debug.Log("✓ Enemy spawner created");
+        Debug.Log("✓ Enemy spawner created with 3 enemy types");
     }
 
     static void CreateGameManager()
@@ -352,6 +389,82 @@ public class GameSetupEditor : EditorWindow
             newTag.stringValue = tag;
             tagManager.ApplyModifiedProperties();
             Debug.Log($"✓ Created tag: {tag}");
+        }
+    }
+
+    /// <summary>
+    /// Ensures the Ship sprite is properly imported as a 2D sprite
+    /// </summary>
+    static void EnsureShipSpriteImported()
+    {
+        string assetPath = "Assets/GameAssets/Ship.png";
+        TextureImporter importer = AssetImporter.GetAtPath(assetPath) as TextureImporter;
+        
+        if (importer != null)
+        {
+            bool needsReimport = false;
+            
+            // Set texture type to Sprite
+            if (importer.textureType != TextureImporterType.Sprite)
+            {
+                importer.textureType = TextureImporterType.Sprite;
+                needsReimport = true;
+            }
+            
+            // Set sprite mode to Single
+            if (importer.spriteImportMode != SpriteImportMode.Single)
+            {
+                importer.spriteImportMode = SpriteImportMode.Single;
+                needsReimport = true;
+            }
+            
+            // Set pixels per unit (adjust if needed)
+            if (importer.spritePixelsPerUnit != 1024f)
+            {
+                importer.spritePixelsPerUnit = 1024f;
+                needsReimport = true;
+            }
+            
+            if (needsReimport)
+            {
+                AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate);
+                Debug.Log("✓ Ship sprite configured correctly");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("Ship.png not found in Assets folder");
+        }
+    }
+
+    /// <summary>
+    /// Ensures an enemy sprite is properly imported as a 2D sprite
+    /// </summary>
+    static void EnsureEnemySpriteImported(string assetPath)
+    {
+        TextureImporter importer = AssetImporter.GetAtPath(assetPath) as TextureImporter;
+        
+        if (importer != null)
+        {
+            bool needsReimport = false;
+            
+            if (importer.textureType != TextureImporterType.Sprite)
+            {
+                importer.textureType = TextureImporterType.Sprite;
+                needsReimport = true;
+            }
+            
+            if (importer.spriteImportMode != SpriteImportMode.Single)
+            {
+                importer.spriteImportMode = SpriteImportMode.Single;
+                needsReimport = true;
+            }
+            
+            if (needsReimport)
+            {
+                AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate);
+                Debug.Log($"✓ Enemy sprite {assetPath} configured");
+            }
         }
     }
 
