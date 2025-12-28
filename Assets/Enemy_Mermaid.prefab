@@ -182,3 +182,9 @@ MonoBehaviour:
   moveSpeed: 2
   collisionDamage: 1
   maxHealth: 3
+  lootDropChance: 0.2
+  lootPrefabs:
+  - {fileID: 4617572579978190012, guid: 5d87b24c8178f614594ed8fbeae75375, type: 3}
+  - {fileID: 653757432895945344, guid: 891525737d3c10c4498df5c5991d3a9d, type: 3}
+  - {fileID: 1712169650782894268, guid: a1eb0037f8a684e409610fd4a13e844c, type: 3}
+  - {fileID: 1445761202753733644, guid: 9d802e93ca2bc3d42b6c9d60efd22a3e, type: 3}

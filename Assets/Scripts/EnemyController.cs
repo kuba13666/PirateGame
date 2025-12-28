@@ -17,6 +17,13 @@ public class EnemyController : MonoBehaviour
     [Tooltip("Health points for this enemy")]
     public int maxHealth = 1;
 
+    [Header("Loot")]
+    [Tooltip("Chance to drop loot on death (0 to 1)")]
+    public float lootDropChance = 1.0f;
+
+    [Tooltip("Loot prefabs to spawn")]
+    public GameObject[] lootPrefabs;
+
     // Current health
     private int currentHealth;
 
@@ -119,8 +126,45 @@ public class EnemyController : MonoBehaviour
             GameManager.Instance.AddKill();
         }
 
+        // Try to spawn loot
+        TrySpawnLoot();
+
         // Destroy this enemy
         Destroy(gameObject);
+    }
+
+    /// <summary>
+    /// Randomly spawns loot at this enemy's position
+    /// </summary>
+    void TrySpawnLoot()
+    {
+        // Check if we should drop loot
+        float roll = Random.value;
+        Debug.Log($"Loot drop roll: {roll} (need <= {lootDropChance})");
+        
+        if (roll <= lootDropChance && lootPrefabs != null && lootPrefabs.Length > 0)
+        {
+            // Pick a random loot type (25% chance for each of the 4 types)
+            int lootIndex = Random.Range(0, lootPrefabs.Length);
+            GameObject lootPrefab = lootPrefabs[lootIndex];
+            Debug.Log($"Selected loot type index: {lootIndex}/{lootPrefabs.Length}");
+
+            // Spawn the loot at this enemy's position
+            if (lootPrefab != null)
+            {
+                Vector3 spawnPos = transform.position;
+                GameObject loot = Instantiate(lootPrefab, spawnPos, Quaternion.identity);
+                Debug.Log($"Spawned {lootPrefab.name} at {spawnPos}");
+            }
+            else
+            {
+                Debug.LogWarning("Loot prefab is null!");
+            }
+        }
+        else if (lootPrefabs == null || lootPrefabs.Length == 0)
+        {
+            Debug.LogWarning("No loot prefabs assigned to enemy!");
+        }
     }
 
     /// <summary>

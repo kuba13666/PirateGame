@@ -39,10 +39,13 @@ public class GameSetupEditor : EditorWindow
         // Create Projectile Prefab first
         GameObject projectilePrefab = CreateProjectilePrefab();
 
+        // Create Loot Prefabs (4 types)
+        GameObject[] lootPrefabs = CreateLootPrefabs();
+
         // Create Enemy Prefabs (3 types)
-        GameObject crabEnemy = CreateEnemyPrefab("Assets/GameAssets/enemy_giant_crab.png", "Enemy_Crab", Color.red, 1);
-        GameObject harpyEnemy = CreateEnemyPrefab("Assets/GameAssets/enemy_harpy.png", "Enemy_Harpy", Color.blue, 2);
-        GameObject mermaidEnemy = CreateEnemyPrefab("Assets/GameAssets/enemy_mermaid.png", "Enemy_Mermaid", Color.green, 3);
+        GameObject crabEnemy = CreateEnemyPrefab("Assets/GameAssets/enemy_giant_crab.png", "Enemy_Crab", Color.red, 1, lootPrefabs);
+        GameObject harpyEnemy = CreateEnemyPrefab("Assets/GameAssets/enemy_harpy.png", "Enemy_Harpy", Color.blue, 2, lootPrefabs);
+        GameObject mermaidEnemy = CreateEnemyPrefab("Assets/GameAssets/enemy_mermaid.png", "Enemy_Mermaid", Color.green, 3, lootPrefabs);
 
         // Create Player Ship with Cannons
         GameObject player = CreatePlayerShip(projectilePrefab);
@@ -162,7 +165,80 @@ public class GameSetupEditor : EditorWindow
         return prefab;
     }
 
-    static GameObject CreateEnemyPrefab(string spritePath, string prefabName, Color color, int health)
+    static GameObject[] CreateLootPrefabs()
+    {
+        GameObject[] lootPrefabs = new GameObject[4];
+        
+        // Gold (yellow) - using custom sprite
+        lootPrefabs[0] = CreateSingleLootPrefab("Loot_Gold", new Color(1f, 0.84f, 0f), LootType.Gold, "Assets/GameAssets/gold_loot.png", new Vector3(0.02f, 0.02f, 0.15f));
+        
+        // Wood (brown) - using custom sprite
+        lootPrefabs[1] = CreateSingleLootPrefab("Loot_Wood", new Color(0.6f, 0.4f, 0.2f), LootType.Wood, "Assets/GameAssets/wood_loot.png", new Vector3(0.012f, 0.012f, 0.15f));
+        
+        // Canvas (beige/white) - using custom sprite
+        lootPrefabs[2] = CreateSingleLootPrefab("Loot_Canvas", new Color(0.96f, 0.87f, 0.7f), LootType.Canvas, "Assets/GameAssets/canvas_loot.png", new Vector3(0.008f, 0.008f, 0.15f));
+        
+        // Metal (gray) - using custom sprite
+        lootPrefabs[3] = CreateSingleLootPrefab("Loot_Metal", new Color(0.7f, 0.7f, 0.7f), LootType.Metal, "Assets/GameAssets/metal_loot.png", new Vector3(0.012f, 0.012f, 0.15f));
+        
+        Debug.Log("✓ Created 4 loot prefabs (Gold, Wood, Canvas, Metal)");
+        return lootPrefabs;
+    }
+
+    static GameObject CreateSingleLootPrefab(string prefabName, Color color, LootType lootType, string spritePath = null, Vector3? scale = null)
+    {
+        // Create loot object
+        GameObject loot = new GameObject(prefabName);
+        loot.transform.localScale = scale ?? new Vector3(0.02f, 0.02f, 0.15f);
+        
+        // Add sprite renderer
+        SpriteRenderer sr = loot.AddComponent<SpriteRenderer>();
+        
+        // Try to load custom sprite if path provided
+        if (!string.IsNullOrEmpty(spritePath))
+        {
+            Sprite customSprite = AssetDatabase.LoadAssetAtPath<Sprite>(spritePath);
+            if (customSprite != null)
+            {
+                sr.sprite = customSprite;
+            }
+            else
+            {
+                // Fallback to circle with color
+                sr.sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd");
+                sr.color = color;
+                Debug.LogWarning($"{spritePath} not found, using default circle");
+            }
+        }
+        else
+        {
+            // Use default circle with color
+            sr.sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd");
+            sr.color = color;
+        }
+        
+        // Add physics
+        Rigidbody2D rb = loot.AddComponent<Rigidbody2D>();
+        rb.bodyType = RigidbodyType2D.Kinematic;
+        rb.gravityScale = 0;
+        
+        CircleCollider2D col = loot.AddComponent<CircleCollider2D>();
+        col.isTrigger = true;
+        
+        // Add loot script
+        LootItem lootItem = loot.AddComponent<LootItem>();
+        lootItem.lootType = lootType;
+        lootItem.lifetime = 10f;
+        
+        // Save as prefab
+        string path = $"Assets/{prefabName}.prefab";
+        GameObject prefab = PrefabUtility.SaveAsPrefabAsset(loot, path);
+        DestroyImmediate(loot);
+        
+        return prefab;
+    }
+
+    static GameObject CreateEnemyPrefab(string spritePath, string prefabName, Color color, int health, GameObject[] lootPrefabs)
     {
         // Create enemy sprite
         GameObject enemy = new GameObject(prefabName);
@@ -197,6 +273,8 @@ public class GameSetupEditor : EditorWindow
         ec.moveSpeed = 2f;
         ec.collisionDamage = 1;
         ec.maxHealth = health;
+        ec.lootDropChance = 0.2f;
+        ec.lootPrefabs = lootPrefabs;
 
         // Save as prefab
         string path = $"Assets/{prefabName}.prefab";
