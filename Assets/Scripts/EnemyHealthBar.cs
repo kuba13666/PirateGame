@@ -10,6 +10,7 @@ public class EnemyHealthBar : MonoBehaviour
     private SpriteRenderer fillRenderer;
     private SpriteRenderer bgRenderer;
     private EnemyController enemyController;
+    private static Material unlitMaterial;
     
     private const float BAR_WIDTH = 6f;
     private const float BAR_HEIGHT = 0.2f;
@@ -18,7 +19,21 @@ public class EnemyHealthBar : MonoBehaviour
     void Start()
     {
         enemyController = GetComponent<EnemyController>();
+        EnsureUnlitMaterial();
         CreateHealthBar();
+    }
+
+    // Use an unlit material so bar colors are not darkened by 2D lights
+    void EnsureUnlitMaterial()
+    {
+        if (unlitMaterial == null)
+        {
+            Shader shader = Shader.Find("Universal Render Pipeline/2D/Sprite-Unlit-Default");
+            if (shader != null)
+            {
+                unlitMaterial = new Material(shader);
+            }
+        }
     }
 
     void CreateHealthBar()
@@ -37,6 +52,10 @@ public class EnemyHealthBar : MonoBehaviour
         bgRenderer = bgObj.AddComponent<SpriteRenderer>();
         bgRenderer.sprite = CreateSprite(Color.black);
         bgRenderer.sortingOrder = 10;
+        if (unlitMaterial != null)
+        {
+            bgRenderer.sharedMaterial = unlitMaterial;
+        }
         bgObj.transform.localScale = new Vector3(BAR_WIDTH, BAR_HEIGHT, 1);
 
         // Create fill
@@ -45,8 +64,13 @@ public class EnemyHealthBar : MonoBehaviour
         fillObj.transform.localPosition = Vector3.zero;
         
         fillRenderer = fillObj.AddComponent<SpriteRenderer>();
-        fillRenderer.sprite = CreateSprite(Color.green);
+        fillRenderer.sprite = CreateSprite(Color.white);
+        fillRenderer.color = Color.green;
         fillRenderer.sortingOrder = 11;
+        if (unlitMaterial != null)
+        {
+            fillRenderer.sharedMaterial = unlitMaterial;
+        }
         fillObj.transform.localScale = new Vector3(BAR_WIDTH, BAR_HEIGHT, 1);
     }
 
@@ -61,16 +85,29 @@ public class EnemyHealthBar : MonoBehaviour
     void UpdateHealthBar()
     {
         float healthPercent = enemyController.GetCurrentHealth() / (float)enemyController.maxHealth;
+        healthPercent = Mathf.Clamp01(healthPercent);
         
-        // Update fill scale based on health
+        // Update fill scale and position based on health
         Transform fillTransform = healthBarObj.transform.Find("Fill");
         if (fillTransform != null && fillRenderer != null)
         {
+            // Scale from left, maintain alignment
             fillTransform.localScale = new Vector3(BAR_WIDTH * healthPercent, BAR_HEIGHT, 1);
-            fillTransform.localPosition = new Vector3(-BAR_WIDTH * (1 - healthPercent) / 2f, 0, 0);
-            
-            // Change color based on health (green to red)
-            fillRenderer.color = Color.Lerp(Color.red, Color.green, healthPercent);
+            fillTransform.localPosition = new Vector3(-BAR_WIDTH + BAR_WIDTH * healthPercent, 0, 0);
+
+            // Change color based on thresholds
+            if (healthPercent <= (1f / 3f))
+            {
+                fillRenderer.color = Color.red;
+            }
+            else if (healthPercent <= 0.5f)
+            {
+                fillRenderer.color = Color.yellow;
+            }
+            else
+            {
+                fillRenderer.color = Color.green;
+            }
         }
     }
 

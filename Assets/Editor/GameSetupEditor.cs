@@ -59,6 +59,9 @@ public class GameSetupEditor : EditorWindow
         // Create Enemy Spawner with all 3 enemy types
         CreateEnemySpawner(crabEnemy, harpyEnemy, mermaidEnemy);
 
+        // Create Wave Manager
+        CreateWaveManager(crabEnemy, harpyEnemy, mermaidEnemy);
+
         // Create Game Manager
         CreateGameManager();
 
@@ -99,6 +102,8 @@ public class GameSetupEditor : EditorWindow
         GameObject.DestroyImmediate(GameObject.Find("Player"));
         GameObject.DestroyImmediate(GameObject.Find("EnemySpawner"));
         GameObject.DestroyImmediate(GameObject.Find("GameManager"));
+        GameObject.DestroyImmediate(GameObject.Find("UIManager"));
+        GameObject.DestroyImmediate(GameObject.Find("WaveManager"));
         
         // Remove boundary walls
         GameObject.DestroyImmediate(GameObject.Find("Boundary_Top"));
@@ -370,6 +375,24 @@ public class GameSetupEditor : EditorWindow
         Debug.Log("✓ Enemy spawner created with 3 enemy types");
     }
 
+    static void CreateWaveManager(GameObject crabPrefab, GameObject harpyPrefab, GameObject mermaidPrefab)
+    {
+        GameObject wmObj = new GameObject("WaveManager");
+        WaveManager wm = wmObj.AddComponent<WaveManager>();
+        EnemySpawner spawner = GameObject.FindFirstObjectByType<EnemySpawner>();
+        wm.spawner = spawner;
+
+        // Ensure spawner knows prefabs
+        if (spawner != null)
+        {
+            spawner.crabEnemyPrefab = crabPrefab;
+            spawner.harpyEnemyPrefab = harpyPrefab;
+            spawner.mermaidEnemyPrefab = mermaidPrefab;
+        }
+
+        Debug.Log("✓ Wave manager created");
+    }
+
     static void CreateGameManager()
     {
         GameObject gm = new GameObject("GameManager");
@@ -426,6 +449,22 @@ public class GameSetupEditor : EditorWindow
         killRect.pivot = new Vector2(1, 1);
         killRect.anchoredPosition = new Vector2(-10, -10);
         killRect.sizeDelta = new Vector2(200, 50);
+
+        // Wave Text (top center)
+        GameObject waveTextObj = new GameObject("WaveText");
+        waveTextObj.transform.SetParent(canvasObj.transform);
+        TextMeshProUGUI waveText = waveTextObj.AddComponent<TextMeshProUGUI>();
+        waveText.text = "";
+        waveText.fontSize = 32;
+        waveText.color = Color.white;
+        waveText.alignment = TextAlignmentOptions.Top;
+        
+        RectTransform waveRect = waveTextObj.GetComponent<RectTransform>();
+        waveRect.anchorMin = new Vector2(0.5f, 1);
+        waveRect.anchorMax = new Vector2(0.5f, 1);
+        waveRect.pivot = new Vector2(0.5f, 1);
+        waveRect.anchoredPosition = new Vector2(0, -10);
+        waveRect.sizeDelta = new Vector2(300, 60);
 
         // Create Loot Counter Panel (top-right, below kill count)
         GameObject lootPanelObj = new GameObject("LootPanel");
@@ -531,6 +570,7 @@ public class GameSetupEditor : EditorWindow
         uiManager.woodCountText = woodText;
         uiManager.canvasCountText = canvasText;
         uiManager.metalCountText = metalText;
+        uiManager.waveText = waveText;
 
         // Hook up button
         button.onClick.AddListener(() => uiManager.OnRestartButtonClicked());

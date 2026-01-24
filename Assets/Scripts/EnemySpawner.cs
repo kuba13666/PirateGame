@@ -35,6 +35,10 @@ public class EnemySpawner : MonoBehaviour
     public int blueEnemyChance = 30;   // 2 HP
     public int greenEnemyChance = 10;  // 3 HP
 
+    [Header("Wave Control")]
+    [Tooltip("If true, spawns only when commanded by WaveManager")] 
+    public bool manualWaveControl = false;
+
     // Timer for spawning
     private float spawnTimer = 0f;
 
@@ -67,6 +71,8 @@ public class EnemySpawner : MonoBehaviour
 
     void Update()
     {
+        if (manualWaveControl) return;
+
         // Count down spawn timer
         spawnTimer -= Time.deltaTime;
 
@@ -104,6 +110,18 @@ public class EnemySpawner : MonoBehaviour
         
         // Set enemy scale
         enemy.transform.localScale = new Vector3(GameConstants.ENEMY_SPAWNED_SCALE_X, GameConstants.ENEMY_SPAWNED_SCALE_Y, GameConstants.ENEMY_SPAWNED_SCALE_Z);
+    }
+
+    /// <summary>
+    /// Spawns a specific prefab at a random edge position (used by WaveManager)
+    /// </summary>
+    public GameObject SpawnEnemyPrefab(GameObject prefab)
+    {
+        if (prefab == null) return null;
+        Vector3 spawnPosition = GetRandomEdgePosition();
+        GameObject enemy = Instantiate(prefab, spawnPosition, Quaternion.identity);
+        enemy.transform.localScale = new Vector3(GameConstants.ENEMY_SPAWNED_SCALE_X, GameConstants.ENEMY_SPAWNED_SCALE_Y, GameConstants.ENEMY_SPAWNED_SCALE_Z);
+        return enemy;
     }
     
     /// <summary>

@@ -14,6 +14,9 @@ public class UIManager : MonoBehaviour
     [Tooltip("Text element to display kill count")]
     public TextMeshProUGUI killCountText;
 
+    [Tooltip("Wave announcement text")]
+    public TextMeshProUGUI waveText;
+
     [Tooltip("Game over panel (set inactive at start)")]
     public GameObject gameOverPanel;
 
@@ -35,6 +38,11 @@ public class UIManager : MonoBehaviour
 
     void Start()
     {
+        if (waveText != null)
+        {
+            waveText.gameObject.SetActive(false);
+        }
+
         // Make sure game over panel is hidden at start
         if (gameOverPanel != null)
         {
@@ -118,5 +126,24 @@ public class UIManager : MonoBehaviour
         {
             GameManager.Instance.RestartGame();
         }
+    }
+
+    /// <summary>
+    /// Shows wave text for 2 seconds then hides
+    /// </summary>
+    public void ShowWave(int waveNumber)
+    {
+        if (waveText == null) return;
+        StopAllCoroutines();
+        StartCoroutine(WaveRoutine(waveNumber));
+    }
+
+    System.Collections.IEnumerator WaveRoutine(int waveNumber)
+    {
+        waveText.gameObject.SetActive(true);
+        waveText.alpha = 1f;
+        waveText.text = $"Wave {waveNumber}";
+        yield return new WaitForSeconds(2f);
+        waveText.gameObject.SetActive(false);
     }
 }
