@@ -21,31 +21,31 @@ public static class GameConstants
     public const float ENEMY_SPAWN_DISTANCE = 3f;
     
     // Player Settings
-    public const float PLAYER_SCALE_X = 0.27f;
-    public const float PLAYER_SCALE_Y = 0.59f;
-    public const float PLAYER_SCALE_Z = 0.39f;
+    public const float PLAYER_SCALE_X = 0.54f;  // 0.27 * 2
+    public const float PLAYER_SCALE_Y = 1.18f;  // 0.59 * 2
+    public const float PLAYER_SCALE_Z = 0.78f;  // 0.39 * 2
     public const float PLAYER_MOVE_SPEED = 2f;
     public const int PLAYER_MAX_HEALTH = 10;
     
     // Cannon Settings
-    public const float CANNON_OFFSET_X = 0.03f / PLAYER_SCALE_X; // Adjusted for player scale
-    public const float CANNON_OFFSET_Y = 0.1f / PLAYER_SCALE_Y;  // Adjusted for player scale
+    public const float CANNON_OFFSET_X = 0.06f / PLAYER_SCALE_X; // 0.03 * 2, adjusted for player scale
+    public const float CANNON_OFFSET_Y = 0.2f / PLAYER_SCALE_Y;  // 0.1 * 2, adjusted for player scale
     public const float CANNON_FIRE_RATE = 1f;
-    public const float CANNON_PROJECTILE_SPAWN_OFFSET = 0.15f; // Distance from cannon to spawn projectile in local space
+    public const float CANNON_PROJECTILE_SPAWN_OFFSET = 0.3f;  // 0.15 * 2
     
     // Projectile Settings
-    public const float PROJECTILE_SCALE = 0.08f;
+    public const float PROJECTILE_SCALE = 0.16f;  // 0.08 * 2
     public const float PROJECTILE_SPEED = 4f;
     public const float PROJECTILE_LIFETIME = 3f;
     public const int PROJECTILE_DAMAGE = 1;
     
     // Enemy Settings
-    public const float ENEMY_SCALE = 0.47f;
+    public const float ENEMY_SCALE = 0.94f;  // 0.47 * 2
     public const float ENEMY_MOVE_SPEED = 0.8f;
     public const int ENEMY_COLLISION_DAMAGE = 1;
-    public const float ENEMY_SPAWNED_SCALE_X = 0.007f;
-    public const float ENEMY_SPAWNED_SCALE_Y = 0.009f;
-    public const float ENEMY_SPAWNED_SCALE_Z = 0.08f;
+    public const float ENEMY_SPAWNED_SCALE_X = 0.014f;  // 0.007 * 2
+    public const float ENEMY_SPAWNED_SCALE_Y = 0.018f;  // 0.009 * 2
+    public const float ENEMY_SPAWNED_SCALE_Z = 0.16f;   // 0.08 * 2
     
     // Enemy Spawner Settings
     public const float SPAWN_INTERVAL = 2f;
@@ -53,18 +53,18 @@ public static class GameConstants
     public const float LOOT_DROP_CHANCE = 0.2f;
     
     // Loot Settings
-    public const float LOOT_GOLD_SCALE_X = 0.008f;
-    public const float LOOT_GOLD_SCALE_Y = 0.008f;
-    public const float LOOT_GOLD_SCALE_Z = 0.06f;
-    public const float LOOT_WOOD_SCALE_X = 0.005f;
-    public const float LOOT_WOOD_SCALE_Y = 0.005f;
-    public const float LOOT_WOOD_SCALE_Z = 0.06f;
-    public const float LOOT_CANVAS_SCALE_X = 0.003f;
-    public const float LOOT_CANVAS_SCALE_Y = 0.003f;
-    public const float LOOT_CANVAS_SCALE_Z = 0.06f;
-    public const float LOOT_METAL_SCALE_X = 0.005f;
-    public const float LOOT_METAL_SCALE_Y = 0.005f;
-    public const float LOOT_METAL_SCALE_Z = 0.06f;
+    public const float LOOT_GOLD_SCALE_X = 0.016f;   // 0.008 * 2
+    public const float LOOT_GOLD_SCALE_Y = 0.016f;   // 0.008 * 2
+    public const float LOOT_GOLD_SCALE_Z = 0.12f;    // 0.06 * 2
+    public const float LOOT_WOOD_SCALE_X = 0.01f;    // 0.005 * 2
+    public const float LOOT_WOOD_SCALE_Y = 0.01f;    // 0.005 * 2
+    public const float LOOT_WOOD_SCALE_Z = 0.12f;    // 0.06 * 2
+    public const float LOOT_CANVAS_SCALE_X = 0.006f; // 0.003 * 2
+    public const float LOOT_CANVAS_SCALE_Y = 0.006f; // 0.003 * 2
+    public const float LOOT_CANVAS_SCALE_Z = 0.12f;  // 0.06 * 2
+    public const float LOOT_METAL_SCALE_X = 0.01f;   // 0.005 * 2
+    public const float LOOT_METAL_SCALE_Y = 0.01f;   // 0.005 * 2
+    public const float LOOT_METAL_SCALE_Z = 0.12f;   // 0.06 * 2
     public const float LOOT_LIFETIME = 10f;
     
     // Camera Settings

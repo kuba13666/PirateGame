@@ -24,6 +24,9 @@ public class GameSetupEditor : EditorWindow
 
     static void CreateGameObjects()
     {
+        // Clean up existing objects first
+        CleanupScene();
+
         // Ensure tags exist
         EnsureTagExists("Player");
         EnsureTagExists("Enemy");
@@ -35,6 +38,9 @@ public class GameSetupEditor : EditorWindow
         EnsureEnemySpriteImported("Assets/GameAssets/enemy_giant_crab.png");
         EnsureEnemySpriteImported("Assets/GameAssets/enemy_harpy.png");
         EnsureEnemySpriteImported("Assets/GameAssets/enemy_mermaid.png");
+
+        // Create Main Camera first
+        CreateMainCamera();
 
         // Create Projectile Prefab first
         GameObject projectilePrefab = CreateProjectilePrefab();
@@ -66,6 +72,58 @@ public class GameSetupEditor : EditorWindow
         SetupCamera(player);
 
         Debug.Log("✓ Scene setup complete!");
+    }
+
+    static void CleanupScene()
+    {
+        // Remove all Canvas objects
+        foreach (Canvas canvas in GameObject.FindObjectsByType<Canvas>(FindObjectsSortMode.None))
+        {
+            GameObject.DestroyImmediate(canvas.gameObject);
+        }
+        
+        // Remove all EventSystem objects
+        foreach (UnityEngine.EventSystems.EventSystem es in GameObject.FindObjectsByType<UnityEngine.EventSystems.EventSystem>(FindObjectsSortMode.None))
+        {
+            GameObject.DestroyImmediate(es.gameObject);
+        }
+        
+        // Remove Main Camera
+        Camera mainCamera = Camera.main;
+        if (mainCamera != null)
+        {
+            GameObject.DestroyImmediate(mainCamera.gameObject);
+        }
+        
+        // Remove old game objects
+        GameObject.DestroyImmediate(GameObject.Find("Player"));
+        GameObject.DestroyImmediate(GameObject.Find("EnemySpawner"));
+        GameObject.DestroyImmediate(GameObject.Find("GameManager"));
+        
+        // Remove boundary walls
+        GameObject.DestroyImmediate(GameObject.Find("Boundary_Top"));
+        GameObject.DestroyImmediate(GameObject.Find("Boundary_Bottom"));
+        GameObject.DestroyImmediate(GameObject.Find("Boundary_Left"));
+        GameObject.DestroyImmediate(GameObject.Find("Boundary_Right"));
+        
+        Debug.Log("✓ Scene cleaned up");
+    }
+
+    static void CreateMainCamera()
+    {
+        GameObject cameraObj = new GameObject("Main Camera");
+        cameraObj.tag = "MainCamera";
+        
+        Camera camera = cameraObj.AddComponent<Camera>();
+        camera.orthographic = true;
+        camera.orthographicSize = 5f;
+        camera.clearFlags = CameraClearFlags.SolidColor;
+        camera.backgroundColor = new Color(0.2f, 0.4f, 0.7f); // Ocean blue
+        
+        cameraObj.AddComponent<AudioListener>();
+        cameraObj.transform.position = new Vector3(0, 0, GameConstants.CAMERA_OFFSET_Z);
+        
+        Debug.Log("✓ Main Camera created with orthographic size 5");
     }
 
     static GameObject CreatePlayerShip(GameObject projectilePrefab)
@@ -149,6 +207,7 @@ public class GameSetupEditor : EditorWindow
         SpriteRenderer sr = projectile.AddComponent<SpriteRenderer>();
         sr.sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd");
         sr.color = Color.yellow;
+        sr.sortingOrder = 5;
 
         // Add components
         Rigidbody2D rb = projectile.AddComponent<Rigidbody2D>();
@@ -265,6 +324,7 @@ public class GameSetupEditor : EditorWindow
             sr.color = color;
             Debug.LogWarning($"{spritePath} not found, using default sprite");
         }
+        sr.sortingOrder = 2;
         
         enemy.transform.localScale = new Vector3(GameConstants.ENEMY_SCALE, GameConstants.ENEMY_SCALE, GameConstants.ENEMY_SCALE);
         enemy.tag = "Enemy";
@@ -283,6 +343,9 @@ public class GameSetupEditor : EditorWindow
         ec.maxHealth = health;
         ec.lootDropChance = GameConstants.LOOT_DROP_CHANCE;
         ec.lootPrefabs = lootPrefabs;
+
+        // Add health bar component
+        enemy.AddComponent<EnemyHealthBar>();
 
         // Save as prefab
         string path = $"Assets/{prefabName}.prefab";

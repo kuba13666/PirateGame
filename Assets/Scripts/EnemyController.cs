@@ -105,14 +105,22 @@ public class EnemyController : MonoBehaviour
     }
 
     /// <summary>
-    /// Brief white flash effect when enemy is hit
+    /// Brief red flash effect when enemy is hit
     /// </summary>
     System.Collections.IEnumerator FlashWhite()
     {
         Color originalColor = spriteRenderer.color;
-        spriteRenderer.color = Color.white;
+        spriteRenderer.color = Color.red;
         yield return new WaitForSeconds(0.1f);
         spriteRenderer.color = originalColor;
+    }
+
+    /// <summary>
+    /// Returns current health for health bar display
+    /// </summary>
+    public int GetCurrentHealth()
+    {
+        return currentHealth;
     }
 
     /// <summary>

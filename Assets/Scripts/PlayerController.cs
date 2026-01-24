@@ -147,6 +147,9 @@ public class PlayerController : MonoBehaviour
             currentHealth = 0;
         }
 
+        // Visual feedback: flash red
+        StartCoroutine(FlashDamage());
+
         // Update UI
         if (GameManager.Instance != null)
         {
@@ -157,6 +160,21 @@ public class PlayerController : MonoBehaviour
         if (currentHealth <= 0)
         {
             Die();
+        }
+    }
+
+    /// <summary>
+    /// Flash red when taking damage
+    /// </summary>
+    System.Collections.IEnumerator FlashDamage()
+    {
+        SpriteRenderer sr = GetComponent<SpriteRenderer>();
+        if (sr != null)
+        {
+            Color originalColor = sr.color;
+            sr.color = Color.red;
+            yield return new WaitForSeconds(0.1f);
+            sr.color = originalColor;
         }
     }
 

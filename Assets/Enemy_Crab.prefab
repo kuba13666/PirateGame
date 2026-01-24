@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 5242950491245034679}
   - component: {fileID: 1513973703597572509}
   - component: {fileID: 4590638416567091476}
+  - component: {fileID: 7482871430100861910}
   m_Layer: 0
   m_Name: Enemy_Crab
   m_TagString: Enemy
@@ -30,7 +31,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.47, y: 0.47, z: 0.47}
+  m_LocalScale: {x: 0.94, y: 0.94, z: 0.94}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -82,7 +83,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 2
   m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: 4017ffb8beb5b104dae9bfe70ed040b3, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -188,3 +189,15 @@ MonoBehaviour:
   - {fileID: 1657471152224691837, guid: 891525737d3c10c4498df5c5991d3a9d, type: 3}
   - {fileID: 646329733430498429, guid: a1eb0037f8a684e409610fd4a13e844c, type: 3}
   - {fileID: 1700120507651257008, guid: 9d802e93ca2bc3d42b6c9d60efd22a3e, type: 3}
+--- !u!114 &7482871430100861910
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1451313264508701087}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f8432f6a0ce15744a6ec036ceeba53e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyHealthBar
