@@ -164,6 +164,19 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
+    /// Heals the player
+    /// </summary>
+    public void Heal(int amount)
+    {
+        currentHealth = Mathf.Min(currentHealth + amount, maxHealth);
+        
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.UpdatePlayerHealth(currentHealth, maxHealth);
+        }
+    }
+
+    /// <summary>
     /// Flash red when taking damage
     /// </summary>
     System.Collections.IEnumerator FlashDamage()

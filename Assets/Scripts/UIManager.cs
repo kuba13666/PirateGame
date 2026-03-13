@@ -146,4 +146,23 @@ public class UIManager : MonoBehaviour
         yield return new WaitForSeconds(2f);
         waveText.gameObject.SetActive(false);
     }
+
+    /// <summary>
+    /// Shows port welcome message
+    /// </summary>
+    public void ShowPortWelcome(string portName, float duration)
+    {
+        if (waveText == null) return;
+        StopAllCoroutines();
+        StartCoroutine(PortWelcomeRoutine(portName, duration));
+    }
+
+    System.Collections.IEnumerator PortWelcomeRoutine(string portName, float duration)
+    {
+        waveText.gameObject.SetActive(true);
+        waveText.alpha = 1f;
+        waveText.text = $"Welcome to {portName}";
+        yield return new WaitForSeconds(duration);
+        waveText.gameObject.SetActive(false);
+    }
 }

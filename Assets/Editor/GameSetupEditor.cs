@@ -68,6 +68,10 @@ public class GameSetupEditor : EditorWindow
         // Create UI
         CreateUI();
 
+        // Create Port Zone and Shop UI
+        CreatePortZone();
+        CreateShopSystem();
+
         // Create map boundaries
         CreateMapBoundaries();
 
@@ -104,6 +108,9 @@ public class GameSetupEditor : EditorWindow
         GameObject.DestroyImmediate(GameObject.Find("GameManager"));
         GameObject.DestroyImmediate(GameObject.Find("UIManager"));
         GameObject.DestroyImmediate(GameObject.Find("WaveManager"));
+        GameObject.DestroyImmediate(GameObject.Find("ShopManager"));
+        GameObject.DestroyImmediate(GameObject.Find("ShopUI"));
+        GameObject.DestroyImmediate(GameObject.Find("Port_SafeHarbor"));
         
         // Remove boundary walls
         GameObject.DestroyImmediate(GameObject.Find("Boundary_Top"));
@@ -812,5 +819,171 @@ public class GameSetupEditor : EditorWindow
         BoxCollider2D col = wall.AddComponent<BoxCollider2D>();
         col.size = new Vector2(scale.x, scale.y);
         col.isTrigger = false; // Solid wall
+    }
+
+    /// <summary>
+    /// Creates a simple port trigger zone that disables spawns and opens shop
+    /// </summary>
+    static void CreatePortZone()
+    {
+        GameObject port = new GameObject("Port_SafeHarbor");
+        // Place port safely away from player spawn (top-right corner)
+        port.transform.position = new Vector3(GameConstants.MAP_MAX_X - 8f, GameConstants.MAP_MAX_Y - 8f, 0f);
+
+        // Visualize zone using provided sprite
+        SpriteRenderer sr = port.AddComponent<SpriteRenderer>();
+        Sprite portSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/GameAssets/Port_1.png");
+        float portScale = 0.1f; // shrink port art and collider
+        if (portSprite != null)
+        {
+            sr.sprite = portSprite;
+            sr.color = Color.white;
+            sr.drawMode = SpriteDrawMode.Simple;
+        }
+        else
+        {
+            sr.sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
+            sr.color = new Color(0.2f, 0.6f, 1f, 0.15f);
+            sr.drawMode = SpriteDrawMode.Sliced;
+            sr.size = new Vector2(6f, 6f);
+        }
+        sr.sortingOrder = 0;
+        port.transform.localScale = Vector3.one * portScale;
+
+        // Trigger collider sized to sprite (account for scale)
+        BoxCollider2D bc = port.AddComponent<BoxCollider2D>();
+        bc.isTrigger = true;
+        if (sr.sprite != null)
+        {
+            Vector2 spriteSize = sr.sprite.bounds.size * portScale;
+            bc.size = spriteSize;
+        }
+        else
+        {
+            bc.size = new Vector2(6f, 6f) * portScale;
+        }
+
+        // Port logic
+        PortZone pz = port.AddComponent<PortZone>();
+        pz.portName = "Safe Harbor";
+        pz.welcomeMessageDuration = 3f;
+        pz.minEnterTime = 0.75f;
+
+        Debug.Log("✓ Port zone created (Safe Harbor)");
+    }
+
+    /// <summary>
+    /// Creates ShopManager and a simple Shop UI under the Canvas
+    /// </summary>
+    static void CreateShopSystem()
+    {
+        // Manager
+        GameObject shopMgrObj = new GameObject("ShopManager");
+        shopMgrObj.AddComponent<ShopManager>();
+
+        // Find Canvas
+        GameObject canvasObj = GameObject.Find("Canvas");
+        if (canvasObj == null)
+        {
+            Debug.LogWarning("Canvas not found; Shop UI will not be created.");
+            return;
+        }
+
+        // Create ShopUI root
+        GameObject shopUIObj = new GameObject("ShopUI");
+        ShopUI shopUI = shopUIObj.AddComponent<ShopUI>();
+
+        // Panel
+        GameObject panel = new GameObject("ShopPanel");
+        panel.transform.SetParent(canvasObj.transform);
+        Image panelImg = panel.AddComponent<Image>();
+        panelImg.color = new Color(0f, 0f, 0f, 0.7f);
+        RectTransform panelRect = panel.GetComponent<RectTransform>();
+        panelRect.anchorMin = new Vector2(0.5f, 0.5f);
+        panelRect.anchorMax = new Vector2(0.5f, 0.5f);
+        panelRect.pivot = new Vector2(0.5f, 0.5f);
+        panelRect.anchoredPosition = Vector2.zero;
+        panelRect.sizeDelta = new Vector2(800, 500);
+        panel.SetActive(false);
+
+        // Title
+        GameObject titleObj = new GameObject("Title");
+        titleObj.transform.SetParent(panel.transform);
+        TextMeshProUGUI title = titleObj.AddComponent<TextMeshProUGUI>();
+        title.text = "Port Shop";
+        title.fontSize = 32;
+        title.color = Color.white;
+        title.alignment = TextAlignmentOptions.Center;
+        RectTransform titleRect = titleObj.GetComponent<RectTransform>();
+        titleRect.anchorMin = new Vector2(0.5f, 1f);
+        titleRect.anchorMax = new Vector2(0.5f, 1f);
+        titleRect.pivot = new Vector2(0.5f, 1f);
+        titleRect.anchoredPosition = new Vector2(0, -20);
+        titleRect.sizeDelta = new Vector2(400, 40);
+
+        // Gold text
+        GameObject goldObj = new GameObject("GoldText");
+        goldObj.transform.SetParent(panel.transform);
+        TextMeshProUGUI goldText = goldObj.AddComponent<TextMeshProUGUI>();
+        goldText.text = "Gold: 0";
+        goldText.fontSize = 20;
+        goldText.color = Color.yellow;
+        goldText.alignment = TextAlignmentOptions.Left;
+        RectTransform goldRect = goldObj.GetComponent<RectTransform>();
+        goldRect.anchorMin = new Vector2(0f, 1f);
+        goldRect.anchorMax = new Vector2(0f, 1f);
+        goldRect.pivot = new Vector2(0f, 1f);
+        goldRect.anchoredPosition = new Vector2(20, -20);
+        goldRect.sizeDelta = new Vector2(200, 40);
+
+        // Upgrade grid container
+        GameObject gridObj = new GameObject("UpgradeGrid");
+        gridObj.transform.SetParent(panel.transform);
+        RectTransform gridRect = gridObj.AddComponent<RectTransform>();
+        gridRect.anchorMin = new Vector2(0.5f, 0.5f);
+        gridRect.anchorMax = new Vector2(0.5f, 0.5f);
+        gridRect.pivot = new Vector2(0.5f, 0.5f);
+        gridRect.anchoredPosition = new Vector2(0, -20);
+        gridRect.sizeDelta = new Vector2(720, 380);
+        GridLayoutGroup grid = gridObj.AddComponent<GridLayoutGroup>();
+        grid.cellSize = new Vector2(220, 120);
+        grid.spacing = new Vector2(12, 12);
+        grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+        grid.constraintCount = 3;
+
+        // Close button
+        GameObject closeBtnObj = new GameObject("CloseButton");
+        closeBtnObj.transform.SetParent(panel.transform);
+        Image closeImg = closeBtnObj.AddComponent<Image>();
+        closeImg.color = new Color(0.6f, 0.2f, 0.2f, 0.9f);
+        Button closeBtn = closeBtnObj.AddComponent<Button>();
+        RectTransform closeRect = closeBtnObj.GetComponent<RectTransform>();
+        closeRect.anchorMin = new Vector2(1f, 1f);
+        closeRect.anchorMax = new Vector2(1f, 1f);
+        closeRect.pivot = new Vector2(1f, 1f);
+        closeRect.anchoredPosition = new Vector2(-20, -20);
+        closeRect.sizeDelta = new Vector2(100, 40);
+
+        GameObject closeTextObj = new GameObject("Text");
+        closeTextObj.transform.SetParent(closeBtnObj.transform);
+        TextMeshProUGUI closeText = closeTextObj.AddComponent<TextMeshProUGUI>();
+        closeText.text = "Close";
+        closeText.fontSize = 20;
+        closeText.color = Color.white;
+        closeText.alignment = TextAlignmentOptions.Center;
+        RectTransform closeTextRect = closeTextObj.GetComponent<RectTransform>();
+        closeTextRect.anchorMin = Vector2.zero;
+        closeTextRect.anchorMax = Vector2.one;
+        closeTextRect.sizeDelta = Vector2.zero;
+
+        // Close button is wired at runtime by ShopUI.Start()
+
+        // Wire ShopUI
+        shopUI.shopPanel = panel;
+        shopUI.upgradeGridContainer = gridObj.transform;
+        shopUI.goldDisplayText = goldText;
+        shopUI.closeButton = closeBtn;
+
+        Debug.Log("✓ Shop system created (Manager + UI)");
     }
 }

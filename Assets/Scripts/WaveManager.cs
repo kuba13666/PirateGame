@@ -27,6 +27,9 @@ public class WaveManager : MonoBehaviour
     [Header("Timing")]
     public float restBetweenWaves = 3f;
 
+    // Internal waves coroutine handle
+    private Coroutine wavesRoutine;
+
     void Start()
     {
         if (spawner == null)
@@ -44,7 +47,7 @@ public class WaveManager : MonoBehaviour
             BuildDefaultWaves();
         }
 
-        StartCoroutine(RunWaves());
+        StartWaves();
     }
 
     void BuildDefaultWaves()
@@ -111,10 +114,38 @@ public class WaveManager : MonoBehaviour
                 yield return new WaitForSeconds(restBetweenWaves);
             }
         }
+
+        // End of waves
+        wavesRoutine = null;
     }
 
     bool AnyEnemiesAlive()
     {
         return GameObject.FindGameObjectsWithTag("Enemy").Length > 0;
+    }
+
+    // Public controls for pausing/resuming from PortZone
+    public void StopWaves()
+    {
+        if (wavesRoutine != null)
+        {
+            StopCoroutine(wavesRoutine);
+            wavesRoutine = null;
+        }
+    }
+
+    public void StartWaves()
+    {
+        if (wavesRoutine == null)
+        {
+            wavesRoutine = StartCoroutine(RunWaves());
+        }
+    }
+
+    // Reset to wave 1 and restart
+    public void ResetAndStart()
+    {
+        StopWaves();
+        StartWaves();
     }
 }

@@ -13,6 +13,15 @@ public class GameManager : MonoBehaviour
     [Tooltip("Current number of enemies killed")]
     private int killCount = 0;
 
+    [Tooltip("Player's gold for purchasing upgrades")]
+    public int gold = 0;
+
+    [Tooltip("Damage multiplier from upgrades")]
+    public float damageMultiplier = 1f;
+
+    [Tooltip("Loot gold multiplier from upgrades")]
+    public float lootMultiplier = 1f;
+
     // Reference to UI manager
     public UIManager uiManager;
 
