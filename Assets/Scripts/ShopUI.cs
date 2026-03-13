@@ -101,11 +101,22 @@ public class ShopUI : MonoBehaviour
         SetTabHighlight(tabEnhancements, currentTab == ShopManager.ShopCategory.Enhancements);
         SetTabHighlight(tabCrew, currentTab == ShopManager.ShopCategory.Crew);
 
-        // Rebuild item cards
+        // Rebuild item cards only when needed
+        RebuildCards();
+    }
+
+    void RebuildCards()
+    {
         ClearCards();
         List<ShopManager.ShopItem> items = ShopManager.Instance.GetItems(currentTab);
         foreach (var item in items)
             CreateItemCard(item);
+    }
+
+    void UpdateGoldOnly()
+    {
+        if (GameManager.Instance != null && goldDisplayText != null)
+            goldDisplayText.text = $"Gold: {GameManager.Instance.gold}";
     }
 
     void SetTabHighlight(Button btn, bool active)
@@ -316,13 +327,13 @@ public class ShopUI : MonoBehaviour
         btn.onClick.AddListener(() =>
         {
             if (ShopManager.Instance.Purchase(captured))
-                RefreshUI();
+                RebuildCards();
         });
     }
 
     void Update()
     {
         if (shopPanel != null && shopPanel.activeSelf)
-            RefreshUI();
+            UpdateGoldOnly();
     }
 }

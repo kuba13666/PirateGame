@@ -14,7 +14,7 @@ public class GameManager : MonoBehaviour
     private int killCount = 0;
 
     [Tooltip("Player's gold for purchasing upgrades")]
-    public int gold = 0;
+    public int gold = 500;
 
     [Tooltip("Damage multiplier from upgrades")]
     public float damageMultiplier = 1f;

@@ -177,21 +177,13 @@ public class GameSetupEditor : EditorWindow
         pc.minY = GameConstants.MAP_MIN_Y;
         pc.maxY = GameConstants.MAP_MAX_Y;
 
-        // Create 6 cannons - 3 on left side, 3 on right side
-        CreateCannon(player.transform, "Cannon_Left_Top", new Vector3(-GameConstants.CANNON_OFFSET_X, GameConstants.CANNON_OFFSET_Y, 0), 
+        // Create 2 cannons for Sloop - 1 on left, 1 on right
+        CreateCannon(player.transform, "Cannon_Left_1", new Vector3(-GameConstants.CANNON_OFFSET_X, 0f, 0), 
             new Vector2(-1, 0), projectilePrefab);
-        CreateCannon(player.transform, "Cannon_Left_Mid", new Vector3(-GameConstants.CANNON_OFFSET_X, 0f, 0), 
-            new Vector2(-1, 0), projectilePrefab);
-        CreateCannon(player.transform, "Cannon_Left_Bottom", new Vector3(-GameConstants.CANNON_OFFSET_X, -GameConstants.CANNON_OFFSET_Y, 0), 
-            new Vector2(-1, 0), projectilePrefab);
-        CreateCannon(player.transform, "Cannon_Right_Top", new Vector3(GameConstants.CANNON_OFFSET_X, GameConstants.CANNON_OFFSET_Y, 0), 
-            new Vector2(1, 0), projectilePrefab);
-        CreateCannon(player.transform, "Cannon_Right_Mid", new Vector3(GameConstants.CANNON_OFFSET_X, 0f, 0), 
-            new Vector2(1, 0), projectilePrefab);
-        CreateCannon(player.transform, "Cannon_Right_Bottom", new Vector3(GameConstants.CANNON_OFFSET_X, -GameConstants.CANNON_OFFSET_Y, 0), 
+        CreateCannon(player.transform, "Cannon_Right_1", new Vector3(GameConstants.CANNON_OFFSET_X, 0f, 0), 
             new Vector2(1, 0), projectilePrefab);
 
-        Debug.Log("✓ Player ship created with 6 cannons (3 per side)");
+        Debug.Log("✓ Player ship created with 2 cannons (Sloop)");
         return player;
     }
 

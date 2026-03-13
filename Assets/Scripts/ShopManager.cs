@@ -55,7 +55,7 @@ public class ShopManager : MonoBehaviour
         ships.Add(new ShopItem
         {
             name = "Sloop",
-            description = "Fast and nimble vessel",
+            description = "Nimble vessel — 2 cannons",
             cost = 0,
             purchased = true,
             maxLevel = 1,
@@ -95,9 +95,9 @@ public class ShopManager : MonoBehaviour
         enhancements.Add(new ShopItem
         {
             name = "Extra Cannons",
-            description = "Add more cannons to your ship",
+            description = "+2 cannons per level (max 6)",
             cost = 100,
-            maxLevel = 3,
+            maxLevel = 2,
             spritePath = "",
             category = ShopCategory.Enhancements
         });
@@ -252,6 +252,9 @@ public class ShopManager : MonoBehaviour
 
         switch (item.name)
         {
+            case "Extra Cannons":
+                if (player != null) AddCannonsToPlayer(player, item.currentLevel);
+                break;
             case "Reinforced Hull":
                 if (player != null) { player.maxHealth += 20; player.Heal(20); }
                 break;
@@ -274,6 +277,60 @@ public class ShopManager : MonoBehaviour
             default:
                 Debug.Log($"{item.name} effect not yet implemented");
                 break;
+        }
+    }
+
+    void AddCannonsToPlayer(PlayerController player, int cannonLevel)
+    {
+        // Each level adds 2 cannons (1 per side)
+        // Level 1: top pair, Level 2: bottom pair, Level 3: far pair
+        float[] yOffsets = { GameConstants.CANNON_OFFSET_Y, -GameConstants.CANNON_OFFSET_Y, GameConstants.CANNON_OFFSET_Y * 2f };
+        float yOff = yOffsets[Mathf.Clamp(cannonLevel - 1, 0, yOffsets.Length - 1)];
+
+        // Find projectile prefab from existing cannon
+        CannonController existingCannon = player.GetComponentInChildren<CannonController>();
+        if (existingCannon == null || existingCannon.projectilePrefab == null)
+        {
+            Debug.LogWarning("No existing cannon to copy projectile prefab from");
+            return;
+        }
+        GameObject projectilePrefab = existingCannon.projectilePrefab;
+
+        // Left cannon
+        GameObject leftCannon = new GameObject($"Cannon_Left_{cannonLevel + 1}");
+        leftCannon.transform.SetParent(player.transform, false);
+        leftCannon.transform.localPosition = new Vector3(-GameConstants.CANNON_OFFSET_X, yOff, 0);
+        CannonController leftCC = leftCannon.AddComponent<CannonController>();
+        leftCC.projectilePrefab = projectilePrefab;
+        leftCC.fireDirection = new Vector2(-1, 0);
+        leftCC.fireRate = existingCannon.fireRate;
+        leftCC.spawnOffset = new Vector2(-1, 0) * GameConstants.CANNON_PROJECTILE_SPAWN_OFFSET;
+
+        // Right cannon
+        GameObject rightCannon = new GameObject($"Cannon_Right_{cannonLevel + 1}");
+        rightCannon.transform.SetParent(player.transform, false);
+        rightCannon.transform.localPosition = new Vector3(GameConstants.CANNON_OFFSET_X, yOff, 0);
+        CannonController rightCC = rightCannon.AddComponent<CannonController>();
+        rightCC.projectilePrefab = projectilePrefab;
+        rightCC.fireDirection = new Vector2(1, 0);
+        rightCC.fireRate = existingCannon.fireRate;
+        rightCC.spawnOffset = new Vector2(1, 0) * GameConstants.CANNON_PROJECTILE_SPAWN_OFFSET;
+
+        // Sync all cannons to fire at the same time
+        SyncAllCannons(player);
+
+        Debug.Log($"Added cannon pair at y={yOff} (Level {cannonLevel})");
+    }
+
+    void SyncAllCannons(PlayerController player)
+    {
+        CannonController[] cannons = player.GetComponentsInChildren<CannonController>();
+        foreach (var c in cannons)
+        {
+            // Reset all timers to 0 so next frame they all fire together
+            var timerField = typeof(CannonController).GetField("fireTimer", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (timerField != null)
+                timerField.SetValue(c, 0f);
         }
     }
 }

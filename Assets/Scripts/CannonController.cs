@@ -24,7 +24,7 @@ public class CannonController : MonoBehaviour
 
     void Start()
     {
-        // Start with timer at 0 so first shot fires immediately
+        // Sync timer with all other cannons so they fire together
         fireTimer = 0f;
     }
 
@@ -37,8 +37,9 @@ public class CannonController : MonoBehaviour
         if (fireTimer <= 0f)
         {
             Fire();
-            // Reset timer for next shot
-            fireTimer = fireRate;
+            // Reset timer for next shot, sync to exact interval
+            fireTimer += fireRate;
+            if (fireTimer < 0f) fireTimer = 0f;
         }
     }
 
