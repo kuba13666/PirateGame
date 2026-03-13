@@ -873,13 +873,17 @@ public class GameSetupEditor : EditorWindow
     }
 
     /// <summary>
-    /// Creates ShopManager and a simple Shop UI under the Canvas
+    /// Creates ShopManager and a tabbed Shop UI under the Canvas
     /// </summary>
     static void CreateShopSystem()
     {
         // Manager
         GameObject shopMgrObj = new GameObject("ShopManager");
         shopMgrObj.AddComponent<ShopManager>();
+
+        // Ensure Sloop sprite is imported as Sprite type
+        EnsureEnemySpriteImported("Assets/GameAssets/Sloop.png");
+        EnsureEnemySpriteImported("Assets/Resources/Sloop.png");
 
         // Find Canvas
         GameObject canvasObj = GameObject.Find("Canvas");
@@ -893,82 +897,94 @@ public class GameSetupEditor : EditorWindow
         GameObject shopUIObj = new GameObject("ShopUI");
         ShopUI shopUI = shopUIObj.AddComponent<ShopUI>();
 
-        // Panel
+        // ------- Main Panel -------
         GameObject panel = new GameObject("ShopPanel");
-        panel.transform.SetParent(canvasObj.transform);
+        panel.transform.SetParent(canvasObj.transform, false);
         Image panelImg = panel.AddComponent<Image>();
-        panelImg.color = new Color(0f, 0f, 0f, 0.7f);
+        panelImg.color = new Color(0.08f, 0.08f, 0.12f, 0.92f);
         RectTransform panelRect = panel.GetComponent<RectTransform>();
         panelRect.anchorMin = new Vector2(0.5f, 0.5f);
         panelRect.anchorMax = new Vector2(0.5f, 0.5f);
         panelRect.pivot = new Vector2(0.5f, 0.5f);
         panelRect.anchoredPosition = Vector2.zero;
-        panelRect.sizeDelta = new Vector2(800, 500);
+        panelRect.sizeDelta = new Vector2(860, 500);
         panel.SetActive(false);
+
+        // ------- Left Tab Strip (bookmarks) -------
+        GameObject tabStrip = new GameObject("TabStrip");
+        tabStrip.transform.SetParent(panel.transform, false);
+        RectTransform tabStripRect = tabStrip.AddComponent<RectTransform>();
+        tabStripRect.anchorMin = new Vector2(0f, 0f);
+        tabStripRect.anchorMax = new Vector2(0f, 1f);
+        tabStripRect.pivot = new Vector2(0f, 0.5f);
+        tabStripRect.anchoredPosition = Vector2.zero;
+        tabStripRect.sizeDelta = new Vector2(140, 0);
+        Image tabStripBg = tabStrip.AddComponent<Image>();
+        tabStripBg.color = new Color(0.12f, 0.12f, 0.16f, 1f);
+
+        // Tab buttons
+        Button btnShips = CreateTabButton(tabStrip.transform, "TabShips", "Ships", 0);
+        Button btnEnhance = CreateTabButton(tabStrip.transform, "TabEnhancements", "Enhance", 1);
+        Button btnCrew = CreateTabButton(tabStrip.transform, "TabCrew", "Crew", 2);
+
+        // ------- Right Content Area -------
+        // Header bar (title + gold + close)
+        GameObject header = new GameObject("Header");
+        header.transform.SetParent(panel.transform, false);
+        RectTransform headerRect = header.AddComponent<RectTransform>();
+        headerRect.anchorMin = new Vector2(0f, 1f);
+        headerRect.anchorMax = new Vector2(1f, 1f);
+        headerRect.pivot = new Vector2(0.5f, 1f);
+        headerRect.anchoredPosition = new Vector2(70, 0); // offset for tab strip
+        headerRect.sizeDelta = new Vector2(-140, 50);
 
         // Title
         GameObject titleObj = new GameObject("Title");
-        titleObj.transform.SetParent(panel.transform);
+        titleObj.transform.SetParent(header.transform, false);
         TextMeshProUGUI title = titleObj.AddComponent<TextMeshProUGUI>();
-        title.text = "Port Shop";
-        title.fontSize = 32;
+        title.text = "Ships";
+        title.fontSize = 28;
         title.color = Color.white;
-        title.alignment = TextAlignmentOptions.Center;
+        title.fontStyle = FontStyles.Bold;
+        title.alignment = TextAlignmentOptions.MidlineLeft;
         RectTransform titleRect = titleObj.GetComponent<RectTransform>();
-        titleRect.anchorMin = new Vector2(0.5f, 1f);
+        titleRect.anchorMin = new Vector2(0f, 0f);
         titleRect.anchorMax = new Vector2(0.5f, 1f);
-        titleRect.pivot = new Vector2(0.5f, 1f);
-        titleRect.anchoredPosition = new Vector2(0, -20);
-        titleRect.sizeDelta = new Vector2(400, 40);
+        titleRect.offsetMin = new Vector2(16, 0);
+        titleRect.offsetMax = Vector2.zero;
 
         // Gold text
         GameObject goldObj = new GameObject("GoldText");
-        goldObj.transform.SetParent(panel.transform);
+        goldObj.transform.SetParent(header.transform, false);
         TextMeshProUGUI goldText = goldObj.AddComponent<TextMeshProUGUI>();
         goldText.text = "Gold: 0";
         goldText.fontSize = 20;
         goldText.color = Color.yellow;
-        goldText.alignment = TextAlignmentOptions.Left;
+        goldText.alignment = TextAlignmentOptions.MidlineRight;
         RectTransform goldRect = goldObj.GetComponent<RectTransform>();
-        goldRect.anchorMin = new Vector2(0f, 1f);
-        goldRect.anchorMax = new Vector2(0f, 1f);
-        goldRect.pivot = new Vector2(0f, 1f);
-        goldRect.anchoredPosition = new Vector2(20, -20);
-        goldRect.sizeDelta = new Vector2(200, 40);
-
-        // Upgrade grid container
-        GameObject gridObj = new GameObject("UpgradeGrid");
-        gridObj.transform.SetParent(panel.transform);
-        RectTransform gridRect = gridObj.AddComponent<RectTransform>();
-        gridRect.anchorMin = new Vector2(0.5f, 0.5f);
-        gridRect.anchorMax = new Vector2(0.5f, 0.5f);
-        gridRect.pivot = new Vector2(0.5f, 0.5f);
-        gridRect.anchoredPosition = new Vector2(0, -20);
-        gridRect.sizeDelta = new Vector2(720, 380);
-        GridLayoutGroup grid = gridObj.AddComponent<GridLayoutGroup>();
-        grid.cellSize = new Vector2(220, 120);
-        grid.spacing = new Vector2(12, 12);
-        grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-        grid.constraintCount = 3;
+        goldRect.anchorMin = new Vector2(0.5f, 0f);
+        goldRect.anchorMax = new Vector2(0.85f, 1f);
+        goldRect.offsetMin = Vector2.zero;
+        goldRect.offsetMax = new Vector2(-8, 0);
 
         // Close button
         GameObject closeBtnObj = new GameObject("CloseButton");
-        closeBtnObj.transform.SetParent(panel.transform);
+        closeBtnObj.transform.SetParent(header.transform, false);
         Image closeImg = closeBtnObj.AddComponent<Image>();
         closeImg.color = new Color(0.6f, 0.2f, 0.2f, 0.9f);
         Button closeBtn = closeBtnObj.AddComponent<Button>();
         RectTransform closeRect = closeBtnObj.GetComponent<RectTransform>();
-        closeRect.anchorMin = new Vector2(1f, 1f);
-        closeRect.anchorMax = new Vector2(1f, 1f);
-        closeRect.pivot = new Vector2(1f, 1f);
-        closeRect.anchoredPosition = new Vector2(-20, -20);
-        closeRect.sizeDelta = new Vector2(100, 40);
+        closeRect.anchorMin = new Vector2(1f, 0.1f);
+        closeRect.anchorMax = new Vector2(1f, 0.9f);
+        closeRect.pivot = new Vector2(1f, 0.5f);
+        closeRect.anchoredPosition = new Vector2(-8, 0);
+        closeRect.sizeDelta = new Vector2(70, 0);
 
         GameObject closeTextObj = new GameObject("Text");
-        closeTextObj.transform.SetParent(closeBtnObj.transform);
+        closeTextObj.transform.SetParent(closeBtnObj.transform, false);
         TextMeshProUGUI closeText = closeTextObj.AddComponent<TextMeshProUGUI>();
         closeText.text = "Close";
-        closeText.fontSize = 20;
+        closeText.fontSize = 18;
         closeText.color = Color.white;
         closeText.alignment = TextAlignmentOptions.Center;
         RectTransform closeTextRect = closeTextObj.GetComponent<RectTransform>();
@@ -976,14 +992,64 @@ public class GameSetupEditor : EditorWindow
         closeTextRect.anchorMax = Vector2.one;
         closeTextRect.sizeDelta = Vector2.zero;
 
-        // Close button is wired at runtime by ShopUI.Start()
+        // Content grid (right of tab strip, below header)
+        GameObject gridObj = new GameObject("ContentArea");
+        gridObj.transform.SetParent(panel.transform, false);
+        RectTransform gridRect = gridObj.AddComponent<RectTransform>();
+        gridRect.anchorMin = new Vector2(0f, 0f);
+        gridRect.anchorMax = new Vector2(1f, 1f);
+        gridRect.offsetMin = new Vector2(150, 10);   // left padding past tabs
+        gridRect.offsetMax = new Vector2(-10, -55);   // top padding for header
+        GridLayoutGroup grid = gridObj.AddComponent<GridLayoutGroup>();
+        grid.cellSize = new Vector2(200, 220);
+        grid.spacing = new Vector2(12, 12);
+        grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+        grid.constraintCount = 3;
+        grid.childAlignment = TextAnchor.UpperLeft;
 
-        // Wire ShopUI
+        // Wire ShopUI references
         shopUI.shopPanel = panel;
-        shopUI.upgradeGridContainer = gridObj.transform;
+        shopUI.contentArea = gridObj.transform;
         shopUI.goldDisplayText = goldText;
+        shopUI.titleText = title;
         shopUI.closeButton = closeBtn;
+        shopUI.tabShips = btnShips;
+        shopUI.tabEnhancements = btnEnhance;
+        shopUI.tabCrew = btnCrew;
 
-        Debug.Log("✓ Shop system created (Manager + UI)");
+        Debug.Log("✓ Tabbed shop system created (Ships / Enhancements / Crew)");
+    }
+
+    static Button CreateTabButton(Transform parent, string name, string label, int index)
+    {
+        float tabHeight = 50f;
+        float spacing = 6f;
+        float topOffset = 60f; // leave room at top
+
+        GameObject tabObj = new GameObject(name);
+        tabObj.transform.SetParent(parent, false);
+        Image tabImg = tabObj.AddComponent<Image>();
+        tabImg.color = new Color(0.25f, 0.25f, 0.3f, 0.8f);
+        Button btn = tabObj.AddComponent<Button>();
+        RectTransform tabRect = tabObj.GetComponent<RectTransform>();
+        tabRect.anchorMin = new Vector2(0f, 1f);
+        tabRect.anchorMax = new Vector2(1f, 1f);
+        tabRect.pivot = new Vector2(0.5f, 1f);
+        tabRect.anchoredPosition = new Vector2(0, -(topOffset + index * (tabHeight + spacing)));
+        tabRect.sizeDelta = new Vector2(-12, tabHeight);
+
+        GameObject textObj = new GameObject("Text");
+        textObj.transform.SetParent(tabObj.transform, false);
+        TextMeshProUGUI text = textObj.AddComponent<TextMeshProUGUI>();
+        text.text = label;
+        text.fontSize = 18;
+        text.color = Color.white;
+        text.alignment = TextAlignmentOptions.Center;
+        RectTransform textRect = textObj.GetComponent<RectTransform>();
+        textRect.anchorMin = Vector2.zero;
+        textRect.anchorMax = Vector2.one;
+        textRect.sizeDelta = Vector2.zero;
+
+        return btn;
     }
 }

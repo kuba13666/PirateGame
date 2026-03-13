@@ -1,35 +1,38 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 /// <summary>
-/// Manages shop upgrades and their effects on the player
+/// Manages shop items across 3 categories: Ships, Enhancements, Crew
 /// </summary>
 public class ShopManager : MonoBehaviour
 {
     public static ShopManager Instance { get; private set; }
 
+    public enum ShopCategory
+    {
+        Ships,
+        Enhancements,
+        Crew
+    }
+
     [System.Serializable]
-    public class Upgrade
+    public class ShopItem
     {
         public string name;
         public string description;
-        public int baseCost;
+        public int cost;
+        public bool purchased = false;
         public int currentLevel = 0;
-        public int maxLevel = 5;
-        public UpgradeType type;
+        public int maxLevel = 1;
+        public string spritePath;
+        public ShopCategory category;
+        [System.NonSerialized] public Sprite sprite;
     }
 
-    public enum UpgradeType
-    {
-        MaxHealth,
-        MoveSpeed,
-        FireRate,
-        Damage,
-        CannonCount,
-        LootMultiplier
-    }
-
-    [Header("Upgrades")]
-    public Upgrade[] upgrades = new Upgrade[6];
+    [Header("Shop Items")]
+    public List<ShopItem> ships = new List<ShopItem>();
+    public List<ShopItem> enhancements = new List<ShopItem>();
+    public List<ShopItem> crew = new List<ShopItem>();
 
     void Awake()
     {
@@ -43,145 +46,233 @@ public class ShopManager : MonoBehaviour
             return;
         }
 
-        InitializeUpgrades();
+        InitializeShop();
     }
 
-    void InitializeUpgrades()
+    void InitializeShop()
     {
-        upgrades[0] = new Upgrade
+        // --- Ships ---
+        ships.Add(new ShopItem
         {
-            name = "Max Health",
-            description = "Increase ship's maximum health",
-            baseCost = 50,
-            type = UpgradeType.MaxHealth,
-            maxLevel = 5
-        };
-
-        upgrades[1] = new Upgrade
+            name = "Sloop",
+            description = "Fast and nimble vessel",
+            cost = 0,
+            purchased = true,
+            maxLevel = 1,
+            spritePath = "Assets/GameAssets/Sloop.png",
+            category = ShopCategory.Ships,
+            sprite = Resources.Load<Sprite>("Sloop")
+        });
+        ships.Add(new ShopItem
         {
-            name = "Move Speed",
-            description = "Increase ship's movement speed",
-            baseCost = 40,
-            type = UpgradeType.MoveSpeed,
-            maxLevel = 5
-        };
-
-        upgrades[2] = new Upgrade
+            name = "Brigantine",
+            description = "Balanced speed and firepower",
+            cost = 500,
+            maxLevel = 1,
+            spritePath = "",
+            category = ShopCategory.Ships
+        });
+        ships.Add(new ShopItem
         {
-            name = "Fire Rate",
-            description = "Increase cannon fire rate",
-            baseCost = 60,
-            type = UpgradeType.FireRate,
-            maxLevel = 5
-        };
-
-        upgrades[3] = new Upgrade
+            name = "Galleon",
+            description = "Heavy warship with many cannons",
+            cost = 1500,
+            maxLevel = 1,
+            spritePath = "",
+            category = ShopCategory.Ships
+        });
+        ships.Add(new ShopItem
         {
-            name = "Cannon Damage",
-            description = "Increase projectile damage",
-            baseCost = 70,
-            type = UpgradeType.Damage,
-            maxLevel = 5
-        };
+            name = "Man O' War",
+            description = "The mightiest ship on the seas",
+            cost = 5000,
+            maxLevel = 1,
+            spritePath = "",
+            category = ShopCategory.Ships
+        });
 
-        upgrades[4] = new Upgrade
+        // --- Enhancements ---
+        enhancements.Add(new ShopItem
         {
             name = "Extra Cannons",
             description = "Add more cannons to your ship",
-            baseCost = 100,
-            type = UpgradeType.CannonCount,
-            maxLevel = 3
-        };
-
-        upgrades[5] = new Upgrade
+            cost = 100,
+            maxLevel = 3,
+            spritePath = "",
+            category = ShopCategory.Enhancements
+        });
+        enhancements.Add(new ShopItem
         {
-            name = "Loot Multiplier",
+            name = "Reinforced Hull",
+            description = "Increase maximum health",
+            cost = 50,
+            maxLevel = 5,
+            spritePath = "",
+            category = ShopCategory.Enhancements
+        });
+        enhancements.Add(new ShopItem
+        {
+            name = "Better Sails",
+            description = "Increase movement speed",
+            cost = 40,
+            maxLevel = 5,
+            spritePath = "",
+            category = ShopCategory.Enhancements
+        });
+        enhancements.Add(new ShopItem
+        {
+            name = "Fire Rate",
+            description = "Increase cannon fire rate",
+            cost = 60,
+            maxLevel = 5,
+            spritePath = "",
+            category = ShopCategory.Enhancements
+        });
+        enhancements.Add(new ShopItem
+        {
+            name = "Cannon Damage",
+            description = "Increase projectile damage",
+            cost = 70,
+            maxLevel = 5,
+            spritePath = "",
+            category = ShopCategory.Enhancements
+        });
+        enhancements.Add(new ShopItem
+        {
+            name = "Loot Magnet",
             description = "Increase gold from loot",
-            baseCost = 80,
-            type = UpgradeType.LootMultiplier,
-            maxLevel = 5
-        };
+            cost = 80,
+            maxLevel = 5,
+            spritePath = "",
+            category = ShopCategory.Enhancements
+        });
+
+        // --- Crew ---
+        crew.Add(new ShopItem
+        {
+            name = "Helmsman",
+            description = "Improves ship handling",
+            cost = 200,
+            maxLevel = 1,
+            spritePath = "",
+            category = ShopCategory.Crew
+        });
+        crew.Add(new ShopItem
+        {
+            name = "Gunner",
+            description = "Increases cannon accuracy",
+            cost = 300,
+            maxLevel = 1,
+            spritePath = "",
+            category = ShopCategory.Crew
+        });
+        crew.Add(new ShopItem
+        {
+            name = "Surgeon",
+            description = "Slowly regenerates health",
+            cost = 400,
+            maxLevel = 1,
+            spritePath = "",
+            category = ShopCategory.Crew
+        });
+        crew.Add(new ShopItem
+        {
+            name = "Quartermaster",
+            description = "Increases loot quality",
+            cost = 350,
+            maxLevel = 1,
+            spritePath = "",
+            category = ShopCategory.Crew
+        });
+        crew.Add(new ShopItem
+        {
+            name = "Lookout",
+            description = "Reveals enemies at range",
+            cost = 250,
+            maxLevel = 1,
+            spritePath = "",
+            category = ShopCategory.Crew
+        });
+        crew.Add(new ShopItem
+        {
+            name = "Cook",
+            description = "Boosts morale and max HP",
+            cost = 150,
+            maxLevel = 1,
+            spritePath = "",
+            category = ShopCategory.Crew
+        });
     }
 
-    public int GetUpgradeCost(int upgradeIndex)
+    public List<ShopItem> GetItems(ShopCategory category)
     {
-        if (upgradeIndex < 0 || upgradeIndex >= upgrades.Length) return 0;
-        
-        Upgrade upgrade = upgrades[upgradeIndex];
-        // Cost increases with each level: baseCost * (level + 1)
-        return upgrade.baseCost * (upgrade.currentLevel + 1);
+        switch (category)
+        {
+            case ShopCategory.Ships: return ships;
+            case ShopCategory.Enhancements: return enhancements;
+            case ShopCategory.Crew: return crew;
+            default: return ships;
+        }
     }
 
-    public bool CanAffordUpgrade(int upgradeIndex, int currentGold)
+    public int GetItemCost(ShopItem item)
     {
-        if (upgradeIndex < 0 || upgradeIndex >= upgrades.Length) return false;
-        
-        Upgrade upgrade = upgrades[upgradeIndex];
-        if (upgrade.currentLevel >= upgrade.maxLevel) return false;
-        
-        return currentGold >= GetUpgradeCost(upgradeIndex);
+        if (item.maxLevel > 1)
+            return item.cost * (item.currentLevel + 1);
+        return item.cost;
     }
 
-    public bool PurchaseUpgrade(int upgradeIndex)
+    public bool CanAfford(ShopItem item, int gold)
     {
-        if (upgradeIndex < 0 || upgradeIndex >= upgrades.Length) return false;
+        if (item.purchased && item.maxLevel <= 1) return false;
+        if (item.currentLevel >= item.maxLevel) return false;
+        return gold >= GetItemCost(item);
+    }
+
+    public bool Purchase(ShopItem item)
+    {
         if (GameManager.Instance == null) return false;
+        int cost = GetItemCost(item);
+        if (GameManager.Instance.gold < cost) return false;
+        if (item.purchased && item.maxLevel <= 1) return false;
+        if (item.currentLevel >= item.maxLevel) return false;
 
-        Upgrade upgrade = upgrades[upgradeIndex];
-        if (upgrade.currentLevel >= upgrade.maxLevel) return false;
-
-        int cost = GetUpgradeCost(upgradeIndex);
-        int currentGold = GameManager.Instance.gold;
-
-        if (currentGold < cost) return false;
-
-        // Deduct gold
         GameManager.Instance.gold -= cost;
-        
-        // Apply upgrade
-        upgrade.currentLevel++;
-        ApplyUpgrade(upgrade);
+        item.currentLevel++;
+        if (item.maxLevel <= 1) item.purchased = true;
 
-        Debug.Log($"Purchased {upgrade.name} (Level {upgrade.currentLevel})");
+        ApplyItem(item);
+        Debug.Log($"Purchased {item.name} (Level {item.currentLevel})");
         return true;
     }
 
-    void ApplyUpgrade(Upgrade upgrade)
+    void ApplyItem(ShopItem item)
     {
         PlayerController player = FindFirstObjectByType<PlayerController>();
-        if (player == null) return;
 
-        switch (upgrade.type)
+        switch (item.name)
         {
-            case UpgradeType.MaxHealth:
-                player.maxHealth += 20;
-                player.Heal(20); // Also heal when upgrading
+            case "Reinforced Hull":
+                if (player != null) { player.maxHealth += 20; player.Heal(20); }
                 break;
-
-            case UpgradeType.MoveSpeed:
-                player.moveSpeed += 0.5f;
+            case "Better Sails":
+                if (player != null) player.moveSpeed += 0.5f;
                 break;
-
-            case UpgradeType.FireRate:
-                CannonController[] cannons = player.GetComponentsInChildren<CannonController>();
-                foreach (var cannon in cannons)
+            case "Fire Rate":
+                if (player != null)
                 {
-                    cannon.fireRate *= 0.9f; // Reduce cooldown by 10%
+                    foreach (var c in player.GetComponentsInChildren<CannonController>())
+                        c.fireRate *= 0.9f;
                 }
                 break;
-
-            case UpgradeType.Damage:
-                // This would need to be stored and applied to projectiles when spawned
+            case "Cannon Damage":
                 GameManager.Instance.damageMultiplier += 0.2f;
                 break;
-
-            case UpgradeType.CannonCount:
-                // Complex - would need to spawn new cannons
-                Debug.Log("Extra cannons not yet implemented");
-                break;
-
-            case UpgradeType.LootMultiplier:
+            case "Loot Magnet":
                 GameManager.Instance.lootMultiplier += 0.25f;
+                break;
+            default:
+                Debug.Log($"{item.name} effect not yet implemented");
                 break;
         }
     }

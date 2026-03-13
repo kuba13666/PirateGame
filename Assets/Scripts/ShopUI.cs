@@ -1,23 +1,31 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Collections.Generic;
 
 /// <summary>
-/// UI for the shop that displays upgrade options
+/// Tabbed shop UI with bookmark tabs on the left side
 /// </summary>
 public class ShopUI : MonoBehaviour
 {
     [Header("UI References")]
     public GameObject shopPanel;
-    public GameObject upgradeButtonPrefab;
-    public Transform upgradeGridContainer;
+    public Transform contentArea;
     public TextMeshProUGUI goldDisplayText;
+    public TextMeshProUGUI titleText;
     public Button closeButton;
 
-    private Button[] upgradeButtons;
-    private TextMeshProUGUI[] upgradeNameTexts;
-    private TextMeshProUGUI[] upgradeCostTexts;
-    private TextMeshProUGUI[] upgradeLevelTexts;
+    [Header("Tab Buttons")]
+    public Button tabShips;
+    public Button tabEnhancements;
+    public Button tabCrew;
+
+    private ShopManager.ShopCategory currentTab = ShopManager.ShopCategory.Ships;
+    private readonly List<GameObject> currentCards = new List<GameObject>();
+
+    private static readonly Color TAB_ACTIVE = new Color(0.15f, 0.15f, 0.15f, 0.95f);
+    private static readonly Color TAB_INACTIVE = new Color(0.25f, 0.25f, 0.3f, 0.8f);
+    private static readonly Color CARD_BG = new Color(0.18f, 0.18f, 0.22f, 0.95f);
 
     void Start()
     {
@@ -25,14 +33,11 @@ public class ShopUI : MonoBehaviour
         {
             shopPanel.SetActive(false);
 
-            // Wire close button at runtime if not assigned
             if (closeButton == null)
             {
                 Transform closeTf = shopPanel.transform.Find("CloseButton");
                 if (closeTf != null)
-                {
                     closeButton = closeTf.GetComponent<Button>();
-                }
             }
             if (closeButton != null)
             {
@@ -41,125 +46,22 @@ public class ShopUI : MonoBehaviour
             }
         }
 
-        CreateUpgradeButtons();
+        WireTabButton(tabShips, ShopManager.ShopCategory.Ships);
+        WireTabButton(tabEnhancements, ShopManager.ShopCategory.Enhancements);
+        WireTabButton(tabCrew, ShopManager.ShopCategory.Crew);
     }
 
-    void CreateUpgradeButtons()
+    void WireTabButton(Button btn, ShopManager.ShopCategory cat)
     {
-        if (ShopManager.Instance == null || upgradeGridContainer == null) return;
-
-        int upgradeCount = ShopManager.Instance.upgrades.Length;
-        upgradeButtons = new Button[upgradeCount];
-        upgradeNameTexts = new TextMeshProUGUI[upgradeCount];
-        upgradeCostTexts = new TextMeshProUGUI[upgradeCount];
-        upgradeLevelTexts = new TextMeshProUGUI[upgradeCount];
-
-        for (int i = 0; i < upgradeCount; i++)
-        {
-            int index = i; // Capture for lambda
-            GameObject buttonObj = CreateUpgradeButton(index);
-            
-            if (buttonObj != null)
-            {
-                buttonObj.transform.SetParent(upgradeGridContainer, false);
-            }
-        }
+        if (btn == null) return;
+        btn.onClick.RemoveAllListeners();
+        btn.onClick.AddListener(() => SwitchTab(cat));
     }
 
-    GameObject CreateUpgradeButton(int upgradeIndex)
+    void SwitchTab(ShopManager.ShopCategory cat)
     {
-        // Create upgrade button container
-        GameObject container = new GameObject($"Upgrade_{upgradeIndex}");
-        RectTransform rectTransform = container.AddComponent<RectTransform>();
-        rectTransform.sizeDelta = new Vector2(200, 120);
-
-        // Add background
-        Image bg = container.AddComponent<Image>();
-        bg.color = new Color(0.2f, 0.2f, 0.2f, 0.9f);
-
-        // Create upgrade name text
-        GameObject nameObj = new GameObject("Name");
-        nameObj.transform.SetParent(container.transform, false);
-        TextMeshProUGUI nameText = nameObj.AddComponent<TextMeshProUGUI>();
-        nameText.text = ShopManager.Instance.upgrades[upgradeIndex].name;
-        nameText.fontSize = 16;
-        nameText.alignment = TextAlignmentOptions.Center;
-        RectTransform nameRect = nameObj.GetComponent<RectTransform>();
-        nameRect.anchorMin = new Vector2(0, 0.7f);
-        nameRect.anchorMax = new Vector2(1, 1);
-        nameRect.offsetMin = new Vector2(5, 0);
-        nameRect.offsetMax = new Vector2(-5, -5);
-        upgradeNameTexts[upgradeIndex] = nameText;
-
-        // Create level text
-        GameObject levelObj = new GameObject("Level");
-        levelObj.transform.SetParent(container.transform, false);
-        TextMeshProUGUI levelText = levelObj.AddComponent<TextMeshProUGUI>();
-        levelText.text = "Level: 0/5";
-        levelText.fontSize = 12;
-        levelText.alignment = TextAlignmentOptions.Center;
-        RectTransform levelRect = levelObj.GetComponent<RectTransform>();
-        levelRect.anchorMin = new Vector2(0, 0.5f);
-        levelRect.anchorMax = new Vector2(1, 0.7f);
-        levelRect.offsetMin = new Vector2(5, 0);
-        levelRect.offsetMax = new Vector2(-5, 0);
-        upgradeLevelTexts[upgradeIndex] = levelText;
-
-        // Create cost text
-        GameObject costObj = new GameObject("Cost");
-        costObj.transform.SetParent(container.transform, false);
-        TextMeshProUGUI costText = costObj.AddComponent<TextMeshProUGUI>();
-        costText.text = "Cost: 50 Gold";
-        costText.fontSize = 12;
-        costText.alignment = TextAlignmentOptions.Center;
-        costText.color = Color.yellow;
-        RectTransform costRect = costObj.GetComponent<RectTransform>();
-        costRect.anchorMin = new Vector2(0, 0.3f);
-        costRect.anchorMax = new Vector2(1, 0.5f);
-        costRect.offsetMin = new Vector2(5, 0);
-        costRect.offsetMax = new Vector2(-5, 0);
-        upgradeCostTexts[upgradeIndex] = costText;
-
-        // Create purchase button
-        GameObject buttonObj = new GameObject("PurchaseButton");
-        buttonObj.transform.SetParent(container.transform, false);
-        Button button = buttonObj.AddComponent<Button>();
-        Image buttonImg = buttonObj.AddComponent<Image>();
-        buttonImg.color = new Color(0.2f, 0.6f, 0.2f);
-        RectTransform buttonRect = buttonObj.GetComponent<RectTransform>();
-        buttonRect.anchorMin = new Vector2(0.1f, 0.05f);
-        buttonRect.anchorMax = new Vector2(0.9f, 0.3f);
-        buttonRect.offsetMin = Vector2.zero;
-        buttonRect.offsetMax = Vector2.zero;
-
-        // Button text
-        GameObject buttonTextObj = new GameObject("Text");
-        buttonTextObj.transform.SetParent(buttonObj.transform, false);
-        TextMeshProUGUI buttonText = buttonTextObj.AddComponent<TextMeshProUGUI>();
-        buttonText.text = "Purchase";
-        buttonText.fontSize = 14;
-        buttonText.alignment = TextAlignmentOptions.Center;
-        buttonText.color = Color.white;
-        RectTransform buttonTextRect = buttonTextObj.GetComponent<RectTransform>();
-        buttonTextRect.anchorMin = Vector2.zero;
-        buttonTextRect.anchorMax = Vector2.one;
-        buttonTextRect.offsetMin = Vector2.zero;
-        buttonTextRect.offsetMax = Vector2.zero;
-
-        // Add click handler
-        int index = upgradeIndex;
-        button.onClick.AddListener(() => OnUpgradeButtonClicked(index));
-        upgradeButtons[upgradeIndex] = button;
-
-        return container;
-    }
-
-    void OnUpgradeButtonClicked(int upgradeIndex)
-    {
-        if (ShopManager.Instance.PurchaseUpgrade(upgradeIndex))
-        {
-            RefreshUI();
-        }
+        currentTab = cat;
+        RefreshUI();
     }
 
     public void OpenShop()
@@ -167,6 +69,7 @@ public class ShopUI : MonoBehaviour
         if (shopPanel != null)
         {
             shopPanel.SetActive(true);
+            currentTab = ShopManager.ShopCategory.Ships;
             RefreshUI();
         }
     }
@@ -174,68 +77,252 @@ public class ShopUI : MonoBehaviour
     public void CloseShop()
     {
         if (shopPanel != null)
-        {
             shopPanel.SetActive(false);
-        }
 
-        // Tell PortZone to exit (resume time, restart waves)
         PortZone port = FindFirstObjectByType<PortZone>();
         if (port != null)
-        {
             port.ForceExitPort();
-        }
     }
 
     void RefreshUI()
     {
         if (ShopManager.Instance == null || GameManager.Instance == null) return;
 
-        // Update gold display
+        // Gold
         if (goldDisplayText != null)
-        {
             goldDisplayText.text = $"Gold: {GameManager.Instance.gold}";
-        }
 
-        // Update each upgrade button
-        for (int i = 0; i < ShopManager.Instance.upgrades.Length; i++)
+        // Title
+        if (titleText != null)
+            titleText.text = currentTab.ToString();
+
+        // Tab highlight
+        SetTabHighlight(tabShips, currentTab == ShopManager.ShopCategory.Ships);
+        SetTabHighlight(tabEnhancements, currentTab == ShopManager.ShopCategory.Enhancements);
+        SetTabHighlight(tabCrew, currentTab == ShopManager.ShopCategory.Crew);
+
+        // Rebuild item cards
+        ClearCards();
+        List<ShopManager.ShopItem> items = ShopManager.Instance.GetItems(currentTab);
+        foreach (var item in items)
+            CreateItemCard(item);
+    }
+
+    void SetTabHighlight(Button btn, bool active)
+    {
+        if (btn == null) return;
+        Image img = btn.GetComponent<Image>();
+        if (img != null)
+            img.color = active ? TAB_ACTIVE : TAB_INACTIVE;
+    }
+
+    void ClearCards()
+    {
+        foreach (var go in currentCards)
+            Destroy(go);
+        currentCards.Clear();
+    }
+
+    void CreateItemCard(ShopManager.ShopItem item)
+    {
+        if (contentArea == null) return;
+
+        bool hasSprite = item.sprite != null;
+        bool maxed = item.currentLevel >= item.maxLevel;
+        bool owned = item.purchased && item.maxLevel <= 1;
+        int cost = ShopManager.Instance.GetItemCost(item);
+        bool canAfford = ShopManager.Instance.CanAfford(item, GameManager.Instance.gold);
+
+        // --- Card container ---
+        GameObject card = new GameObject(item.name);
+        card.transform.SetParent(contentArea, false);
+        RectTransform rt = card.AddComponent<RectTransform>();
+        rt.sizeDelta = new Vector2(200, 220);
+        Image bg = card.AddComponent<Image>();
+        bg.color = CARD_BG;
+        currentCards.Add(card);
+
+        // --- Thin accent line at top (gold for owned, dark for others) ---
+        GameObject accent = new GameObject("Accent");
+        accent.transform.SetParent(card.transform, false);
+        Image accentImg = accent.AddComponent<Image>();
+        accentImg.color = owned ? new Color(0.85f, 0.65f, 0.13f) :
+                          canAfford ? new Color(0.3f, 0.7f, 0.4f) :
+                          new Color(0.35f, 0.35f, 0.4f);
+        RectTransform accentRect = accent.GetComponent<RectTransform>();
+        accentRect.anchorMin = new Vector2(0, 1f);
+        accentRect.anchorMax = new Vector2(1, 1f);
+        accentRect.pivot = new Vector2(0.5f, 1f);
+        accentRect.anchoredPosition = Vector2.zero;
+        accentRect.sizeDelta = new Vector2(0, 3);
+
+        // --- Icon area (top portion) ---
+        if (hasSprite)
         {
-            var upgrade = ShopManager.Instance.upgrades[i];
-            int cost = ShopManager.Instance.GetUpgradeCost(i);
-            bool canAfford = ShopManager.Instance.CanAffordUpgrade(i, GameManager.Instance.gold);
-            bool maxLevel = upgrade.currentLevel >= upgrade.maxLevel;
+            // Dark backing behind sprite to eliminate checkered transparency
+            GameObject iconBg = new GameObject("IconBg");
+            iconBg.transform.SetParent(card.transform, false);
+            Image iconBgImg = iconBg.AddComponent<Image>();
+            iconBgImg.color = new Color(0.1f, 0.1f, 0.14f, 1f);
+            RectTransform iconBgRect = iconBg.GetComponent<RectTransform>();
+            iconBgRect.anchorMin = new Vector2(0.08f, 0.58f);
+            iconBgRect.anchorMax = new Vector2(0.92f, 0.95f);
+            iconBgRect.offsetMin = Vector2.zero;
+            iconBgRect.offsetMax = Vector2.zero;
 
-            if (upgradeLevelTexts[i] != null)
-            {
-                upgradeLevelTexts[i].text = $"Level: {upgrade.currentLevel}/{upgrade.maxLevel}";
-            }
-
-            if (upgradeCostTexts[i] != null)
-            {
-                if (maxLevel)
-                {
-                    upgradeCostTexts[i].text = "MAX LEVEL";
-                    upgradeCostTexts[i].color = Color.cyan;
-                }
-                else
-                {
-                    upgradeCostTexts[i].text = $"Cost: {cost} Gold";
-                    upgradeCostTexts[i].color = canAfford ? Color.yellow : Color.red;
-                }
-            }
-
-            if (upgradeButtons[i] != null)
-            {
-                upgradeButtons[i].interactable = canAfford && !maxLevel;
-            }
+            // The sprite itself
+            GameObject imgObj = new GameObject("Icon");
+            imgObj.transform.SetParent(card.transform, false);
+            Image icon = imgObj.AddComponent<Image>();
+            icon.sprite = item.sprite;
+            icon.preserveAspect = true;
+            icon.type = Image.Type.Simple;
+            RectTransform imgRect = imgObj.GetComponent<RectTransform>();
+            imgRect.anchorMin = new Vector2(0.12f, 0.60f);
+            imgRect.anchorMax = new Vector2(0.88f, 0.93f);
+            imgRect.offsetMin = Vector2.zero;
+            imgRect.offsetMax = Vector2.zero;
         }
+        else
+        {
+            // Placeholder icon area with first letter
+            GameObject placeholder = new GameObject("Placeholder");
+            placeholder.transform.SetParent(card.transform, false);
+            Image phImg = placeholder.AddComponent<Image>();
+            phImg.color = new Color(0.15f, 0.15f, 0.2f, 1f);
+            RectTransform phRect = placeholder.GetComponent<RectTransform>();
+            phRect.anchorMin = new Vector2(0.25f, 0.60f);
+            phRect.anchorMax = new Vector2(0.75f, 0.93f);
+            phRect.offsetMin = Vector2.zero;
+            phRect.offsetMax = Vector2.zero;
+
+            GameObject letterObj = new GameObject("Letter");
+            letterObj.transform.SetParent(placeholder.transform, false);
+            TextMeshProUGUI letterText = letterObj.AddComponent<TextMeshProUGUI>();
+            letterText.text = item.name.Length > 0 ? item.name[0].ToString() : "?";
+            letterText.fontSize = 32;
+            letterText.color = new Color(0.5f, 0.5f, 0.6f);
+            letterText.alignment = TextAlignmentOptions.Center;
+            RectTransform letterRect = letterObj.GetComponent<RectTransform>();
+            letterRect.anchorMin = Vector2.zero;
+            letterRect.anchorMax = Vector2.one;
+            letterRect.offsetMin = Vector2.zero;
+            letterRect.offsetMax = Vector2.zero;
+        }
+
+        // --- Item name ---
+        GameObject nameObj = new GameObject("Name");
+        nameObj.transform.SetParent(card.transform, false);
+        TextMeshProUGUI nameText = nameObj.AddComponent<TextMeshProUGUI>();
+        nameText.text = item.name;
+        nameText.fontSize = 15;
+        nameText.fontStyle = FontStyles.Bold;
+        nameText.alignment = TextAlignmentOptions.Center;
+        nameText.color = Color.white;
+        RectTransform nameRect = nameObj.GetComponent<RectTransform>();
+        nameRect.anchorMin = new Vector2(0, 0.46f);
+        nameRect.anchorMax = new Vector2(1, 0.58f);
+        nameRect.offsetMin = new Vector2(4, 0);
+        nameRect.offsetMax = new Vector2(-4, 0);
+
+        // --- Description ---
+        GameObject descObj = new GameObject("Desc");
+        descObj.transform.SetParent(card.transform, false);
+        TextMeshProUGUI descText = descObj.AddComponent<TextMeshProUGUI>();
+        descText.text = item.description;
+        descText.fontSize = 10;
+        descText.color = new Color(0.65f, 0.65f, 0.7f);
+        descText.alignment = TextAlignmentOptions.Center;
+        RectTransform descRect = descObj.GetComponent<RectTransform>();
+        descRect.anchorMin = new Vector2(0, 0.36f);
+        descRect.anchorMax = new Vector2(1, 0.48f);
+        descRect.offsetMin = new Vector2(4, 0);
+        descRect.offsetMax = new Vector2(-4, 0);
+
+        // --- Status line (level or owned) ---
+        GameObject statusObj = new GameObject("Status");
+        statusObj.transform.SetParent(card.transform, false);
+        TextMeshProUGUI statusText = statusObj.AddComponent<TextMeshProUGUI>();
+        statusText.fontSize = 11;
+        statusText.alignment = TextAlignmentOptions.Center;
+        RectTransform statusRect = statusObj.GetComponent<RectTransform>();
+        statusRect.anchorMin = new Vector2(0, 0.26f);
+        statusRect.anchorMax = new Vector2(1, 0.36f);
+        statusRect.offsetMin = new Vector2(4, 0);
+        statusRect.offsetMax = new Vector2(-4, 0);
+
+        if (item.maxLevel > 1)
+        {
+            statusText.text = maxed ? "MAX LEVEL" : $"Lv {item.currentLevel}/{item.maxLevel}  \u2022  {cost} Gold";
+            statusText.color = maxed ? Color.cyan : (canAfford ? Color.yellow : new Color(1f, 0.4f, 0.4f));
+        }
+        else if (owned)
+        {
+            statusText.text = "\u2713 Owned";
+            statusText.color = new Color(0.4f, 0.9f, 0.5f);
+        }
+        else
+        {
+            statusText.text = $"{cost} Gold";
+            statusText.color = canAfford ? Color.yellow : new Color(1f, 0.4f, 0.4f);
+        }
+
+        // --- Buy / Equipped button ---
+        GameObject btnObj = new GameObject("BuyBtn");
+        btnObj.transform.SetParent(card.transform, false);
+        Image btnImg = btnObj.AddComponent<Image>();
+        Button btn = btnObj.AddComponent<Button>();
+        RectTransform btnRect = btnObj.GetComponent<RectTransform>();
+        btnRect.anchorMin = new Vector2(0.1f, 0.04f);
+        btnRect.anchorMax = new Vector2(0.9f, 0.22f);
+        btnRect.offsetMin = Vector2.zero;
+        btnRect.offsetMax = Vector2.zero;
+
+        string btnLabel;
+        if (maxed || owned)
+        {
+            btnImg.color = new Color(0.25f, 0.25f, 0.3f);
+            btn.interactable = false;
+            btnLabel = owned ? "\u2713 Equipped" : "Maxed";
+        }
+        else if (canAfford)
+        {
+            btnImg.color = new Color(0.18f, 0.55f, 0.25f);
+            btn.interactable = true;
+            btnLabel = "Buy";
+        }
+        else
+        {
+            btnImg.color = new Color(0.4f, 0.18f, 0.18f);
+            btn.interactable = false;
+            btnLabel = "Buy";
+        }
+
+        GameObject btnTextObj = new GameObject("Text");
+        btnTextObj.transform.SetParent(btnObj.transform, false);
+        TextMeshProUGUI btnText = btnTextObj.AddComponent<TextMeshProUGUI>();
+        btnText.text = btnLabel;
+        btnText.fontSize = 14;
+        btnText.alignment = TextAlignmentOptions.Center;
+        btnText.color = Color.white;
+        RectTransform btnTextRect = btnTextObj.GetComponent<RectTransform>();
+        btnTextRect.anchorMin = Vector2.zero;
+        btnTextRect.anchorMax = Vector2.one;
+        btnTextRect.offsetMin = Vector2.zero;
+        btnTextRect.offsetMax = Vector2.zero;
+
+        // Click handler
+        ShopManager.ShopItem captured = item;
+        btn.onClick.AddListener(() =>
+        {
+            if (ShopManager.Instance.Purchase(captured))
+                RefreshUI();
+        });
     }
 
     void Update()
     {
-        // Refresh UI when shop is open to reflect gold changes
         if (shopPanel != null && shopPanel.activeSelf)
-        {
             RefreshUI();
-        }
     }
 }
