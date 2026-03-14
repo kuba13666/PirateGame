@@ -16,6 +16,11 @@ public class GameManager : MonoBehaviour
     [Tooltip("Player's gold for purchasing upgrades")]
     public int gold = 500;
 
+    [Tooltip("Player's resource stockpiles")]
+    public int wood = 0;
+    public int canvas = 0;
+    public int metal = 0;
+
     [Tooltip("Damage multiplier from upgrades")]
     public float damageMultiplier = 1f;
 

@@ -128,14 +128,14 @@ public class GameSetupEditor : EditorWindow
         
         Camera camera = cameraObj.AddComponent<Camera>();
         camera.orthographic = true;
-        camera.orthographicSize = 5f;
+        camera.orthographicSize = 8f;
         camera.clearFlags = CameraClearFlags.SolidColor;
         camera.backgroundColor = new Color(0.2f, 0.4f, 0.7f); // Ocean blue
         
         cameraObj.AddComponent<AudioListener>();
         cameraObj.transform.position = new Vector3(0, 0, GameConstants.CAMERA_OFFSET_Z);
         
-        Debug.Log("✓ Main Camera created with orthographic size 5");
+        Debug.Log("✓ Main Camera created with orthographic size 8");
     }
 
     static GameObject CreatePlayerShip(GameObject projectilePrefab)

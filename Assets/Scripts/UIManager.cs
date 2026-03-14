@@ -85,18 +85,22 @@ public class UIManager : MonoBehaviour
             case LootType.Gold:
                 goldCount++;
                 if (goldCountText != null) goldCountText.text = goldCount.ToString();
+                if (GameManager.Instance != null) GameManager.Instance.gold += 10;
                 break;
             case LootType.Wood:
                 woodCount++;
                 if (woodCountText != null) woodCountText.text = woodCount.ToString();
+                if (GameManager.Instance != null) GameManager.Instance.wood++;
                 break;
             case LootType.Canvas:
                 canvasCount++;
                 if (canvasCountText != null) canvasCountText.text = canvasCount.ToString();
+                if (GameManager.Instance != null) GameManager.Instance.canvas++;
                 break;
             case LootType.Metal:
                 metalCount++;
                 if (metalCountText != null) metalCountText.text = metalCount.ToString();
+                if (GameManager.Instance != null) GameManager.Instance.metal++;
                 break;
         }
     }

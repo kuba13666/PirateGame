@@ -5,20 +5,20 @@
 public static class GameConstants
 {
     // Map Boundaries
-    public const float MAP_MIN_X = -6f;
-    public const float MAP_MAX_X = 6f;
-    public const float MAP_MIN_Y = -6f;
-    public const float MAP_MAX_Y = 6f;
+    public const float MAP_MIN_X = -50f;
+    public const float MAP_MAX_X = 50f;
+    public const float MAP_MIN_Y = -50f;
+    public const float MAP_MAX_Y = 50f;
     public const float MAP_WIDTH = MAP_MAX_X - MAP_MIN_X;
     public const float MAP_HEIGHT = MAP_MAX_Y - MAP_MIN_Y;
-    public const float WALL_THICKNESS = 0.2f;
+    public const float WALL_THICKNESS = 0.5f;
     
-    // Enemy spawn boundaries (slightly inside walls)
-    public const float ENEMY_SPAWN_MIN_X = -5.5f;
-    public const float ENEMY_SPAWN_MAX_X = 5.5f;
-    public const float ENEMY_SPAWN_MIN_Y = -5.5f;
-    public const float ENEMY_SPAWN_MAX_Y = 5.5f;
-    public const float ENEMY_SPAWN_DISTANCE = 3f;
+    // Enemy spawn boundaries (clamp to keep spawns inside map)
+    public const float ENEMY_SPAWN_MIN_X = MAP_MIN_X + 2f;
+    public const float ENEMY_SPAWN_MAX_X = MAP_MAX_X - 2f;
+    public const float ENEMY_SPAWN_MIN_Y = MAP_MIN_Y + 2f;
+    public const float ENEMY_SPAWN_MAX_Y = MAP_MAX_Y - 2f;
+    public const float ENEMY_SPAWN_DISTANCE = 8f;
     
     // Player Settings
     public const float PLAYER_SCALE_X = 0.54f;  // 0.27 * 2
@@ -34,7 +34,7 @@ public static class GameConstants
     public const float CANNON_PROJECTILE_SPAWN_OFFSET = 0.3f;  // 0.15 * 2
     
     // Projectile Settings
-    public const float PROJECTILE_SCALE = 0.16f;  // 0.08 * 2
+    public const float PROJECTILE_SCALE = 0.4f;
     public const float PROJECTILE_SPEED = 4f;
     public const float PROJECTILE_LIFETIME = 3f;
     public const int PROJECTILE_DAMAGE = 1;
