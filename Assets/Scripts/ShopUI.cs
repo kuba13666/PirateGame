@@ -79,7 +79,8 @@ public class ShopUI : MonoBehaviour
         if (shopPanel != null)
             shopPanel.SetActive(false);
 
-        PortZone port = FindFirstObjectByType<PortZone>();
+        // Find the port the player is actually in (not just the first one)
+        PortZone port = PortZone.GetActivePort();
         if (port != null)
             port.ForceExitPort();
     }

@@ -17,12 +17,25 @@ public class PortZone : MonoBehaviour
     [Tooltip("Ignore entries during the first seconds of the scene")]
     public float minEnterTime = 0.5f;
 
+    [Header("Location")]
+    public Location location;
+
     private float previousTimeScale = 1f;
     private bool timePaused = false;
 
     private bool playerInPort = false;
     private float exitCooldownUntil = 0f;
     private const float RE_ENTRY_COOLDOWN = 1f;
+
+    /// <summary>
+    /// Returns the PortZone the player is currently inside, or null.
+    /// </summary>
+    public static PortZone GetActivePort()
+    {
+        foreach (var pz in FindObjectsByType<PortZone>(FindObjectsSortMode.None))
+            if (pz.playerInPort) return pz;
+        return null;
+    }
 
     void OnTriggerEnter2D(Collider2D collision)
     {
@@ -102,11 +115,19 @@ public class PortZone : MonoBehaviour
             GameManager.Instance.uiManager.ShowPortWelcome(portName, welcomeMessageDuration);
         }
 
-        // Open shop UI
-        ShopUI shopUI = FindFirstObjectByType<ShopUI>();
-        if (shopUI != null)
+        // Discover this location
+        if (location != null)
+            location.Discover();
+
+        // Open shop UI only if this port has a shop
+        bool hasShop = location == null || location.hasShop;
+        if (hasShop)
         {
-            shopUI.OpenShop();
+            ShopUI shopUI = FindFirstObjectByType<ShopUI>();
+            if (shopUI != null)
+            {
+                shopUI.OpenShop();
+            }
         }
     }
 

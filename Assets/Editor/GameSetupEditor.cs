@@ -67,9 +67,11 @@ public class GameSetupEditor : EditorWindow
 
         // Create UI
         CreateUI();
+        CreateCompassUI();
 
-        // Create Port Zone and Shop UI
-        CreatePortZone();
+        // Create world locations (ports, islands, boss arena)
+        CreateLocationManager();
+        CreateAllLocations();
         CreateShopSystem();
 
         // Create map boundaries
@@ -110,7 +112,13 @@ public class GameSetupEditor : EditorWindow
         GameObject.DestroyImmediate(GameObject.Find("WaveManager"));
         GameObject.DestroyImmediate(GameObject.Find("ShopManager"));
         GameObject.DestroyImmediate(GameObject.Find("ShopUI"));
+        GameObject.DestroyImmediate(GameObject.Find("CompassUI"));
         GameObject.DestroyImmediate(GameObject.Find("Port_SafeHarbor"));
+        GameObject.DestroyImmediate(GameObject.Find("LocationManager"));
+        
+        // Remove all locations
+        foreach (var loc in GameObject.FindObjectsByType<Location>(FindObjectsSortMode.None))
+            GameObject.DestroyImmediate(loc.gameObject);
         
         // Remove boundary walls
         GameObject.DestroyImmediate(GameObject.Find("Boundary_Top"));
@@ -813,55 +821,243 @@ public class GameSetupEditor : EditorWindow
         col.isTrigger = false; // Solid wall
     }
 
-    /// <summary>
-    /// Creates a simple port trigger zone that disables spawns and opens shop
-    /// </summary>
-    static void CreatePortZone()
-    {
-        GameObject port = new GameObject("Port_SafeHarbor");
-        // Place port safely away from player spawn (top-right corner)
-        port.transform.position = new Vector3(GameConstants.MAP_MAX_X - 8f, GameConstants.MAP_MAX_Y - 8f, 0f);
+    // ────────────────────────────────────────────
+    //  WORLD LOCATIONS
+    // ────────────────────────────────────────────
 
-        // Visualize zone using provided sprite
-        SpriteRenderer sr = port.AddComponent<SpriteRenderer>();
-        Sprite portSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/GameAssets/Port_1.png");
-        float portScale = 0.1f; // shrink port art and collider
-        if (portSprite != null)
+    static void CreateLocationManager()
+    {
+        GameObject obj = new GameObject("LocationManager");
+        obj.AddComponent<LocationManager>();
+        Debug.Log("✓ LocationManager created");
+    }
+
+    static void CreateAllLocations()
+    {
+        // Base port — home harbor with shop (near center-ish, player starts at 0,0)
+        CreatePortLocation("base_port", "Safe Harbor",
+            new Vector2(5f, 5f), true, true,
+            "Assets/GameAssets/Port_1.png");
+
+        // Trader's Cove — second port with shop (north-west)
+        CreatePortLocation("traders_cove", "Trader's Cove",
+            new Vector2(-30f, 25f), true, false,
+            null); // placeholder
+
+        // Naval Outpost — third port, no shop (south-east)
+        CreatePortLocation("naval_outpost", "Naval Outpost",
+            new Vector2(30f, -20f), false, false,
+            null); // placeholder
+
+        // Secret Island — side quest (far east, hidden)
+        CreateIslandLocation("secret_island", "Forgotten Isle",
+            new Vector2(40f, 10f), false,
+            "Assets/GameAssets/island_large.png");
+
+        // Boss Arena — final encounter (far north)
+        CreateBossArenaLocation("boss_arena", "The Maelstrom",
+            new Vector2(0f, 42f), false);
+
+        Debug.Log("✓ All 5 world locations created");
+    }
+
+    static void CreatePortLocation(string id, string displayName, Vector2 pos,
+        bool hasShop, bool startDiscovered, string spritePath)
+    {
+        GameObject obj = new GameObject("Loc_" + id);
+        obj.transform.position = new Vector3(pos.x, pos.y, 0f);
+
+        // Sprite
+        SpriteRenderer sr = obj.AddComponent<SpriteRenderer>();
+        float portScale = 0.1f;
+        Sprite sprite = null;
+        if (!string.IsNullOrEmpty(spritePath))
         {
-            sr.sprite = portSprite;
+            EnsureEnemySpriteImported(spritePath);
+            sprite = AssetDatabase.LoadAssetAtPath<Sprite>(spritePath);
+        }
+        if (sprite != null)
+        {
+            sr.sprite = sprite;
             sr.color = Color.white;
-            sr.drawMode = SpriteDrawMode.Simple;
         }
         else
         {
-            sr.sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
-            sr.color = new Color(0.2f, 0.6f, 1f, 0.15f);
-            sr.drawMode = SpriteDrawMode.Sliced;
-            sr.size = new Vector2(6f, 6f);
+            // Placeholder: colored circle
+            sr.sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd");
+            sr.color = hasShop ? new Color(0.3f, 0.8f, 0.4f, 0.8f)
+                               : new Color(0.4f, 0.6f, 0.9f, 0.8f);
+            portScale = 0.5f; // larger placeholder
         }
         sr.sortingOrder = 0;
-        port.transform.localScale = Vector3.one * portScale;
+        obj.transform.localScale = Vector3.one * portScale;
 
-        // Trigger collider sized to sprite (account for scale)
-        BoxCollider2D bc = port.AddComponent<BoxCollider2D>();
+        // Collider
+        BoxCollider2D bc = obj.AddComponent<BoxCollider2D>();
         bc.isTrigger = true;
         if (sr.sprite != null)
         {
-            Vector2 spriteSize = sr.sprite.bounds.size * portScale;
+            Vector2 spriteSize = sr.sprite.bounds.size;
             bc.size = spriteSize;
+        }
+
+        // Location component
+        Location loc = obj.AddComponent<Location>();
+        loc.locationId = id;
+        loc.displayName = displayName;
+        loc.locationType = Location.LocationType.Port;
+        loc.hasShop = hasShop;
+        loc.discovered = startDiscovered;
+        loc.worldPosition = pos;
+
+        // Port zone (pause, shop, waves)
+        PortZone pz = obj.AddComponent<PortZone>();
+        pz.portName = displayName;
+        pz.welcomeMessageDuration = 3f;
+        pz.minEnterTime = 0.75f;
+        pz.location = loc;
+    }
+
+    static void CreateIslandLocation(string id, string displayName, Vector2 pos,
+        bool startDiscovered, string spritePath)
+    {
+        GameObject obj = new GameObject("Loc_" + id);
+        obj.transform.position = new Vector3(pos.x, pos.y, 0f);
+
+        SpriteRenderer sr = obj.AddComponent<SpriteRenderer>();
+        float scale = 0.05f;
+        Sprite sprite = null;
+        if (!string.IsNullOrEmpty(spritePath))
+        {
+            EnsureEnemySpriteImported(spritePath);
+            sprite = AssetDatabase.LoadAssetAtPath<Sprite>(spritePath);
+        }
+        if (sprite != null)
+        {
+            sr.sprite = sprite;
+            sr.color = Color.white;
         }
         else
         {
-            bc.size = new Vector2(6f, 6f) * portScale;
+            sr.sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd");
+            sr.color = new Color(0.6f, 0.5f, 0.2f, 0.8f); // sandy
+            scale = 0.5f;
         }
+        sr.sortingOrder = 0;
+        obj.transform.localScale = Vector3.one * scale;
 
-        // Port logic
-        PortZone pz = port.AddComponent<PortZone>();
-        pz.portName = "Safe Harbor";
-        pz.welcomeMessageDuration = 3f;
-        pz.minEnterTime = 0.75f;
+        // Discovery trigger (larger invisible collider)
+        CircleCollider2D cc = obj.AddComponent<CircleCollider2D>();
+        cc.isTrigger = true;
+        cc.radius = 3f / scale; // ~3 world units
 
-        Debug.Log("✓ Port zone created (Safe Harbor)");
+        Location loc = obj.AddComponent<Location>();
+        loc.locationId = id;
+        loc.displayName = displayName;
+        loc.locationType = Location.LocationType.Island;
+        loc.hasShop = false;
+        loc.discovered = startDiscovered;
+        loc.worldPosition = pos;
+    }
+
+    static void CreateBossArenaLocation(string id, string displayName, Vector2 pos,
+        bool startDiscovered)
+    {
+        GameObject obj = new GameObject("Loc_" + id);
+        obj.transform.position = new Vector3(pos.x, pos.y, 0f);
+
+        // Placeholder — swirling vortex
+        SpriteRenderer sr = obj.AddComponent<SpriteRenderer>();
+        sr.sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd");
+        sr.color = new Color(0.8f, 0.2f, 0.3f, 0.7f); // ominous red
+        sr.sortingOrder = 0;
+        float scale = 0.8f;
+        obj.transform.localScale = Vector3.one * scale;
+
+        CircleCollider2D cc = obj.AddComponent<CircleCollider2D>();
+        cc.isTrigger = true;
+        cc.radius = 4f / scale; // ~4 world units
+
+        Location loc = obj.AddComponent<Location>();
+        loc.locationId = id;
+        loc.displayName = displayName;
+        loc.locationType = Location.LocationType.BossArena;
+        loc.hasShop = false;
+        loc.discovered = startDiscovered;
+        loc.worldPosition = pos;
+    }
+
+    // ────────────────────────────────────────────
+    //  COMPASS / MINIMAP UI
+    // ────────────────────────────────────────────
+
+    static void CreateCompassUI()
+    {
+        Canvas canvas = GameObject.FindFirstObjectByType<Canvas>();
+        if (canvas == null) { Debug.LogError("CreateCompassUI: no Canvas found"); return; }
+        Transform canvasT = canvas.transform;
+
+        // ── Minimap panel (bottom-left) ──────────────
+        GameObject panelObj = new GameObject("MinimapPanel");
+        panelObj.transform.SetParent(canvasT, false);
+        Image panelBg = panelObj.AddComponent<Image>();
+        panelBg.color = new Color(0.05f, 0.08f, 0.15f, 0.75f);
+        panelBg.raycastTarget = false;
+        RectTransform panelRect = panelObj.GetComponent<RectTransform>();
+        panelRect.anchorMin = new Vector2(0, 0);
+        panelRect.anchorMax = new Vector2(0, 0);
+        panelRect.pivot = new Vector2(0, 0);
+        panelRect.anchoredPosition = new Vector2(10, 10);
+        panelRect.sizeDelta = new Vector2(140, 140);
+
+        // Border
+        Outline outline = panelObj.AddComponent<Outline>();
+        outline.effectColor = new Color(0.6f, 0.5f, 0.3f, 0.9f); // gold-ish
+        outline.effectDistance = new Vector2(2, 2);
+
+        // ── Player dot (white) ───────────────────────
+        GameObject playerDotObj = new GameObject("PlayerDot");
+        playerDotObj.transform.SetParent(panelObj.transform, false);
+        Image playerDotImg = playerDotObj.AddComponent<Image>();
+        playerDotImg.color = Color.white;
+        playerDotImg.raycastTarget = false;
+        RectTransform playerDotRect = playerDotObj.GetComponent<RectTransform>();
+        playerDotRect.sizeDelta = new Vector2(6, 6);
+
+        // ── Edge arrow container (full screen overlay) ─
+        GameObject arrowContainerObj = new GameObject("EdgeArrowContainer");
+        arrowContainerObj.transform.SetParent(canvasT, false);
+        RectTransform arrowRect = arrowContainerObj.AddComponent<RectTransform>();
+        arrowRect.anchorMin = Vector2.zero;
+        arrowRect.anchorMax = Vector2.one;
+        arrowRect.sizeDelta = Vector2.zero;
+        arrowRect.offsetMin = Vector2.zero;
+        arrowRect.offsetMax = Vector2.zero;
+
+        // ── Title label ──────────────────────────────
+        GameObject titleObj = new GameObject("MinimapTitle");
+        titleObj.transform.SetParent(panelObj.transform, false);
+        TextMeshProUGUI titleTmp = titleObj.AddComponent<TextMeshProUGUI>();
+        titleTmp.text = "MAP";
+        titleTmp.fontSize = 10;
+        titleTmp.color = new Color(0.8f, 0.7f, 0.5f);
+        titleTmp.alignment = TextAlignmentOptions.Top;
+        titleTmp.raycastTarget = false;
+        RectTransform titleRect = titleObj.GetComponent<RectTransform>();
+        titleRect.anchorMin = new Vector2(0, 1);
+        titleRect.anchorMax = new Vector2(1, 1);
+        titleRect.pivot = new Vector2(0.5f, 1);
+        titleRect.anchoredPosition = new Vector2(0, -2);
+        titleRect.sizeDelta = new Vector2(0, 14);
+
+        // ── CompassUI component ──────────────────────
+        GameObject compassObj = new GameObject("CompassUI");
+        CompassUI compass = compassObj.AddComponent<CompassUI>();
+        compass.minimapPanel = panelRect;
+        compass.playerDot = playerDotRect;
+        compass.arrowContainer = arrowRect;
+
+        Debug.Log("✓ Compass / Minimap UI created");
     }
 
     /// <summary>
