@@ -134,6 +134,10 @@ public class EnemyController : MonoBehaviour
             GameManager.Instance.AddKill();
         }
 
+        // Notify QuestManager
+        if (QuestManager.Instance != null)
+            QuestManager.Instance.ReportEnemyKilled();
+
         // Try to spawn loot
         TrySpawnLoot();
 

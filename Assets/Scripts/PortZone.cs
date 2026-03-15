@@ -119,6 +119,10 @@ public class PortZone : MonoBehaviour
         if (location != null)
             location.Discover();
 
+        // Report to quest system
+        if (location != null && QuestManager.Instance != null)
+            QuestManager.Instance.ReportLocationReached(location.locationId);
+
         // Open shop UI only if this port has a shop
         bool hasShop = location == null || location.hasShop;
         if (hasShop)

@@ -68,11 +68,16 @@ public class GameSetupEditor : EditorWindow
         // Create UI
         CreateUI();
         CreateCompassUI();
+        CreateDialogueUI();
+        CreateQuestTrackerUI();
 
         // Create world locations (ports, islands, boss arena)
         CreateLocationManager();
         CreateAllLocations();
         CreateShopSystem();
+
+        // Create quest system (after locations so dialogue can reference them)
+        CreateQuestManager();
 
         // Create map boundaries
         CreateMapBoundaries();
@@ -113,6 +118,9 @@ public class GameSetupEditor : EditorWindow
         GameObject.DestroyImmediate(GameObject.Find("ShopManager"));
         GameObject.DestroyImmediate(GameObject.Find("ShopUI"));
         GameObject.DestroyImmediate(GameObject.Find("CompassUI"));
+        GameObject.DestroyImmediate(GameObject.Find("DialogueUI"));
+        GameObject.DestroyImmediate(GameObject.Find("QuestTrackerUI"));
+        GameObject.DestroyImmediate(GameObject.Find("QuestManager"));
         GameObject.DestroyImmediate(GameObject.Find("Port_SafeHarbor"));
         GameObject.DestroyImmediate(GameObject.Find("LocationManager"));
         
@@ -990,6 +998,153 @@ public class GameSetupEditor : EditorWindow
     // ────────────────────────────────────────────
     //  COMPASS / MINIMAP UI
     // ────────────────────────────────────────────
+
+    static void CreateQuestManager()
+    {
+        GameObject obj = new GameObject("QuestManager");
+        obj.AddComponent<QuestManager>();
+        Debug.Log("✓ QuestManager created");
+    }
+
+    static void CreateDialogueUI()
+    {
+        Canvas canvas = GameObject.FindFirstObjectByType<Canvas>();
+        if (canvas == null) { Debug.LogError("CreateDialogueUI: no Canvas found"); return; }
+        Transform canvasT = canvas.transform;
+
+        // ── Dark panel along the bottom ──
+        GameObject panelObj = new GameObject("DialoguePanel");
+        panelObj.transform.SetParent(canvasT, false);
+        Image panelBg = panelObj.AddComponent<Image>();
+        panelBg.color = new Color(0.05f, 0.05f, 0.1f, 0.9f);
+        panelBg.raycastTarget = true; // block clicks through
+        RectTransform panelRect = panelObj.GetComponent<RectTransform>();
+        panelRect.anchorMin = new Vector2(0, 0);
+        panelRect.anchorMax = new Vector2(1, 0);
+        panelRect.pivot = new Vector2(0.5f, 0);
+        panelRect.anchoredPosition = Vector2.zero;
+        panelRect.sizeDelta = new Vector2(0, 140);
+
+        // Speaker name (top-left of panel, gold color)
+        GameObject speakerObj = new GameObject("SpeakerText");
+        speakerObj.transform.SetParent(panelObj.transform, false);
+        TextMeshProUGUI speakerTmp = speakerObj.AddComponent<TextMeshProUGUI>();
+        speakerTmp.text = "";
+        speakerTmp.fontSize = 18;
+        speakerTmp.fontStyle = FontStyles.Bold;
+        speakerTmp.color = new Color(0.9f, 0.75f, 0.3f);
+        speakerTmp.alignment = TextAlignmentOptions.TopLeft;
+        speakerTmp.raycastTarget = false;
+        RectTransform speakerRect = speakerObj.GetComponent<RectTransform>();
+        speakerRect.anchorMin = new Vector2(0, 1);
+        speakerRect.anchorMax = new Vector2(1, 1);
+        speakerRect.pivot = new Vector2(0, 1);
+        speakerRect.anchoredPosition = new Vector2(20, -8);
+        speakerRect.sizeDelta = new Vector2(-40, 24);
+
+        // Body text
+        GameObject bodyObj = new GameObject("BodyText");
+        bodyObj.transform.SetParent(panelObj.transform, false);
+        TextMeshProUGUI bodyTmp = bodyObj.AddComponent<TextMeshProUGUI>();
+        bodyTmp.text = "";
+        bodyTmp.fontSize = 16;
+        bodyTmp.color = Color.white;
+        bodyTmp.alignment = TextAlignmentOptions.TopLeft;
+        bodyTmp.raycastTarget = false;
+        RectTransform bodyRect = bodyObj.GetComponent<RectTransform>();
+        bodyRect.anchorMin = new Vector2(0, 0);
+        bodyRect.anchorMax = new Vector2(1, 1);
+        bodyRect.offsetMin = new Vector2(20, 24);
+        bodyRect.offsetMax = new Vector2(-20, -36);
+
+        // Continue hint (bottom-right)
+        GameObject hintObj = new GameObject("ContinueHint");
+        hintObj.transform.SetParent(panelObj.transform, false);
+        TextMeshProUGUI hintTmp = hintObj.AddComponent<TextMeshProUGUI>();
+        hintTmp.text = "[Click to continue]";
+        hintTmp.fontSize = 12;
+        hintTmp.color = new Color(0.6f, 0.6f, 0.6f);
+        hintTmp.alignment = TextAlignmentOptions.BottomRight;
+        hintTmp.raycastTarget = false;
+        RectTransform hintRect = hintObj.GetComponent<RectTransform>();
+        hintRect.anchorMin = new Vector2(0, 0);
+        hintRect.anchorMax = new Vector2(1, 0);
+        hintRect.pivot = new Vector2(1, 0);
+        hintRect.anchoredPosition = new Vector2(-16, 6);
+        hintRect.sizeDelta = new Vector2(-32, 20);
+
+        panelObj.SetActive(false); // hidden by default
+
+        // DialogueUI component on its own object
+        GameObject dialogueObj = new GameObject("DialogueUI");
+        DialogueUI dialogueUI = dialogueObj.AddComponent<DialogueUI>();
+        dialogueUI.dialoguePanel = panelObj;
+        dialogueUI.speakerText = speakerTmp;
+        dialogueUI.bodyText = bodyTmp;
+        dialogueUI.continueHint = hintTmp;
+
+        Debug.Log("✓ Dialogue UI created");
+    }
+
+    static void CreateQuestTrackerUI()
+    {
+        Canvas canvas = GameObject.FindFirstObjectByType<Canvas>();
+        if (canvas == null) return;
+        Transform canvasT = canvas.transform;
+
+        // Small panel below health text (top-left)
+        GameObject panelObj = new GameObject("QuestTrackerPanel");
+        panelObj.transform.SetParent(canvasT, false);
+        Image bg = panelObj.AddComponent<Image>();
+        bg.color = new Color(0.08f, 0.08f, 0.15f, 0.7f);
+        bg.raycastTarget = false;
+        RectTransform panelRect = panelObj.GetComponent<RectTransform>();
+        panelRect.anchorMin = new Vector2(0, 1);
+        panelRect.anchorMax = new Vector2(0, 1);
+        panelRect.pivot = new Vector2(0, 1);
+        panelRect.anchoredPosition = new Vector2(10, -65);
+        panelRect.sizeDelta = new Vector2(260, 50);
+
+        // Quest title
+        GameObject titleObj = new GameObject("QuestTitle");
+        titleObj.transform.SetParent(panelObj.transform, false);
+        TextMeshProUGUI titleTmp = titleObj.AddComponent<TextMeshProUGUI>();
+        titleTmp.text = "";
+        titleTmp.fontSize = 13;
+        titleTmp.fontStyle = FontStyles.Bold;
+        titleTmp.color = new Color(0.9f, 0.75f, 0.3f);
+        titleTmp.alignment = TextAlignmentOptions.TopLeft;
+        titleTmp.raycastTarget = false;
+        RectTransform titleRect = titleObj.GetComponent<RectTransform>();
+        titleRect.anchorMin = new Vector2(0, 0.5f);
+        titleRect.anchorMax = new Vector2(1, 1);
+        titleRect.offsetMin = new Vector2(8, 0);
+        titleRect.offsetMax = new Vector2(-8, -4);
+
+        // Objective text
+        GameObject objObj = new GameObject("ObjectiveText");
+        objObj.transform.SetParent(panelObj.transform, false);
+        TextMeshProUGUI objTmp = objObj.AddComponent<TextMeshProUGUI>();
+        objTmp.text = "";
+        objTmp.fontSize = 11;
+        objTmp.color = Color.white;
+        objTmp.alignment = TextAlignmentOptions.TopLeft;
+        objTmp.raycastTarget = false;
+        RectTransform objRect = objObj.GetComponent<RectTransform>();
+        objRect.anchorMin = new Vector2(0, 0);
+        objRect.anchorMax = new Vector2(1, 0.5f);
+        objRect.offsetMin = new Vector2(8, 4);
+        objRect.offsetMax = new Vector2(-8, 0);
+
+        // QuestTrackerUI component
+        GameObject trackerObj = new GameObject("QuestTrackerUI");
+        QuestTrackerUI tracker = trackerObj.AddComponent<QuestTrackerUI>();
+        tracker.trackerPanel = panelObj;
+        tracker.questTitleText = titleTmp;
+        tracker.objectiveText = objTmp;
+
+        Debug.Log("✓ Quest Tracker UI created");
+    }
 
     static void CreateCompassUI()
     {
