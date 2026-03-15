@@ -887,7 +887,7 @@ public class GameSetupEditor : EditorWindow
             sr.sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd");
             sr.color = hasShop ? new Color(0.3f, 0.8f, 0.4f, 0.8f)
                                : new Color(0.4f, 0.6f, 0.9f, 0.8f);
-            portScale = 0.5f; // larger placeholder
+            portScale = 30f; // large placeholder (Knob.psd is natively tiny)
         }
         sr.sortingOrder = 0;
         obj.transform.localScale = Vector3.one * portScale;
@@ -941,7 +941,7 @@ public class GameSetupEditor : EditorWindow
         {
             sr.sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd");
             sr.color = new Color(0.6f, 0.5f, 0.2f, 0.8f); // sandy
-            scale = 0.5f;
+            scale = 30f;
         }
         sr.sortingOrder = 0;
         obj.transform.localScale = Vector3.one * scale;
@@ -971,7 +971,7 @@ public class GameSetupEditor : EditorWindow
         sr.sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd");
         sr.color = new Color(0.8f, 0.2f, 0.3f, 0.7f); // ominous red
         sr.sortingOrder = 0;
-        float scale = 0.8f;
+        float scale = 25f;
         obj.transform.localScale = Vector3.one * scale;
 
         CircleCollider2D cc = obj.AddComponent<CircleCollider2D>();
