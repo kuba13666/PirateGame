@@ -50,4 +50,16 @@ public class LocationManager : MonoBehaviour
     {
         return new List<Location>(locations.Values);
     }
+
+    /// <summary>
+    /// Marks a location as discovered so it appears on the compass/minimap.
+    /// </summary>
+    public void DiscoverLocation(string id)
+    {
+        if (locations.TryGetValue(id, out Location loc))
+        {
+            loc.discovered = true;
+            Debug.Log($"Location discovered: {loc.displayName}");
+        }
+    }
 }

@@ -30,6 +30,15 @@ public class WaveManager : MonoBehaviour
     // Internal waves coroutine handle
     private Coroutine wavesRoutine;
 
+    /// <summary>How many full wave cycles the player has survived this life.</summary>
+    private int escalationLevel = 0;
+
+    /// <summary>HP multiplier applied to spawned enemies based on escalation.</summary>
+    public float EnemyHpMultiplier => 1f + escalationLevel * 0.25f;
+
+    /// <summary>Speed multiplier applied to spawned enemies based on escalation.</summary>
+    public float EnemySpeedMultiplier => 1f + escalationLevel * 0.1f;
+
     void Start()
     {
         if (spawner == null)
@@ -79,6 +88,17 @@ public class WaveManager : MonoBehaviour
 
     IEnumerator RunWaves()
     {
+        // If The Awakening quest is active, spawn an impossible wave first
+        if (QuestManager.Instance != null)
+        {
+            var quest = QuestManager.Instance.GetActiveQuest();
+            if (quest != null && quest.id == "the_awakening")
+            {
+                yield return StartCoroutine(RunAwakeningWave());
+                yield break; // Don't run normal waves — player must die first
+            }
+        }
+
         for (int i = 0; i < waves.Count; i++)
         {
             int waveNumber = i + 1;
@@ -89,14 +109,16 @@ public class WaveManager : MonoBehaviour
                 GameManager.Instance.uiManager.ShowWave(waveNumber);
             }
 
-            // Spawn all entries in this wave
+            // Spawn all entries in this wave (scaled by escalation)
             foreach (var entry in waves[i].entries)
             {
-                for (int c = 0; c < entry.count; c++)
+                int scaledCount = entry.count + Mathf.FloorToInt(entry.count * escalationLevel * 0.2f);
+                for (int c = 0; c < scaledCount; c++)
                 {
                     if (spawner != null)
                     {
-                        spawner.SpawnEnemyPrefab(entry.prefab);
+                        GameObject enemy = spawner.SpawnEnemyPrefab(entry.prefab);
+                        ApplyEscalation(enemy);
                     }
                     yield return new WaitForSeconds(entry.interval);
                 }
@@ -115,8 +137,49 @@ public class WaveManager : MonoBehaviour
             }
         }
 
-        // End of waves
-        wavesRoutine = null;
+        // All waves cleared — escalate and loop
+        escalationLevel++;
+        Debug.Log($"Wave cycle complete. Escalation level: {escalationLevel}");
+        wavesRoutine = StartCoroutine(RunWaves());
+    }
+
+    /// <summary>
+    /// The Awakening: an overwhelming flood of enemies. Player is meant to die.
+    /// </summary>
+    IEnumerator RunAwakeningWave()
+    {
+        yield return new WaitForSeconds(1f); // brief calm before the storm
+
+        if (GameManager.Instance != null && GameManager.Instance.uiManager != null)
+            GameManager.Instance.uiManager.ShowWave(0); // shows "Wave 0" or whatever the UI does
+
+        // Spawn 30 crabs almost instantly
+        for (int i = 0; i < 30; i++)
+        {
+            if (spawner != null) spawner.SpawnEnemyPrefab(spawner.crabEnemyPrefab);
+            yield return new WaitForSeconds(0.1f);
+        }
+
+        // Spawn 20 harpies fast
+        for (int i = 0; i < 20; i++)
+        {
+            if (spawner != null) spawner.SpawnEnemyPrefab(spawner.harpyEnemyPrefab);
+            yield return new WaitForSeconds(0.08f);
+        }
+
+        // Spawn 10 mermaids
+        for (int i = 0; i < 10; i++)
+        {
+            if (spawner != null) spawner.SpawnEnemyPrefab(spawner.mermaidEnemyPrefab);
+            yield return new WaitForSeconds(0.06f);
+        }
+
+        // Keep spawning until the player dies
+        while (true)
+        {
+            if (spawner != null) spawner.SpawnEnemyPrefab(spawner.harpyEnemyPrefab);
+            yield return new WaitForSeconds(0.15f);
+        }
     }
 
     bool AnyEnemiesAlive()
@@ -147,5 +210,24 @@ public class WaveManager : MonoBehaviour
     {
         StopWaves();
         StartWaves();
+    }
+
+    /// <summary>Reset escalation back to 0 (called on death).</summary>
+    public void ResetEscalation()
+    {
+        escalationLevel = 0;
+    }
+
+    /// <summary>Apply escalation buffs to a freshly spawned enemy.</summary>
+    void ApplyEscalation(GameObject enemy)
+    {
+        if (enemy == null || escalationLevel <= 0) return;
+
+        var ec = enemy.GetComponent<EnemyController>();
+        if (ec != null)
+        {
+            ec.maxHealth = Mathf.CeilToInt(ec.maxHealth * EnemyHpMultiplier);
+            ec.moveSpeed *= EnemySpeedMultiplier;
+        }
     }
 }

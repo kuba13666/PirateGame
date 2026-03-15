@@ -77,6 +77,10 @@ public class PortZone : MonoBehaviour
         // Avoid triggering instantly at scene start
         if (Time.timeSinceLevelLoad < minEnterTime) return;
 
+        // Don't open port/shop during post-respawn grace period
+        PlayerController player = FindFirstObjectByType<PlayerController>();
+        if (player != null && player.IsRespawnProtected) return;
+
         if (playerInPort) return;
         
         playerInPort = true;
@@ -133,6 +137,15 @@ public class PortZone : MonoBehaviour
                 shopUI.OpenShop();
             }
         }
+    }
+
+    /// <summary>
+    /// Programmatically enter this port (called by GameManager after death sequence).
+    /// </summary>
+    public void TriggerPortEntry()
+    {
+        playerInPort = false; // reset so EnterPort doesn't early-out
+        EnterPort();
     }
 
     /// <summary>

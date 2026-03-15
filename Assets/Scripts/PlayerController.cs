@@ -192,19 +192,41 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
-    /// Called when player health reaches zero
+    /// Called when player health reaches zero — Davy Jones respawns
     /// </summary>
     void Die()
     {
-        Debug.Log("Player ship destroyed!");
-        // For now, just disable the ship
-        // Later you can add game over screen, restart, etc.
-        gameObject.SetActive(false);
+        Debug.Log("Davy Jones falls... but the curse won't let him rest.");
 
         if (GameManager.Instance != null)
-        {
-            GameManager.Instance.GameOver();
-        }
+            GameManager.Instance.OnPlayerDeath();
+    }
+
+    /// <summary>Time (unscaled) until which port entry is suppressed after respawn.</summary>
+    private float portSuppressUntil = 0f;
+
+    /// <summary>True while the player is in a post-respawn grace period (ports won't trigger).</summary>
+    public bool IsRespawnProtected => Time.unscaledTime < portSuppressUntil;
+
+    /// <summary>Clears the respawn protection so the port can open immediately.</summary>
+    public void ClearRespawnProtection() => portSuppressUntil = 0f;
+
+    /// <summary>
+    /// Respawn: heal to full, teleport to safe position, clear enemies
+    /// </summary>
+    public void Respawn(Vector3 position)
+    {
+        currentHealth = maxHealth;
+        transform.position = position;
+        targetPosition = position;
+        isMoving = false;
+        gameObject.SetActive(true);
+
+        // Suppress port entry for 2 seconds so shop doesn't auto-open on respawn
+        portSuppressUntil = Time.unscaledTime + 2f;
+
+        if (GameManager.Instance != null)
+            GameManager.Instance.UpdatePlayerHealth(currentHealth, maxHealth);
     }
 
     /// <summary>
