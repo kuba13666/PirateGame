@@ -31,10 +31,7 @@ public class UIManager : MonoBehaviour
     public TextMeshProUGUI metalCountText;
 
     // Loot inventory
-    private int goldCount = 0;
-    private int woodCount = 0;
-    private int canvasCount = 0;
-    private int metalCount = 0;
+    // Loot counts are now tracked in GameManager (gold/wood/canvas/metal + runGold/runWood/runCanvas/runMetal)
 
     void Start()
     {
@@ -76,33 +73,55 @@ public class UIManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Adds loot to inventory and updates display
+    /// Adds loot to the current run and updates display
     /// </summary>
     public void AddLoot(LootType lootType)
     {
+        if (GameManager.Instance == null) return;
+        var gm = GameManager.Instance;
+
         switch (lootType)
         {
             case LootType.Gold:
-                goldCount++;
-                if (goldCountText != null) goldCountText.text = goldCount.ToString();
-                if (GameManager.Instance != null) GameManager.Instance.gold += 10;
+                gm.runGold++;
                 break;
             case LootType.Wood:
-                woodCount++;
-                if (woodCountText != null) woodCountText.text = woodCount.ToString();
-                if (GameManager.Instance != null) GameManager.Instance.wood++;
+                gm.runWood++;
                 break;
             case LootType.Canvas:
-                canvasCount++;
-                if (canvasCountText != null) canvasCountText.text = canvasCount.ToString();
-                if (GameManager.Instance != null) GameManager.Instance.canvas++;
+                gm.runCanvas++;
                 break;
             case LootType.Metal:
-                metalCount++;
-                if (metalCountText != null) metalCountText.text = metalCount.ToString();
-                if (GameManager.Instance != null) GameManager.Instance.metal++;
+                gm.runMetal++;
                 break;
         }
+
+        RefreshLootDisplay();
+    }
+
+    /// <summary>
+    /// Refreshes all loot counter texts from GameManager values.
+    /// Shows banked amount, with run loot in brackets if > 0.
+    /// Format: "5 (+3)" or just "5" if no run loot.
+    /// </summary>
+    public void RefreshLootDisplay()
+    {
+        if (GameManager.Instance == null) return;
+        var gm = GameManager.Instance;
+
+        UpdateLootText(goldCountText, gm.gold, gm.runGold * 10);
+        UpdateLootText(woodCountText, gm.wood, gm.runWood);
+        UpdateLootText(canvasCountText, gm.canvas, gm.runCanvas);
+        UpdateLootText(metalCountText, gm.metal, gm.runMetal);
+    }
+
+    void UpdateLootText(TextMeshProUGUI text, int banked, int run)
+    {
+        if (text == null) return;
+        if (run > 0)
+            text.text = $"{banked} <color=#88ff88>(+{run})</color>";
+        else
+            text.text = banked.ToString();
     }
 
     /// <summary>

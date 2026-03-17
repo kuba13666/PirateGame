@@ -113,6 +113,10 @@ public class PortZone : MonoBehaviour
             Destroy(enemy);
         }
 
+        // Bank run loot safely
+        if (GameManager.Instance != null)
+            GameManager.Instance.BankRunLoot();
+
         // Show welcome message
         if (GameManager.Instance != null && GameManager.Instance.uiManager != null)
         {

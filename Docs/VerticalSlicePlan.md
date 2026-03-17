@@ -23,9 +23,9 @@
 **Death flow:** Die → black overlay + pause → death/quest dialogue → overlay hides → Safe Harbor shop opens → close shop → waves restart.
 **Progressive discovery:** Completing quests reveals the next location on the compass.
 
-## Phase 3.5 — Death Penalty & Wave Scaling 🔲
-14. 🔲 **Loot loss on death** — When the player dies, all gold and resources (wood, canvas, metal) are lost. Purchased upgrades and recruited crew members persist.
-15. 🔲 **Wave escalation** — Each successive wave increases enemy HP/speed/count. Scaling resets on death (back to wave 1) but the base difficulty increases with story progress.
+## Phase 3.5 — Death Penalty & Wave Scaling ✅
+14. ✅ **Run loot system** — Loot collected during a sail is tracked as "run loot" shown in brackets (e.g. `500 (+12)`). Entering port banks run loot safely. Death only loses un-banked run loot; banked resources persist.
+15. ✅ **Wave escalation** — Each successive wave increases enemy HP/speed/count. Scaling resets on death (back to wave 1) but the base difficulty increases with story progress.
 
 ## Phase 4 — Enemy Ships
 16. **Enemy ship prefab** — Sprite, AI that circles and fires cannons at player (unlike monsters that charge).

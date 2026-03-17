@@ -26,6 +26,12 @@ public class GameManager : MonoBehaviour
     public int canvas = 0;
     public int metal = 0;
 
+    [Header("Run Loot (not yet banked — lost on death)")]
+    public int runGold = 0;
+    public int runWood = 0;
+    public int runCanvas = 0;
+    public int runMetal = 0;
+
     [Tooltip("Damage multiplier from upgrades")]
     public float damageMultiplier = 1f;
 
@@ -144,17 +150,16 @@ public class GameManager : MonoBehaviour
         if (shopUI != null && shopUI.shopPanel != null)
             shopUI.shopPanel.SetActive(false);
 
-        // ── 2. Loot loss — upgrades & crew persist, resources don't ──
-        int lostGold = gold;
-        int lostWood = wood;
-        int lostCanvas = canvas;
-        int lostMetal = metal;
-        gold = 0;
-        wood = 0;
-        canvas = 0;
-        metal = 0;
-        if (lostGold + lostWood + lostCanvas + lostMetal > 0)
-            Debug.Log($"Loot lost to the deep: {lostGold} gold, {lostWood} wood, {lostCanvas} canvas, {lostMetal} metal.");
+        // ── 2. Loot loss — only run loot is lost, banked resources are safe ──
+        if (runGold + runWood + runCanvas + runMetal > 0)
+            Debug.Log($"Loot lost to the deep: {runGold * 10} gold, {runWood} wood, {runCanvas} canvas, {runMetal} metal.");
+        runGold = 0;
+        runWood = 0;
+        runCanvas = 0;
+        runMetal = 0;
+
+        // Update UI to reflect cleared run loot
+        if (uiManager != null) uiManager.RefreshLootDisplay();
 
         // ── 3. Black overlay + pause ──
         if (deathOverlay != null)
@@ -295,5 +300,27 @@ public class GameManager : MonoBehaviour
     public int GetKillCount()
     {
         return killCount;
+    }
+
+    /// <summary>
+    /// Total gold including run loot (for display).
+    /// </summary>
+    public int TotalGold => gold + runGold * 10;
+
+    /// <summary>
+    /// Banks all run loot into main stash (called when entering port).
+    /// </summary>
+    public void BankRunLoot()
+    {
+        gold += runGold * 10;
+        wood += runWood;
+        canvas += runCanvas;
+        metal += runMetal;
+        runGold = 0;
+        runWood = 0;
+        runCanvas = 0;
+        runMetal = 0;
+        if (uiManager != null) uiManager.RefreshLootDisplay();
+        Debug.Log($"Loot banked! Gold: {gold}, Wood: {wood}, Canvas: {canvas}, Metal: {metal}");
     }
 }
