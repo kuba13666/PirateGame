@@ -137,6 +137,12 @@ public class PortZone : MonoBehaviour
                 shopUI.OpenShop();
             }
         }
+        else
+        {
+            // No shop — auto-exit port after a brief moment so time resumes
+            // (quest dialogue uses unscaled time, so it will still play)
+            ForceExitPort();
+        }
     }
 
     /// <summary>

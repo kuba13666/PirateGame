@@ -48,6 +48,10 @@ public class PlayerController : MonoBehaviour
         // Get reference to the main camera
         mainCamera = Camera.main;
 
+        // Cache original sprite color for damage flash
+        SpriteRenderer sr = GetComponent<SpriteRenderer>();
+        if (sr != null) originalSpriteColor = sr.color;
+
         // Set initial target position to current position
         targetPosition = transform.position;
 
@@ -147,8 +151,9 @@ public class PlayerController : MonoBehaviour
             currentHealth = 0;
         }
 
-        // Visual feedback: flash red
-        StartCoroutine(FlashDamage());
+        // Visual feedback: flash red (cancel previous flash first)
+        if (flashRoutine != null) StopCoroutine(flashRoutine);
+        flashRoutine = StartCoroutine(FlashDamage());
 
         // Update UI
         if (GameManager.Instance != null)
@@ -176,6 +181,10 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    // Cached original sprite color (set once in Start)
+    private Color originalSpriteColor;
+    private Coroutine flashRoutine;
+
     /// <summary>
     /// Flash red when taking damage
     /// </summary>
@@ -184,11 +193,11 @@ public class PlayerController : MonoBehaviour
         SpriteRenderer sr = GetComponent<SpriteRenderer>();
         if (sr != null)
         {
-            Color originalColor = sr.color;
             sr.color = Color.red;
             yield return new WaitForSeconds(0.1f);
-            sr.color = originalColor;
+            sr.color = originalSpriteColor;
         }
+        flashRoutine = null;
     }
 
     /// <summary>
@@ -202,14 +211,14 @@ public class PlayerController : MonoBehaviour
             GameManager.Instance.OnPlayerDeath();
     }
 
-    /// <summary>Time (unscaled) until which port entry is suppressed after respawn.</summary>
-    private float portSuppressUntil = 0f;
+    /// <summary>True while the player is in a post-respawn/death-sequence grace period.</summary>
+    private bool respawnProtected = false;
 
     /// <summary>True while the player is in a post-respawn grace period (ports won't trigger).</summary>
-    public bool IsRespawnProtected => Time.unscaledTime < portSuppressUntil;
+    public bool IsRespawnProtected => respawnProtected;
 
     /// <summary>Clears the respawn protection so the port can open immediately.</summary>
-    public void ClearRespawnProtection() => portSuppressUntil = 0f;
+    public void ClearRespawnProtection() => respawnProtected = false;
 
     /// <summary>
     /// Respawn: heal to full, teleport to safe position, clear enemies
@@ -222,8 +231,8 @@ public class PlayerController : MonoBehaviour
         isMoving = false;
         gameObject.SetActive(true);
 
-        // Suppress port entry for 2 seconds so shop doesn't auto-open on respawn
-        portSuppressUntil = Time.unscaledTime + 2f;
+        // Suppress port entry until explicitly cleared (after death dialogue)
+        respawnProtected = true;
 
         if (GameManager.Instance != null)
             GameManager.Instance.UpdatePlayerHealth(currentHealth, maxHealth);

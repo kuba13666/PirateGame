@@ -338,6 +338,9 @@ public class QuestManager : MonoBehaviour
         ApplyQuestRewards(activeQuest);
         DiscoverQuestLocations(activeQuest);
 
+        // Pause time during quest dialogue so the player can't die while reading
+        Time.timeScale = 0f;
+
         // Show completion dialogue
         DialogueUI dialogueUI = FindFirstObjectByType<DialogueUI>();
         if (dialogueUI != null && activeQuest.completeDialogue.Count > 0)
@@ -382,14 +385,28 @@ public class QuestManager : MonoBehaviour
             // Show start dialogue, firing the sequence callback when done
             DialogueUI dialogueUI = FindFirstObjectByType<DialogueUI>();
             if (dialogueUI != null && q.startDialogue.Count > 0)
-                dialogueUI.ShowDialogue(q.startDialogue, () => onSequenceComplete?.Invoke());
+            {
+                dialogueUI.ShowDialogue(q.startDialogue, () =>
+                {
+                    // Resume time after all dialogue is done (unless port is keeping it paused)
+                    if (PortZone.GetActivePort() == null)
+                        Time.timeScale = 1f;
+                    onSequenceComplete?.Invoke();
+                });
+            }
             else
+            {
+                if (PortZone.GetActivePort() == null)
+                    Time.timeScale = 1f;
                 onSequenceComplete?.Invoke();
+            }
 
             return;
         }
 
-        // No next quest found — still fire the callback
+        // No next quest found — resume time and fire callback
+        if (PortZone.GetActivePort() == null)
+            Time.timeScale = 1f;
         onSequenceComplete?.Invoke();
     }
 

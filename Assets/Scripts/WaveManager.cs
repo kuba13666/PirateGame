@@ -92,7 +92,7 @@ public class WaveManager : MonoBehaviour
         if (QuestManager.Instance != null)
         {
             var quest = QuestManager.Instance.GetActiveQuest();
-            if (quest != null && quest.id == "the_awakening")
+            if (quest != null && quest.id == "the_awakening" && quest.state == Quest.QuestState.Active)
             {
                 yield return StartCoroutine(RunAwakeningWave());
                 yield break; // Don't run normal waves — player must die first
@@ -190,11 +190,9 @@ public class WaveManager : MonoBehaviour
     // Public controls for pausing/resuming from PortZone
     public void StopWaves()
     {
-        if (wavesRoutine != null)
-        {
-            StopCoroutine(wavesRoutine);
-            wavesRoutine = null;
-        }
+        // StopAllCoroutines to also kill child coroutines (e.g. RunAwakeningWave)
+        StopAllCoroutines();
+        wavesRoutine = null;
     }
 
     public void StartWaves()
