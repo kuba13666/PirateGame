@@ -59,7 +59,7 @@ public class ShopManager : MonoBehaviour
             cost = 0,
             purchased = true,
             maxLevel = 1,
-            spritePath = "Assets/GameAssets/Sloop.png",
+            spritePath = "Assets/Resources/Sloop.png",
             category = ShopCategory.Ships,
             sprite = Resources.Load<Sprite>("Sloop")
         });

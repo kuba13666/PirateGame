@@ -67,6 +67,19 @@ public static class GameConstants
     public const float LOOT_METAL_SCALE_Z = 0.12f;   // 0.06 * 2
     public const float LOOT_LIFETIME = 10f;
     
+    // Enemy Ship Settings
+    public const float ENEMY_SHIP_MOVE_SPEED = 1.2f;
+    public const float ENEMY_SHIP_CIRCLE_RADIUS = 4f;
+    public const int ENEMY_SHIP_HP = 5;
+    public const int ENEMY_SHIP_COLLISION_DAMAGE = 2;
+    public const float ENEMY_SHIP_FIRE_RATE = 2f;
+    public const float ENEMY_SHIP_LOOT_DROP_CHANCE = 0.4f;
+    public const float ENEMY_SHIP_PROJECTILE_SPEED = 3f;
+    public const int ENEMY_SHIP_PROJECTILE_DAMAGE = 1;
+    public const float ENEMY_SHIP_SPAWNED_SCALE_X = 0.43f;
+    public const float ENEMY_SHIP_SPAWNED_SCALE_Y = 0.94f;
+    public const float ENEMY_SHIP_SPAWNED_SCALE_Z = 0.62f;
+
     // Camera Settings
     public const float CAMERA_SMOOTH_SPEED = 0.125f;
     public const float CAMERA_OFFSET_Z = -10f;

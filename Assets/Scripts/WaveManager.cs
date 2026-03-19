@@ -61,9 +61,10 @@ public class WaveManager : MonoBehaviour
 
     void BuildDefaultWaves()
     {
-        // Wave 1: 10 crabs
+        // Wave 1: 10 crabs + 2 enemy ships (for testing)
         Wave w1 = new Wave();
         w1.entries.Add(new WaveEntry { prefab = spawner.crabEnemyPrefab, count = 10, interval = 1f });
+        w1.entries.Add(new WaveEntry { prefab = spawner.enemyShipPrefab, count = 2, interval = 2f });
         waves.Add(w1);
 
         // Wave 2: 8 crabs + 5 harpies
@@ -72,17 +73,19 @@ public class WaveManager : MonoBehaviour
         w2.entries.Add(new WaveEntry { prefab = spawner.harpyEnemyPrefab, count = 5, interval = 0.8f });
         waves.Add(w2);
 
-        // Wave 3: 10 crabs + 8 harpies + 4 mermaids (faster)
+        // Wave 3: 10 crabs + 8 harpies + 4 mermaids + 2 ships
         Wave w3 = new Wave();
         w3.entries.Add(new WaveEntry { prefab = spawner.crabEnemyPrefab, count = 10, interval = 0.7f });
         w3.entries.Add(new WaveEntry { prefab = spawner.harpyEnemyPrefab, count = 8, interval = 0.6f });
         w3.entries.Add(new WaveEntry { prefab = spawner.mermaidEnemyPrefab, count = 4, interval = 0.5f });
+        w3.entries.Add(new WaveEntry { prefab = spawner.enemyShipPrefab, count = 2, interval = 2f });
         waves.Add(w3);
 
-        // Wave 4: tougher mix
+        // Wave 4: tougher mix + 3 ships
         Wave w4 = new Wave();
         w4.entries.Add(new WaveEntry { prefab = spawner.harpyEnemyPrefab, count = 10, interval = 0.5f });
         w4.entries.Add(new WaveEntry { prefab = spawner.mermaidEnemyPrefab, count = 8, interval = 0.4f });
+        w4.entries.Add(new WaveEntry { prefab = spawner.enemyShipPrefab, count = 3, interval = 1.5f });
         waves.Add(w4);
     }
 
@@ -112,6 +115,7 @@ public class WaveManager : MonoBehaviour
             // Spawn all entries in this wave (scaled by escalation)
             foreach (var entry in waves[i].entries)
             {
+                if (entry.prefab == null) continue;
                 int scaledCount = entry.count + Mathf.FloorToInt(entry.count * escalationLevel * 0.2f);
                 for (int c = 0; c < scaledCount; c++)
                 {
@@ -226,6 +230,13 @@ public class WaveManager : MonoBehaviour
         {
             ec.maxHealth = Mathf.CeilToInt(ec.maxHealth * EnemyHpMultiplier);
             ec.moveSpeed *= EnemySpeedMultiplier;
+        }
+
+        var ship = enemy.GetComponent<EnemyShipController>();
+        if (ship != null)
+        {
+            ship.maxHealth = Mathf.CeilToInt(ship.maxHealth * EnemyHpMultiplier);
+            ship.moveSpeed *= EnemySpeedMultiplier;
         }
     }
 }

@@ -16,6 +16,9 @@ public class EnemySpawner : MonoBehaviour
     [Tooltip("Mermaid enemy prefab (3 HP, rare)")]
     public GameObject mermaidEnemyPrefab;
 
+    [Tooltip("Enemy ship prefab (5 HP, fires cannons)")]
+    public GameObject enemyShipPrefab;
+
     [Tooltip("Time between enemy spawns (in seconds)")]
     public float spawnInterval = GameConstants.SPAWN_INTERVAL;
 
@@ -120,7 +123,22 @@ public class EnemySpawner : MonoBehaviour
         if (prefab == null) return null;
         Vector3 spawnPosition = GetRandomEdgePosition();
         GameObject enemy = Instantiate(prefab, spawnPosition, Quaternion.identity);
-        enemy.transform.localScale = new Vector3(GameConstants.ENEMY_SPAWNED_SCALE_X, GameConstants.ENEMY_SPAWNED_SCALE_Y, GameConstants.ENEMY_SPAWNED_SCALE_Z);
+
+        // Ships use player-like scale, monsters use tiny scale
+        if (enemy.GetComponent<EnemyShipController>() != null)
+        {
+            enemy.transform.localScale = new Vector3(
+                GameConstants.ENEMY_SHIP_SPAWNED_SCALE_X,
+                GameConstants.ENEMY_SHIP_SPAWNED_SCALE_Y,
+                GameConstants.ENEMY_SHIP_SPAWNED_SCALE_Z);
+        }
+        else
+        {
+            enemy.transform.localScale = new Vector3(
+                GameConstants.ENEMY_SPAWNED_SCALE_X,
+                GameConstants.ENEMY_SPAWNED_SCALE_Y,
+                GameConstants.ENEMY_SPAWNED_SCALE_Z);
+        }
         return enemy;
     }
     

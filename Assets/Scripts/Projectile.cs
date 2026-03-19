@@ -58,15 +58,21 @@ public class Projectile : MonoBehaviour
         // Check if we hit an enemy
         if (collision.CompareTag("Enemy"))
         {
-            // Get the enemy component and damage it
+            // Try regular enemy
             EnemyController enemy = collision.GetComponent<EnemyController>();
             if (enemy != null)
             {
                 enemy.TakeDamage(damage);
-                Debug.Log("Projectile hit enemy!");
             }
 
-            // Destroy the projectile after hitting
+            // Try enemy ship
+            EnemyShipController ship = collision.GetComponent<EnemyShipController>();
+            if (ship != null)
+            {
+                ship.TakeDamage(damage);
+            }
+
+            Debug.Log("Projectile hit enemy!");
             Destroy(gameObject);
         }
     }

@@ -35,9 +35,9 @@ public class GameSetupEditor : EditorWindow
         EnsureShipSpriteImported();
         
         // Ensure enemy sprites are properly configured
-        EnsureEnemySpriteImported("Assets/GameAssets/enemy_giant_crab.png");
-        EnsureEnemySpriteImported("Assets/GameAssets/enemy_harpy.png");
-        EnsureEnemySpriteImported("Assets/GameAssets/enemy_mermaid.png");
+        EnsureEnemySpriteImported("Assets/Resources/enemy_giant_crab.png");
+        EnsureEnemySpriteImported("Assets/Resources/enemy_harpy.png");
+        EnsureEnemySpriteImported("Assets/Resources/enemy_mermaid.png");
 
         // Create Main Camera first
         CreateMainCamera();
@@ -49,18 +49,22 @@ public class GameSetupEditor : EditorWindow
         GameObject[] lootPrefabs = CreateLootPrefabs();
 
         // Create Enemy Prefabs (3 types)
-        GameObject crabEnemy = CreateEnemyPrefab("Assets/GameAssets/enemy_giant_crab.png", "Enemy_Crab", Color.red, 1, lootPrefabs);
-        GameObject harpyEnemy = CreateEnemyPrefab("Assets/GameAssets/enemy_harpy.png", "Enemy_Harpy", Color.blue, 2, lootPrefabs);
-        GameObject mermaidEnemy = CreateEnemyPrefab("Assets/GameAssets/enemy_mermaid.png", "Enemy_Mermaid", Color.green, 3, lootPrefabs);
+        GameObject crabEnemy = CreateEnemyPrefab("Assets/Resources/enemy_giant_crab.png", "Enemy_Crab", Color.red, 1, lootPrefabs);
+        GameObject harpyEnemy = CreateEnemyPrefab("Assets/Resources/enemy_harpy.png", "Enemy_Harpy", Color.blue, 2, lootPrefabs);
+        GameObject mermaidEnemy = CreateEnemyPrefab("Assets/Resources/enemy_mermaid.png", "Enemy_Mermaid", Color.green, 3, lootPrefabs);
+
+        // Create Enemy Ship Prefab (uses Ship.png tinted dark)
+        GameObject enemyProjectilePrefab = CreateEnemyProjectilePrefab();
+        GameObject enemyShip = CreateEnemyShipPrefab(lootPrefabs, enemyProjectilePrefab);
 
         // Create Player Ship with Cannons
         GameObject player = CreatePlayerShip(projectilePrefab);
 
-        // Create Enemy Spawner with all 3 enemy types
-        CreateEnemySpawner(crabEnemy, harpyEnemy, mermaidEnemy);
+        // Create Enemy Spawner with all enemy types
+        CreateEnemySpawner(crabEnemy, harpyEnemy, mermaidEnemy, enemyShip);
 
         // Create Wave Manager
-        CreateWaveManager(crabEnemy, harpyEnemy, mermaidEnemy);
+        CreateWaveManager(crabEnemy, harpyEnemy, mermaidEnemy, enemyShip);
 
         // Create Game Manager
         CreateGameManager();
@@ -161,7 +165,7 @@ public class GameSetupEditor : EditorWindow
         SpriteRenderer sr = player.AddComponent<SpriteRenderer>();
         
         // Try to load custom ship sprite
-        Sprite customSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/GameAssets/Ship.png");
+        Sprite customSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Resources/Ship.png");
         if (customSprite != null)
         {
             sr.sprite = customSprite;
@@ -257,16 +261,16 @@ public class GameSetupEditor : EditorWindow
         GameObject[] lootPrefabs = new GameObject[4];
         
         // Gold (yellow) - using custom sprite
-        lootPrefabs[0] = CreateSingleLootPrefab("Loot_Gold", new Color(1f, 0.84f, 0f), LootType.Gold, "Assets/GameAssets/gold_loot.png", new Vector3(GameConstants.LOOT_GOLD_SCALE_X, GameConstants.LOOT_GOLD_SCALE_Y, GameConstants.LOOT_GOLD_SCALE_Z));
+        lootPrefabs[0] = CreateSingleLootPrefab("Loot_Gold", new Color(1f, 0.84f, 0f), LootType.Gold, "Assets/Resources/gold_loot.png", new Vector3(GameConstants.LOOT_GOLD_SCALE_X, GameConstants.LOOT_GOLD_SCALE_Y, GameConstants.LOOT_GOLD_SCALE_Z));
         
         // Wood (brown) - using custom sprite
-        lootPrefabs[1] = CreateSingleLootPrefab("Loot_Wood", new Color(0.6f, 0.4f, 0.2f), LootType.Wood, "Assets/GameAssets/wood_loot.png", new Vector3(GameConstants.LOOT_WOOD_SCALE_X, GameConstants.LOOT_WOOD_SCALE_Y, GameConstants.LOOT_WOOD_SCALE_Z));
+        lootPrefabs[1] = CreateSingleLootPrefab("Loot_Wood", new Color(0.6f, 0.4f, 0.2f), LootType.Wood, "Assets/Resources/wood_loot.png", new Vector3(GameConstants.LOOT_WOOD_SCALE_X, GameConstants.LOOT_WOOD_SCALE_Y, GameConstants.LOOT_WOOD_SCALE_Z));
         
         // Canvas (beige/white) - using custom sprite
-        lootPrefabs[2] = CreateSingleLootPrefab("Loot_Canvas", new Color(0.96f, 0.87f, 0.7f), LootType.Canvas, "Assets/GameAssets/canvas_loot.png", new Vector3(GameConstants.LOOT_CANVAS_SCALE_X, GameConstants.LOOT_CANVAS_SCALE_Y, GameConstants.LOOT_CANVAS_SCALE_Z));
+        lootPrefabs[2] = CreateSingleLootPrefab("Loot_Canvas", new Color(0.96f, 0.87f, 0.7f), LootType.Canvas, "Assets/Resources/canvas_loot.png", new Vector3(GameConstants.LOOT_CANVAS_SCALE_X, GameConstants.LOOT_CANVAS_SCALE_Y, GameConstants.LOOT_CANVAS_SCALE_Z));
         
         // Metal (gray) - using custom sprite
-        lootPrefabs[3] = CreateSingleLootPrefab("Loot_Metal", new Color(0.7f, 0.7f, 0.7f), LootType.Metal, "Assets/GameAssets/metal_loot.png", new Vector3(GameConstants.LOOT_METAL_SCALE_X, GameConstants.LOOT_METAL_SCALE_Y, GameConstants.LOOT_METAL_SCALE_Z));
+        lootPrefabs[3] = CreateSingleLootPrefab("Loot_Metal", new Color(0.7f, 0.7f, 0.7f), LootType.Metal, "Assets/Resources/metal_loot.png", new Vector3(GameConstants.LOOT_METAL_SCALE_X, GameConstants.LOOT_METAL_SCALE_Y, GameConstants.LOOT_METAL_SCALE_Z));
         
         Debug.Log("✓ Created 4 loot prefabs (Gold, Wood, Canvas, Metal)");
         return lootPrefabs;
@@ -376,21 +380,97 @@ public class GameSetupEditor : EditorWindow
         return prefab;
     }
 
-    static void CreateEnemySpawner(GameObject crabPrefab, GameObject harpyPrefab, GameObject mermaidPrefab)
+    static GameObject CreateEnemyProjectilePrefab()
+    {
+        GameObject proj = new GameObject("EnemyProjectile");
+        proj.transform.localScale = new Vector3(GameConstants.PROJECTILE_SCALE, GameConstants.PROJECTILE_SCALE, GameConstants.PROJECTILE_SCALE);
+
+        SpriteRenderer sr = proj.AddComponent<SpriteRenderer>();
+        sr.sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd");
+        sr.color = new Color(1f, 0.3f, 0.3f); // red cannonball
+        sr.sortingOrder = 5;
+
+        Rigidbody2D rb = proj.AddComponent<Rigidbody2D>();
+        rb.bodyType = RigidbodyType2D.Dynamic;
+        rb.gravityScale = 0;
+        rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+
+        CircleCollider2D col = proj.AddComponent<CircleCollider2D>();
+        col.isTrigger = true;
+
+        proj.AddComponent<EnemyProjectile>();
+
+        string path = "Assets/EnemyProjectile.prefab";
+        GameObject prefab = PrefabUtility.SaveAsPrefabAsset(proj, path);
+        DestroyImmediate(proj);
+
+        Debug.Log("✓ Enemy projectile prefab created");
+        return prefab;
+    }
+
+    static GameObject CreateEnemyShipPrefab(GameObject[] lootPrefabs, GameObject enemyProjectilePrefab)
+    {
+        GameObject ship = new GameObject("Enemy_Ship");
+        SpriteRenderer sr = ship.AddComponent<SpriteRenderer>();
+
+        // Use player's Ship.png tinted dark
+        Sprite shipSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Resources/Ship.png");
+        if (shipSprite != null)
+        {
+            sr.sprite = shipSprite;
+            sr.color = new Color(0.15f, 0.15f, 0.15f); // dark tint
+        }
+        else
+        {
+            sr.sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
+            sr.color = new Color(0.15f, 0.15f, 0.15f);
+            Debug.LogWarning("Ship.png not found for enemy ship, using fallback");
+        }
+        sr.sortingOrder = 2;
+
+        ship.transform.localScale = new Vector3(
+            GameConstants.ENEMY_SHIP_SPAWNED_SCALE_X,
+            GameConstants.ENEMY_SHIP_SPAWNED_SCALE_Y,
+            GameConstants.ENEMY_SHIP_SPAWNED_SCALE_Z);
+        ship.tag = "Enemy";
+
+        Rigidbody2D rb = ship.AddComponent<Rigidbody2D>();
+        rb.bodyType = RigidbodyType2D.Kinematic;
+        rb.gravityScale = 0;
+
+        BoxCollider2D col = ship.AddComponent<BoxCollider2D>();
+        col.isTrigger = true;
+
+        EnemyShipController esc = ship.AddComponent<EnemyShipController>();
+        esc.projectilePrefab = enemyProjectilePrefab;
+        esc.lootPrefabs = lootPrefabs;
+
+        ship.AddComponent<EnemyHealthBar>();
+
+        string path = "Assets/Enemy_Ship.prefab";
+        GameObject prefab = PrefabUtility.SaveAsPrefabAsset(ship, path);
+        DestroyImmediate(ship);
+
+        Debug.Log("✓ Enemy ship prefab created");
+        return prefab;
+    }
+
+    static void CreateEnemySpawner(GameObject crabPrefab, GameObject harpyPrefab, GameObject mermaidPrefab, GameObject enemyShipPrefab)
     {
         GameObject spawner = new GameObject("EnemySpawner");
         EnemySpawner es = spawner.AddComponent<EnemySpawner>();
         es.crabEnemyPrefab = crabPrefab;
         es.harpyEnemyPrefab = harpyPrefab;
         es.mermaidEnemyPrefab = mermaidPrefab;
+        es.enemyShipPrefab = enemyShipPrefab;
         es.spawnInterval = GameConstants.SPAWN_INTERVAL;
         es.minSpawnInterval = GameConstants.MIN_SPAWN_INTERVAL;
         es.spawnDistance = GameConstants.ENEMY_SPAWN_DISTANCE;
 
-        Debug.Log("✓ Enemy spawner created with 3 enemy types");
+        Debug.Log("✓ Enemy spawner created with 4 enemy types");
     }
 
-    static void CreateWaveManager(GameObject crabPrefab, GameObject harpyPrefab, GameObject mermaidPrefab)
+    static void CreateWaveManager(GameObject crabPrefab, GameObject harpyPrefab, GameObject mermaidPrefab, GameObject enemyShipPrefab)
     {
         GameObject wmObj = new GameObject("WaveManager");
         WaveManager wm = wmObj.AddComponent<WaveManager>();
@@ -403,6 +483,7 @@ public class GameSetupEditor : EditorWindow
             spawner.crabEnemyPrefab = crabPrefab;
             spawner.harpyEnemyPrefab = harpyPrefab;
             spawner.mermaidEnemyPrefab = mermaidPrefab;
+            spawner.enemyShipPrefab = enemyShipPrefab;
         }
 
         Debug.Log("✓ Wave manager created");
@@ -489,7 +570,7 @@ public class GameSetupEditor : EditorWindow
         lootPanelRect.anchorMax = new Vector2(1, 1);
         lootPanelRect.pivot = new Vector2(1, 1);
         lootPanelRect.anchoredPosition = new Vector2(-10, -60);
-        lootPanelRect.sizeDelta = new Vector2(200, 40);
+        lootPanelRect.sizeDelta = new Vector2(520, 40);
 
         // Create horizontal layout
         HorizontalLayoutGroup layoutGroup = lootPanelObj.AddComponent<HorizontalLayoutGroup>();
@@ -501,10 +582,10 @@ public class GameSetupEditor : EditorWindow
         layoutGroup.childForceExpandHeight = false;
 
         // Create loot counters (Gold, Wood, Canvas, Metal)
-        TextMeshProUGUI goldText = CreateLootCounter(lootPanelObj.transform, "Assets/GameAssets/gold_loot.png", "GoldCounter");
-        TextMeshProUGUI woodText = CreateLootCounter(lootPanelObj.transform, "Assets/GameAssets/wood_loot.png", "WoodCounter");
-        TextMeshProUGUI canvasText = CreateLootCounter(lootPanelObj.transform, "Assets/GameAssets/canvas_loot.png", "CanvasCounter");
-        TextMeshProUGUI metalText = CreateLootCounter(lootPanelObj.transform, "Assets/GameAssets/metal_loot.png", "MetalCounter");
+        TextMeshProUGUI goldText = CreateLootCounter(lootPanelObj.transform, "Assets/Resources/gold_loot.png", "GoldCounter");
+        TextMeshProUGUI woodText = CreateLootCounter(lootPanelObj.transform, "Assets/Resources/wood_loot.png", "WoodCounter");
+        TextMeshProUGUI canvasText = CreateLootCounter(lootPanelObj.transform, "Assets/Resources/canvas_loot.png", "CanvasCounter");
+        TextMeshProUGUI metalText = CreateLootCounter(lootPanelObj.transform, "Assets/Resources/metal_loot.png", "MetalCounter");
 
         // Create Game Over Panel
         GameObject panelObj = new GameObject("GameOverPanel");
@@ -599,7 +680,7 @@ public class GameSetupEditor : EditorWindow
         GameObject container = new GameObject(name);
         container.transform.SetParent(parent);
         RectTransform containerRect = container.AddComponent<RectTransform>();
-        containerRect.sizeDelta = new Vector2(45, 40);
+        containerRect.sizeDelta = new Vector2(125, 40);
 
         // Create icon
         GameObject iconObj = new GameObject("Icon");
@@ -617,7 +698,8 @@ public class GameSetupEditor : EditorWindow
         iconRect.anchorMax = new Vector2(0, 0.5f);
         iconRect.pivot = new Vector2(0, 0.5f);
         iconRect.anchoredPosition = new Vector2(0, 0);
-        iconRect.sizeDelta = new Vector2(30, 30);
+        iconRect.sizeDelta = new Vector2(20, 20);
+        icon.preserveAspect = true;
 
         // Create text
         GameObject textObj = new GameObject("Count");
@@ -632,8 +714,10 @@ public class GameSetupEditor : EditorWindow
         textRect.anchorMin = new Vector2(0, 0.5f);
         textRect.anchorMax = new Vector2(0, 0.5f);
         textRect.pivot = new Vector2(0, 0.5f);
-        textRect.anchoredPosition = new Vector2(32, 0);
-        textRect.sizeDelta = new Vector2(30, 40);
+        textRect.anchoredPosition = new Vector2(22, 0);
+        textRect.sizeDelta = new Vector2(100, 40);
+        text.overflowMode = TextOverflowModes.Overflow;
+        text.textWrappingMode = TextWrappingModes.NoWrap;
 
         return text;
     }
@@ -675,7 +759,7 @@ public class GameSetupEditor : EditorWindow
     /// </summary>
     static void EnsureShipSpriteImported()
     {
-        string assetPath = "Assets/GameAssets/Ship.png";
+        string assetPath = "Assets/Resources/Ship.png";
         TextureImporter importer = AssetImporter.GetAtPath(assetPath) as TextureImporter;
         
         if (importer != null)
@@ -845,7 +929,7 @@ public class GameSetupEditor : EditorWindow
         // Base port — home harbor with shop (near center-ish, player starts at 0,0)
         CreatePortLocation("base_port", "Safe Harbor",
             new Vector2(5f, 5f), true, true,
-            "Assets/GameAssets/Port_1.png");
+            "Assets/Resources/Port_1.png");
 
         // Trader's Cove — second port with shop (north-west)
         CreatePortLocation("traders_cove", "Trader's Cove",
@@ -860,7 +944,7 @@ public class GameSetupEditor : EditorWindow
         // Secret Island — side quest (far east, hidden)
         CreateIslandLocation("secret_island", "Forgotten Isle",
             new Vector2(40f, 10f), false,
-            "Assets/GameAssets/island_large.png");
+            "Assets/Resources/island_large.png");
 
         // Boss Arena — final encounter (far north)
         CreateBossArenaLocation("boss_arena", "The Maelstrom",
@@ -1225,7 +1309,7 @@ public class GameSetupEditor : EditorWindow
         shopMgrObj.AddComponent<ShopManager>();
 
         // Ensure Sloop sprite is imported as Sprite type
-        EnsureEnemySpriteImported("Assets/GameAssets/Sloop.png");
+        EnsureEnemySpriteImported("Assets/Resources/Sloop.png");
         EnsureEnemySpriteImported("Assets/Resources/Sloop.png");
 
         // Find Canvas
