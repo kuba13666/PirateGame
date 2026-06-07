@@ -55,6 +55,21 @@ public class EnemySpawner : MonoBehaviour
         public string name;
     }
 
+    void Awake()
+    {
+        // Load missing prefabs from Assets (Unity can lose references on setup re-runs)
+        #if UNITY_EDITOR
+        if (enemyShipPrefab == null)
+        {
+            enemyShipPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Enemy_Ship.prefab");
+            if (enemyShipPrefab != null)
+                Debug.Log("Loaded Enemy_Ship prefab from disk");
+            else
+                Debug.LogWarning("Enemy_Ship.prefab not found on disk!");
+        }
+        #endif
+    }
+
     void Start()
     {
         // Find the player

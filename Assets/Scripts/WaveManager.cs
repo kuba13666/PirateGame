@@ -61,10 +61,21 @@ public class WaveManager : MonoBehaviour
 
     void BuildDefaultWaves()
     {
+        // Load ship prefab if reference was lost (new field, Unity serialization quirk)
+        #if UNITY_EDITOR
+        if (spawner.enemyShipPrefab == null)
+        {
+            spawner.enemyShipPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Enemy_Ship.prefab");
+        }
+        #endif
+
+        GameObject shipPrefab = spawner.enemyShipPrefab;
+        Debug.Log($"Building waves. Ship prefab: {(shipPrefab != null ? shipPrefab.name : "NULL")}");
+
         // Wave 1: 10 crabs + 2 enemy ships (for testing)
         Wave w1 = new Wave();
         w1.entries.Add(new WaveEntry { prefab = spawner.crabEnemyPrefab, count = 10, interval = 1f });
-        w1.entries.Add(new WaveEntry { prefab = spawner.enemyShipPrefab, count = 2, interval = 2f });
+        w1.entries.Add(new WaveEntry { prefab = shipPrefab, count = 2, interval = 2f });
         waves.Add(w1);
 
         // Wave 2: 8 crabs + 5 harpies
@@ -78,14 +89,14 @@ public class WaveManager : MonoBehaviour
         w3.entries.Add(new WaveEntry { prefab = spawner.crabEnemyPrefab, count = 10, interval = 0.7f });
         w3.entries.Add(new WaveEntry { prefab = spawner.harpyEnemyPrefab, count = 8, interval = 0.6f });
         w3.entries.Add(new WaveEntry { prefab = spawner.mermaidEnemyPrefab, count = 4, interval = 0.5f });
-        w3.entries.Add(new WaveEntry { prefab = spawner.enemyShipPrefab, count = 2, interval = 2f });
+        w3.entries.Add(new WaveEntry { prefab = shipPrefab, count = 2, interval = 2f });
         waves.Add(w3);
 
         // Wave 4: tougher mix + 3 ships
         Wave w4 = new Wave();
         w4.entries.Add(new WaveEntry { prefab = spawner.harpyEnemyPrefab, count = 10, interval = 0.5f });
         w4.entries.Add(new WaveEntry { prefab = spawner.mermaidEnemyPrefab, count = 8, interval = 0.4f });
-        w4.entries.Add(new WaveEntry { prefab = spawner.enemyShipPrefab, count = 3, interval = 1.5f });
+        w4.entries.Add(new WaveEntry { prefab = shipPrefab, count = 3, interval = 1.5f });
         waves.Add(w4);
     }
 
@@ -115,7 +126,11 @@ public class WaveManager : MonoBehaviour
             // Spawn all entries in this wave (scaled by escalation)
             foreach (var entry in waves[i].entries)
             {
-                if (entry.prefab == null) continue;
+                if (entry.prefab == null)
+                {
+                    Debug.LogWarning($"Wave {waveNumber}: skipping entry with null prefab");
+                    continue;
+                }
                 int scaledCount = entry.count + Mathf.FloorToInt(entry.count * escalationLevel * 0.2f);
                 for (int c = 0; c < scaledCount; c++)
                 {
