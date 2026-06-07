@@ -413,17 +413,17 @@ public class GameSetupEditor : EditorWindow
         GameObject ship = new GameObject("Enemy_Ship");
         SpriteRenderer sr = ship.AddComponent<SpriteRenderer>();
 
-        // Use player's Ship.png tinted dark
+        // Use player's Ship.png tinted dark red
         Sprite shipSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Resources/Ship.png");
         if (shipSprite != null)
         {
             sr.sprite = shipSprite;
-            sr.color = new Color(0.15f, 0.15f, 0.15f); // dark tint
+            sr.color = new Color(0.6f, 0.15f, 0.15f); // dark red tint
         }
         else
         {
             sr.sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
-            sr.color = new Color(0.15f, 0.15f, 0.15f);
+            sr.color = new Color(0.6f, 0.15f, 0.15f);
             Debug.LogWarning("Ship.png not found for enemy ship, using fallback");
         }
         sr.sortingOrder = 2;
@@ -570,11 +570,11 @@ public class GameSetupEditor : EditorWindow
         lootPanelRect.anchorMax = new Vector2(1, 1);
         lootPanelRect.pivot = new Vector2(1, 1);
         lootPanelRect.anchoredPosition = new Vector2(-10, -60);
-        lootPanelRect.sizeDelta = new Vector2(520, 40);
+        lootPanelRect.sizeDelta = new Vector2(260, 40);
 
         // Create horizontal layout
         HorizontalLayoutGroup layoutGroup = lootPanelObj.AddComponent<HorizontalLayoutGroup>();
-        layoutGroup.spacing = 10;
+        layoutGroup.spacing = 8;
         layoutGroup.childAlignment = TextAnchor.MiddleRight;
         layoutGroup.childControlWidth = false;
         layoutGroup.childControlHeight = false;
@@ -680,7 +680,7 @@ public class GameSetupEditor : EditorWindow
         GameObject container = new GameObject(name);
         container.transform.SetParent(parent);
         RectTransform containerRect = container.AddComponent<RectTransform>();
-        containerRect.sizeDelta = new Vector2(125, 40);
+        containerRect.sizeDelta = new Vector2(58, 40);
 
         // Create icon
         GameObject iconObj = new GameObject("Icon");
@@ -715,7 +715,7 @@ public class GameSetupEditor : EditorWindow
         textRect.anchorMax = new Vector2(0, 0.5f);
         textRect.pivot = new Vector2(0, 0.5f);
         textRect.anchoredPosition = new Vector2(22, 0);
-        textRect.sizeDelta = new Vector2(100, 40);
+        textRect.sizeDelta = new Vector2(34, 40);
         text.overflowMode = TextOverflowModes.Overflow;
         text.textWrappingMode = TextWrappingModes.NoWrap;
 

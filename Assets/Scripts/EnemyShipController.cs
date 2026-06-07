@@ -41,6 +41,8 @@ public class EnemyShipController : MonoBehaviour
 
         // Randomize starting orbit angle so ships don't stack
         circleAngle = Random.Range(0f, 360f);
+
+        Debug.Log($"EnemyShip spawned at {transform.position}, scale={transform.localScale}, sprite={spriteRenderer?.sprite?.name}");
     }
 
     void Update()
@@ -68,10 +70,8 @@ public class EnemyShipController : MonoBehaviour
             rb.MovePosition(Vector2.MoveTowards(rb.position, target, moveSpeed * Time.deltaTime));
         }
 
-        // Rotate to face player
+        // Move without rotating (same as the player) — keep upright
         Vector2 toPlayer = (Vector2)playerTransform.position - rb.position;
-        float angle = Mathf.Atan2(toPlayer.y, toPlayer.x) * Mathf.Rad2Deg - 90f;
-        transform.rotation = Quaternion.Euler(0, 0, angle);
 
         // Clamp to map bounds
         Vector3 pos = transform.position;

@@ -88,3 +88,11 @@ Thumbs.db
 # Unity AI Toolkit
 /[Aa]ssets/AI Toolkit
 /[Aa]ssets/AI Toolkit.meta
+
+# Editor/MCP screenshots
+/[Aa]ssets/[Ss]creenshots/
+/[Aa]ssets/[Ss]creenshots.meta
+
+# Unity crash auto-recovery
+/[Aa]ssets/_[Rr]ecovery/
+/[Aa]ssets/_[Rr]ecovery.meta

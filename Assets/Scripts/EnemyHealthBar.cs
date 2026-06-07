@@ -10,15 +10,19 @@ public class EnemyHealthBar : MonoBehaviour
     private SpriteRenderer fillRenderer;
     private SpriteRenderer bgRenderer;
     private EnemyController enemyController;
+    private EnemyShipController shipController;
     private static Material unlitMaterial;
     
-    private const float BAR_WIDTH = 6f;
-    private const float BAR_HEIGHT = 0.2f;
-    private const float BAR_OFFSET_Y = 10f;
+    // The bar sprite is a 2px texture at 1 px/unit, so 1 unit of BAR_WIDTH ≈ 2 world units.
+    // Parent scale is cancelled below, so these map to a fixed on-screen size for every enemy.
+    private const float BAR_WIDTH = 0.25f;        // ~0.5 world units wide
+    private const float BAR_HEIGHT = 0.045f;      // ~0.09 world units tall
+    private const float BAR_WORLD_OFFSET_Y = 0.4f; // world units above the enemy
 
     void Start()
     {
         enemyController = GetComponent<EnemyController>();
+        shipController = GetComponent<EnemyShipController>();
         EnsureUnlitMaterial();
         CreateHealthBar();
     }
@@ -41,8 +45,17 @@ public class EnemyHealthBar : MonoBehaviour
         // Create health bar container
         healthBarObj = new GameObject("HealthBar");
         healthBarObj.transform.SetParent(transform);
-        healthBarObj.transform.localPosition = new Vector3(0, BAR_OFFSET_Y, 0);
-        healthBarObj.transform.localScale = Vector3.one;
+        // Counter the parent's scale so the bar is always the same world size,
+        // and convert the desired world offset into the parent's local space.
+        Vector3 parentScale = transform.lossyScale;
+        healthBarObj.transform.localPosition = new Vector3(
+            0,
+            BAR_WORLD_OFFSET_Y / Mathf.Max(parentScale.y, 0.001f),
+            0);
+        healthBarObj.transform.localScale = new Vector3(
+            1f / Mathf.Max(parentScale.x, 0.001f),
+            1f / Mathf.Max(parentScale.y, 0.001f),
+            1f);
 
         // Create background
         GameObject bgObj = new GameObject("Background");
@@ -76,7 +89,7 @@ public class EnemyHealthBar : MonoBehaviour
 
     void Update()
     {
-        if (enemyController != null && healthBarObj != null)
+        if ((enemyController != null || shipController != null) && healthBarObj != null)
         {
             UpdateHealthBar();
         }
@@ -84,7 +97,20 @@ public class EnemyHealthBar : MonoBehaviour
 
     void UpdateHealthBar()
     {
-        float healthPercent = enemyController.GetCurrentHealth() / (float)enemyController.maxHealth;
+        int currentHealth, maxHealth;
+        if (enemyController != null)
+        {
+            currentHealth = enemyController.GetCurrentHealth();
+            maxHealth = enemyController.maxHealth;
+        }
+        else if (shipController != null)
+        {
+            currentHealth = shipController.GetCurrentHealth();
+            maxHealth = shipController.maxHealth;
+        }
+        else return;
+
+        float healthPercent = currentHealth / (float)maxHealth;
         healthPercent = Mathf.Clamp01(healthPercent);
         
         // Update fill scale and position based on health
