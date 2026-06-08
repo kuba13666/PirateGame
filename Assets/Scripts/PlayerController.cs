@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Collections.Generic;
 
 /// <summary>
 /// Controls the player ship movement and health
@@ -30,6 +31,14 @@ public class PlayerController : MonoBehaviour
 
     // Current health (private, modified through TakeDamage)
     private int currentHealth;
+
+    // Hull damage-state sprites (set on equip); swapped by HP thresholds
+    private Sprite hullHealthy, hullMild, hullHeavy;
+
+    // Animated fire on the damaged hull
+    private readonly List<GameObject> fires = new List<GameObject>();
+    private Sprite flameSprite;
+    private int currentFireLevel = -1;
 
     // Target position the ship is moving toward
     private Vector3 targetPosition;
@@ -151,6 +160,8 @@ public class PlayerController : MonoBehaviour
             currentHealth = 0;
         }
 
+        UpdateDamageSprite();
+
         // Visual feedback: flash red (cancel previous flash first)
         if (flashRoutine != null) StopCoroutine(flashRoutine);
         flashRoutine = StartCoroutine(FlashDamage());
@@ -174,7 +185,8 @@ public class PlayerController : MonoBehaviour
     public void Heal(int amount)
     {
         currentHealth = Mathf.Min(currentHealth + amount, maxHealth);
-        
+        UpdateDamageSprite();
+
         if (GameManager.Instance != null)
         {
             GameManager.Instance.UpdatePlayerHealth(currentHealth, maxHealth);
@@ -226,6 +238,7 @@ public class PlayerController : MonoBehaviour
     public void Respawn(Vector3 position)
     {
         currentHealth = maxHealth;
+        UpdateDamageSprite();
         transform.position = position;
         targetPosition = position;
         isMoving = false;
@@ -236,6 +249,74 @@ public class PlayerController : MonoBehaviour
 
         if (GameManager.Instance != null)
             GameManager.Instance.UpdatePlayerHealth(currentHealth, maxHealth);
+    }
+
+    /// <summary>Set the three hull damage-state sprites for the equipped ship.</summary>
+    public void SetHullSprites(Sprite healthy, Sprite mild, Sprite heavy)
+    {
+        hullHealthy = healthy;
+        hullMild = mild;
+        hullHeavy = heavy;
+        UpdateDamageSprite();
+    }
+
+    /// <summary>Swap the hull sprite by remaining HP (&gt;2/3 healthy, &gt;1/3 mild, else heavy) and update fire.</summary>
+    void UpdateDamageSprite()
+    {
+        if (hullHealthy == null) return;
+        SpriteRenderer sr = GetComponent<SpriteRenderer>();
+        if (sr == null) return;
+        float ratio = maxHealth > 0 ? (float)currentHealth / maxHealth : 1f;
+        int level = 0;
+        Sprite target = hullHealthy;
+        if (ratio <= 1f / 3f) { level = 2; target = hullHeavy != null ? hullHeavy : (hullMild != null ? hullMild : hullHealthy); }
+        else if (ratio <= 2f / 3f) { level = 1; if (hullMild != null) target = hullMild; }
+        if (sr.sprite != target) sr.sprite = target;
+        UpdateFires(level);
+    }
+
+    /// <summary>Spawn/clear flicker flames based on damage level (0 none, 1 mild, 2 heavy).</summary>
+    void UpdateFires(int level)
+    {
+        if (level == currentFireLevel) return;
+        currentFireLevel = level;
+        foreach (var f in fires) if (f != null) Destroy(f);
+        fires.Clear();
+        if (level <= 0) return;
+        if (flameSprite == null) flameSprite = Resources.Load<Sprite>("Flame");
+        if (flameSprite == null) return;
+
+        SpriteRenderer sr = GetComponent<SpriteRenderer>();
+        if (sr == null || sr.sprite == null) return;
+        float hw = sr.sprite.bounds.size.x;
+        float hh = sr.sprite.bounds.size.y;
+        float flameH = Mathf.Max(0.01f, flameSprite.bounds.size.y);
+        float scale = (0.4f * hh) / flameH; // flame ~40% of hull height
+
+        if (level >= 2)
+        {
+            SpawnFlame(new Vector3(-0.18f * hw, 0.20f * hh, 0f), scale);
+            SpawnFlame(new Vector3(0.16f * hw, -0.04f * hh, 0f), scale * 0.9f);
+            SpawnFlame(new Vector3(0.0f, -0.24f * hh, 0f), scale * 0.8f);
+        }
+        else
+        {
+            SpawnFlame(new Vector3(0.05f * hw, 0.05f * hh, 0f), scale * 0.7f);
+        }
+    }
+
+    void SpawnFlame(Vector3 localPos, float scale)
+    {
+        GameObject go = new GameObject("Flame");
+        go.transform.SetParent(transform, false);
+        go.transform.localPosition = localPos;
+        go.transform.localScale = new Vector3(scale, scale, 1f);
+        SpriteRenderer fsr = go.AddComponent<SpriteRenderer>();
+        fsr.sprite = flameSprite;
+        fsr.sortingOrder = 6;
+        FlameFlicker fl = go.AddComponent<FlameFlicker>();
+        fl.baseScale = scale;
+        fires.Add(go);
     }
 
     /// <summary>

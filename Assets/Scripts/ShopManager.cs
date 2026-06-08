@@ -357,6 +357,11 @@ public class ShopManager : MonoBehaviour
         player.Heal(stats.maxHealth);
 
         RebuildCannons(player, stats.cannonPairs + extraCannonPairs);
+
+        // Damage-state sprites (mild at <=2/3 HP, heavy at <=1/3); fall back to healthy if missing
+        Sprite mild = Resources.Load<Sprite>(stats.hullSprite + "_Mild");
+        Sprite heavy = Resources.Load<Sprite>(stats.hullSprite + "_Heavy");
+        player.SetHullSprites(hull, mild, heavy);
     }
 
     /// <summary>Destroy current cannons and lay out the given number of pairs along the hull sides.</summary>
