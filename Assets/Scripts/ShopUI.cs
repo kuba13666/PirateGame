@@ -28,9 +28,9 @@ public class ShopUI : MonoBehaviour
     private static readonly Color CARD_BG = new Color(0.18f, 0.18f, 0.22f, 0.95f);
 
     // Pirate wood/parchment skin (PixelLab art, loaded from Resources)
-    private static readonly Color INK = new Color(0.20f, 0.12f, 0.04f);       // dark ink on parchment
-    private static readonly Color INK_SOFT = new Color(0.34f, 0.24f, 0.12f);  // softer brown
-    private static Sprite skBg, skCard, skButton, skSign;
+    private static readonly Color INK = new Color(0.05f, 0.03f, 0.01f);       // near-black ink on parchment
+    private static readonly Color INK_SOFT = new Color(0.05f, 0.03f, 0.01f);  // near-black brown ink
+    private static Sprite skBg, skCard, skButton, skSign, skPlate;
     private static bool skinLoaded;
 
     void Start()
@@ -77,6 +77,7 @@ public class ShopUI : MonoBehaviour
         skCard = Resources.Load<Sprite>("ShopCard");
         skButton = Resources.Load<Sprite>("ShopButton");
         skSign = Resources.Load<Sprite>("ShopSign");
+        skPlate = Resources.Load<Sprite>("ShopPlate");
         skinLoaded = true;
     }
 
@@ -99,28 +100,36 @@ public class ShopUI : MonoBehaviour
         {
             if (tb == null) continue;
             var ti = tb.GetComponent<Image>();
-            if (ti != null && skButton != null) { ti.sprite = skButton; ti.type = Image.Type.Sliced; }
+            if (ti != null && skPlate != null) { ti.sprite = skPlate; ti.type = Image.Type.Sliced; }
         }
 
-        // Hanging wooden sign behind the title
-        if (titleText != null && skSign != null)
+        // Wooden nameplate behind the title (button sprite uses a small 9-slice border so it won't collapse)
+        if (titleText != null && skPlate != null)
         {
-            var header = titleText.transform.parent;
-            if (header.Find("TitleSign") == null)
+            var header = titleText.transform.parent.name == "TitleSign" ? titleText.transform.parent.parent : titleText.transform.parent;
+            Transform plate = header.Find("TitleSign");
+            if (plate == null)
             {
-                var signGo = new GameObject("TitleSign");
-                signGo.transform.SetParent(header, false);
-                var simg = signGo.AddComponent<Image>();
-                simg.sprite = skSign; simg.type = Image.Type.Simple; simg.preserveAspect = true; simg.raycastTarget = false;
-                var srt = signGo.GetComponent<RectTransform>();
+                var plateGo = new GameObject("TitleSign");
+                plateGo.transform.SetParent(header, false);
+                var pimg = plateGo.AddComponent<Image>();
+                pimg.sprite = skPlate; pimg.type = Image.Type.Sliced; pimg.raycastTarget = false;
+                var prt = plateGo.GetComponent<RectTransform>();
+                prt.anchorMin = new Vector2(0f, 0.5f); prt.anchorMax = new Vector2(0f, 0.5f); prt.pivot = new Vector2(0f, 0.5f);
+                prt.sizeDelta = new Vector2(230f, 48f);
+                prt.anchoredPosition = new Vector2(14f, 0f);
+                plateGo.transform.SetAsFirstSibling();
+                plate = plateGo.transform;
+
                 var trt = titleText.GetComponent<RectTransform>();
-                srt.anchorMin = trt.anchorMin; srt.anchorMax = trt.anchorMax; srt.pivot = trt.pivot;
-                srt.anchoredPosition = trt.anchoredPosition; srt.sizeDelta = trt.sizeDelta;
-                srt.offsetMin -= new Vector2(24, 18); srt.offsetMax += new Vector2(24, 24);
-                signGo.transform.SetSiblingIndex(titleText.transform.GetSiblingIndex());
+                titleText.transform.SetParent(plate, false);
+                trt.anchorMin = new Vector2(0.06f, 0.14f); trt.anchorMax = new Vector2(0.94f, 0.86f);
+                trt.offsetMin = Vector2.zero; trt.offsetMax = Vector2.zero;
+                titleText.alignment = TextAlignmentOptions.Center;
+                titleText.enableAutoSizing = true; titleText.fontSizeMin = 12; titleText.fontSizeMax = 24;
             }
-            titleText.color = new Color(0.96f, 0.91f, 0.78f);
             titleText.fontStyle = FontStyles.Bold;
+            titleText.color = new Color(0.96f, 0.88f, 0.6f); // warm cream/gold on the dark wood plate
         }
     }
 
@@ -294,7 +303,7 @@ public class ShopUI : MonoBehaviour
         descObj.transform.SetParent(card.transform, false);
         TextMeshProUGUI descText = descObj.AddComponent<TextMeshProUGUI>();
         descText.text = item.description;
-        descText.fontSize = 10;
+        descText.fontSize = 13;
         descText.color = INK_SOFT;
         descText.alignment = TextAlignmentOptions.Center;
         RectTransform descRect = descObj.GetComponent<RectTransform>();
