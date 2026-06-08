@@ -375,32 +375,32 @@ public class ShopManager : MonoBehaviour
         if (sr == null || sr.sprite == null) return;
         float halfW = sr.sprite.bounds.extents.x;   // local (unscaled) hull half-extents
         float halfH = sr.sprite.bounds.extents.y;
-        float sideX = halfW * 0.78f;
+        float sideX = halfW * 0.72f;
 
-        // Counter the player's scale so cannons render at a fixed world size
+        // Size the cannon by its length (sprite barrel points up); player scale is uniform
         Sprite cannonSprite = Resources.Load<Sprite>("Cannon_Top");
-        float cannonWorld = 0.18f;
-        float cannonBase = cannonSprite != null ? Mathf.Max(0.0001f, cannonSprite.bounds.size.x) : 1f;
-        Vector3 ls = player.transform.lossyScale;
-        float csx = cannonWorld / (cannonBase * Mathf.Max(0.0001f, Mathf.Abs(ls.x)));
-        float csy = cannonWorld / (cannonBase * Mathf.Max(0.0001f, Mathf.Abs(ls.y)));
+        float cannonLen = cannonSprite != null ? Mathf.Max(cannonSprite.bounds.size.x, cannonSprite.bounds.size.y) : 1f;
+        float targetLen = 0.26f; // cannon length in world units
+        float ls = Mathf.Max(0.0001f, Mathf.Abs(player.transform.lossyScale.x));
+        float cs = targetLen / (Mathf.Max(0.0001f, cannonLen) * ls);
 
         for (int i = 0; i < pairs; i++)
         {
             float t = pairs <= 1 ? 0.5f : (float)i / (pairs - 1);
             float y = Mathf.Lerp(halfH * 0.55f, -halfH * 0.55f, t);
-            MakeCannon(player.transform, $"Cannon_L{i}", new Vector3(-sideX, y, 0f), new Vector2(-1, 0), cannonSprite, csx, csy, true);
-            MakeCannon(player.transform, $"Cannon_R{i}", new Vector3(sideX, y, 0f), new Vector2(1, 0), cannonSprite, csx, csy, false);
+            MakeCannon(player.transform, $"Cannon_L{i}", new Vector3(-sideX, y, 0f), new Vector2(-1, 0), cannonSprite, cs, true);
+            MakeCannon(player.transform, $"Cannon_R{i}", new Vector3(sideX, y, 0f), new Vector2(1, 0), cannonSprite, cs, false);
         }
     }
 
-    void MakeCannon(Transform parent, string name, Vector3 localPos, Vector2 fireDir, Sprite sprite, float csx, float csy, bool faceLeft)
+    void MakeCannon(Transform parent, string name, Vector3 localPos, Vector2 fireDir, Sprite sprite, float cs, bool faceLeft)
     {
         GameObject go = new GameObject(name);
         go.transform.SetParent(parent, false);
         go.transform.localPosition = localPos;
-        go.transform.localScale = new Vector3(csx, csy, 1f);
-        if (faceLeft) go.transform.localRotation = Quaternion.Euler(0, 0, 180f);
+        go.transform.localScale = new Vector3(cs, cs, 1f);
+        // sprite barrel points up; rotate so it points outward (left/right)
+        go.transform.localRotation = Quaternion.Euler(0, 0, faceLeft ? 90f : -90f);
 
         if (sprite != null)
         {
