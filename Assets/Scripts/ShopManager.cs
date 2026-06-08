@@ -69,8 +69,9 @@ public class ShopManager : MonoBehaviour
             description = "Balanced speed and firepower",
             cost = 500,
             maxLevel = 1,
-            spritePath = "",
-            category = ShopCategory.Ships
+            spritePath = "Assets/Resources/Brigantine.png",
+            category = ShopCategory.Ships,
+            sprite = Resources.Load<Sprite>("Brigantine")
         });
         ships.Add(new ShopItem
         {
@@ -78,8 +79,9 @@ public class ShopManager : MonoBehaviour
             description = "Heavy warship with many cannons",
             cost = 1500,
             maxLevel = 1,
-            spritePath = "",
-            category = ShopCategory.Ships
+            spritePath = "Assets/Resources/Galleon.png",
+            category = ShopCategory.Ships,
+            sprite = Resources.Load<Sprite>("Galleon")
         });
         ships.Add(new ShopItem
         {
@@ -87,8 +89,9 @@ public class ShopManager : MonoBehaviour
             description = "The mightiest ship on the seas",
             cost = 5000,
             maxLevel = 1,
-            spritePath = "",
-            category = ShopCategory.Ships
+            spritePath = "Assets/Resources/ManOWar.png",
+            category = ShopCategory.Ships,
+            sprite = Resources.Load<Sprite>("ManOWar")
         });
 
         // --- Enhancements ---

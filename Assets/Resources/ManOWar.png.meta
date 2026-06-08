@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: b40c4e75e4f1439479cfc483e881e75f
+guid: 59affb2568e9966409302e1103071214
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 40091330376661718
-    second: Sloop_0
+      213: 4810770235340556509
+    second: ManOWar_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -113,13 +113,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Sloop_0
+      name: ManOWar_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 1280
-        height: 832
+        x: 2
+        y: 4
+        width: 124
+        height: 122
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 6da7ca14ade6e8000800000000000000
-      internalID: 40091330376661718
+      spriteID: dd80f7d5a0a43c240800000000000000
+      internalID: 4810770235340556509
       vertices: []
       indices: 
       edges: []
@@ -148,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Sloop_0: 40091330376661718
+      ManOWar_0: 4810770235340556509
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
