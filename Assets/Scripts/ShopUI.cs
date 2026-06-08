@@ -23,9 +23,15 @@ public class ShopUI : MonoBehaviour
     private ShopManager.ShopCategory currentTab = ShopManager.ShopCategory.Ships;
     private readonly List<GameObject> currentCards = new List<GameObject>();
 
-    private static readonly Color TAB_ACTIVE = new Color(0.15f, 0.15f, 0.15f, 0.95f);
-    private static readonly Color TAB_INACTIVE = new Color(0.25f, 0.25f, 0.3f, 0.8f);
+    private static readonly Color TAB_ACTIVE = new Color(1f, 0.95f, 0.78f, 1f);
+    private static readonly Color TAB_INACTIVE = new Color(0.62f, 0.55f, 0.44f, 1f);
     private static readonly Color CARD_BG = new Color(0.18f, 0.18f, 0.22f, 0.95f);
+
+    // Pirate wood/parchment skin (PixelLab art, loaded from Resources)
+    private static readonly Color INK = new Color(0.20f, 0.12f, 0.04f);       // dark ink on parchment
+    private static readonly Color INK_SOFT = new Color(0.34f, 0.24f, 0.12f);  // softer brown
+    private static Sprite skBg, skCard, skButton, skSign;
+    private static bool skinLoaded;
 
     void Start()
     {
@@ -64,11 +70,66 @@ public class ShopUI : MonoBehaviour
         RefreshUI();
     }
 
+    static void LoadSkin()
+    {
+        if (skinLoaded) return;
+        skBg = Resources.Load<Sprite>("ShopBg");
+        skCard = Resources.Load<Sprite>("ShopCard");
+        skButton = Resources.Load<Sprite>("ShopButton");
+        skSign = Resources.Load<Sprite>("ShopSign");
+        skinLoaded = true;
+    }
+
+    void ApplySkin()
+    {
+        LoadSkin();
+        if (shopPanel == null) return;
+
+        // Window background -> weathered wood
+        var pImg = shopPanel.GetComponent<Image>();
+        if (pImg != null && skBg != null) { pImg.sprite = skBg; pImg.type = Image.Type.Sliced; pImg.color = Color.white; }
+
+        // Left tab strip -> darker wood
+        var strip = shopPanel.transform.Find("TabStrip");
+        var stripImg = strip != null ? strip.GetComponent<Image>() : null;
+        if (stripImg != null && skBg != null) { stripImg.sprite = skBg; stripImg.type = Image.Type.Sliced; stripImg.color = new Color(0.72f, 0.72f, 0.72f); }
+
+        // Tab buttons -> wood button sprite (tinted by SetTabHighlight)
+        foreach (var tb in new[] { tabShips, tabEnhancements, tabCrew })
+        {
+            if (tb == null) continue;
+            var ti = tb.GetComponent<Image>();
+            if (ti != null && skButton != null) { ti.sprite = skButton; ti.type = Image.Type.Sliced; }
+        }
+
+        // Hanging wooden sign behind the title
+        if (titleText != null && skSign != null)
+        {
+            var header = titleText.transform.parent;
+            if (header.Find("TitleSign") == null)
+            {
+                var signGo = new GameObject("TitleSign");
+                signGo.transform.SetParent(header, false);
+                var simg = signGo.AddComponent<Image>();
+                simg.sprite = skSign; simg.type = Image.Type.Simple; simg.preserveAspect = true; simg.raycastTarget = false;
+                var srt = signGo.GetComponent<RectTransform>();
+                var trt = titleText.GetComponent<RectTransform>();
+                srt.anchorMin = trt.anchorMin; srt.anchorMax = trt.anchorMax; srt.pivot = trt.pivot;
+                srt.anchoredPosition = trt.anchoredPosition; srt.sizeDelta = trt.sizeDelta;
+                srt.offsetMin -= new Vector2(24, 18); srt.offsetMax += new Vector2(24, 24);
+                signGo.transform.SetSiblingIndex(titleText.transform.GetSiblingIndex());
+            }
+            titleText.color = new Color(0.96f, 0.91f, 0.78f);
+            titleText.fontStyle = FontStyles.Bold;
+        }
+    }
+
     public void OpenShop()
     {
         if (shopPanel != null)
         {
             shopPanel.SetActive(true);
+            ApplySkin();
             currentTab = ShopManager.ShopCategory.Ships;
             RefreshUI();
         }
@@ -151,7 +212,9 @@ public class ShopUI : MonoBehaviour
         RectTransform rt = card.AddComponent<RectTransform>();
         rt.sizeDelta = new Vector2(200, 220);
         Image bg = card.AddComponent<Image>();
-        bg.color = CARD_BG;
+        LoadSkin();
+        if (skCard != null) { bg.sprite = skCard; bg.type = Image.Type.Sliced; bg.color = Color.white; }
+        else bg.color = CARD_BG;
         currentCards.Add(card);
 
         // --- Thin accent line at top (gold for owned, dark for others) ---
@@ -171,18 +234,7 @@ public class ShopUI : MonoBehaviour
         // --- Icon area (top portion) ---
         if (hasSprite)
         {
-            // Dark backing behind sprite to eliminate checkered transparency
-            GameObject iconBg = new GameObject("IconBg");
-            iconBg.transform.SetParent(card.transform, false);
-            Image iconBgImg = iconBg.AddComponent<Image>();
-            iconBgImg.color = new Color(0.1f, 0.1f, 0.14f, 1f);
-            RectTransform iconBgRect = iconBg.GetComponent<RectTransform>();
-            iconBgRect.anchorMin = new Vector2(0.08f, 0.58f);
-            iconBgRect.anchorMax = new Vector2(0.92f, 0.95f);
-            iconBgRect.offsetMin = Vector2.zero;
-            iconBgRect.offsetMax = Vector2.zero;
-
-            // The sprite itself
+            // Ship sits directly on the parchment card
             GameObject imgObj = new GameObject("Icon");
             imgObj.transform.SetParent(card.transform, false);
             Image icon = imgObj.AddComponent<Image>();
@@ -230,7 +282,7 @@ public class ShopUI : MonoBehaviour
         nameText.fontSize = 15;
         nameText.fontStyle = FontStyles.Bold;
         nameText.alignment = TextAlignmentOptions.Center;
-        nameText.color = Color.white;
+        nameText.color = INK;
         RectTransform nameRect = nameObj.GetComponent<RectTransform>();
         nameRect.anchorMin = new Vector2(0, 0.46f);
         nameRect.anchorMax = new Vector2(1, 0.58f);
@@ -243,7 +295,7 @@ public class ShopUI : MonoBehaviour
         TextMeshProUGUI descText = descObj.AddComponent<TextMeshProUGUI>();
         descText.text = item.description;
         descText.fontSize = 10;
-        descText.color = new Color(0.65f, 0.65f, 0.7f);
+        descText.color = INK_SOFT;
         descText.alignment = TextAlignmentOptions.Center;
         RectTransform descRect = descObj.GetComponent<RectTransform>();
         descRect.anchorMin = new Vector2(0, 0.36f);
@@ -266,23 +318,24 @@ public class ShopUI : MonoBehaviour
         if (item.maxLevel > 1)
         {
             statusText.text = maxed ? "MAX LEVEL" : $"Lv {item.currentLevel}/{item.maxLevel}  \u2022  {cost} Gold";
-            statusText.color = maxed ? Color.cyan : (canAfford ? Color.yellow : new Color(1f, 0.4f, 0.4f));
+            statusText.color = maxed ? new Color(0.1f, 0.4f, 0.45f) : (canAfford ? new Color(0.45f, 0.3f, 0.05f) : new Color(0.6f, 0.12f, 0.1f));
         }
         else if (owned)
         {
             statusText.text = "\u2713 Owned";
-            statusText.color = new Color(0.4f, 0.9f, 0.5f);
+            statusText.color = new Color(0.13f, 0.45f, 0.18f);
         }
         else
         {
             statusText.text = $"{cost} Gold";
-            statusText.color = canAfford ? Color.yellow : new Color(1f, 0.4f, 0.4f);
+            statusText.color = canAfford ? new Color(0.45f, 0.3f, 0.05f) : new Color(0.6f, 0.12f, 0.1f);
         }
 
         // --- Buy / Equipped button ---
         GameObject btnObj = new GameObject("BuyBtn");
         btnObj.transform.SetParent(card.transform, false);
         Image btnImg = btnObj.AddComponent<Image>();
+        if (skButton != null) { btnImg.sprite = skButton; btnImg.type = Image.Type.Sliced; }
         Button btn = btnObj.AddComponent<Button>();
         RectTransform btnRect = btnObj.GetComponent<RectTransform>();
         btnRect.anchorMin = new Vector2(0.1f, 0.04f);
@@ -293,19 +346,19 @@ public class ShopUI : MonoBehaviour
         string btnLabel;
         if (maxed || owned)
         {
-            btnImg.color = new Color(0.25f, 0.25f, 0.3f);
+            btnImg.color = new Color(0.62f, 0.60f, 0.54f);
             btn.interactable = false;
             btnLabel = owned ? "\u2713 Equipped" : "Maxed";
         }
         else if (canAfford)
         {
-            btnImg.color = new Color(0.18f, 0.55f, 0.25f);
+            btnImg.color = new Color(0.5f, 0.78f, 0.45f);
             btn.interactable = true;
             btnLabel = "Buy";
         }
         else
         {
-            btnImg.color = new Color(0.4f, 0.18f, 0.18f);
+            btnImg.color = new Color(0.78f, 0.45f, 0.4f);
             btn.interactable = false;
             btnLabel = "Buy";
         }
