@@ -34,6 +34,28 @@ public class ShopManager : MonoBehaviour
     public List<ShopItem> enhancements = new List<ShopItem>();
     public List<ShopItem> crew = new List<ShopItem>();
 
+    // ─── Ship gameplay stats (top-down hull, cannons, HP, speed) ───
+    public class ShipStats
+    {
+        public string hullSprite;   // Resources sprite name (top-down hull)
+        public int cannonPairs;     // base cannon pairs (1 pair = 2 cannons)
+        public int maxHealth;
+        public float moveSpeed;
+        public float worldHeight;   // target on-screen height in world units
+    }
+
+    public static readonly Dictionary<string, ShipStats> ShipStatsByName = new Dictionary<string, ShipStats>
+    {
+        { "Sloop",      new ShipStats { hullSprite = "Sloop_Top",      cannonPairs = 1, maxHealth = 10, moveSpeed = 2.0f, worldHeight = 1.2f } },
+        { "Brigantine", new ShipStats { hullSprite = "Brigantine_Top", cannonPairs = 2, maxHealth = 14, moveSpeed = 2.4f, worldHeight = 1.55f } },
+        { "Galleon",    new ShipStats { hullSprite = "Galleon_Top",    cannonPairs = 3, maxHealth = 20, moveSpeed = 1.7f, worldHeight = 1.9f } },
+        { "Man O' War", new ShipStats { hullSprite = "ManOWar_Top",    cannonPairs = 4, maxHealth = 30, moveSpeed = 2.0f, worldHeight = 2.3f } },
+    };
+
+    [System.NonSerialized] public string equippedShipName = "Sloop";
+    private int extraCannonPairs = 0;            // from the Extra Cannons upgrade
+    private GameObject cannonProjectilePrefab;   // cached so cannons can be rebuilt
+
     void Awake()
     {
         if (Instance == null)
@@ -47,6 +69,12 @@ public class ShopManager : MonoBehaviour
         }
 
         InitializeShop();
+    }
+
+    void Start()
+    {
+        // Equip the starting ship so the player sails the proper hull from game start
+        ApplyShipToPlayer(equippedShipName);
     }
 
     void InitializeShop()
@@ -256,7 +284,8 @@ public class ShopManager : MonoBehaviour
         switch (item.name)
         {
             case "Extra Cannons":
-                if (player != null) AddCannonsToPlayer(player, item.currentLevel);
+                extraCannonPairs = item.currentLevel;
+                RebuildEquippedCannons();
                 break;
             case "Reinforced Hull":
                 if (player != null) { player.maxHealth += 20; player.Heal(20); }
@@ -283,57 +312,107 @@ public class ShopManager : MonoBehaviour
         }
     }
 
-    void AddCannonsToPlayer(PlayerController player, int cannonLevel)
+    // ─── Ship equipping ───────────────────────────────────────────────
+
+    /// <summary>Equip an owned ship: swap the player's hull, stats and cannons.</summary>
+    public void EquipShip(ShopItem ship)
     {
-        // Each level adds 2 cannons (1 per side)
-        // Level 1: top pair, Level 2: bottom pair, Level 3: far pair
-        float[] yOffsets = { GameConstants.CANNON_OFFSET_Y, -GameConstants.CANNON_OFFSET_Y, GameConstants.CANNON_OFFSET_Y * 2f };
-        float yOff = yOffsets[Mathf.Clamp(cannonLevel - 1, 0, yOffsets.Length - 1)];
-
-        // Find projectile prefab from existing cannon
-        CannonController existingCannon = player.GetComponentInChildren<CannonController>();
-        if (existingCannon == null || existingCannon.projectilePrefab == null)
-        {
-            Debug.LogWarning("No existing cannon to copy projectile prefab from");
-            return;
-        }
-        GameObject projectilePrefab = existingCannon.projectilePrefab;
-
-        // Left cannon
-        GameObject leftCannon = new GameObject($"Cannon_Left_{cannonLevel + 1}");
-        leftCannon.transform.SetParent(player.transform, false);
-        leftCannon.transform.localPosition = new Vector3(-GameConstants.CANNON_OFFSET_X, yOff, 0);
-        CannonController leftCC = leftCannon.AddComponent<CannonController>();
-        leftCC.projectilePrefab = projectilePrefab;
-        leftCC.fireDirection = new Vector2(-1, 0);
-        leftCC.fireRate = existingCannon.fireRate;
-        leftCC.spawnOffset = new Vector2(-1, 0) * GameConstants.CANNON_PROJECTILE_SPAWN_OFFSET;
-
-        // Right cannon
-        GameObject rightCannon = new GameObject($"Cannon_Right_{cannonLevel + 1}");
-        rightCannon.transform.SetParent(player.transform, false);
-        rightCannon.transform.localPosition = new Vector3(GameConstants.CANNON_OFFSET_X, yOff, 0);
-        CannonController rightCC = rightCannon.AddComponent<CannonController>();
-        rightCC.projectilePrefab = projectilePrefab;
-        rightCC.fireDirection = new Vector2(1, 0);
-        rightCC.fireRate = existingCannon.fireRate;
-        rightCC.spawnOffset = new Vector2(1, 0) * GameConstants.CANNON_PROJECTILE_SPAWN_OFFSET;
-
-        // Sync all cannons to fire at the same time
-        SyncAllCannons(player);
-
-        Debug.Log($"Added cannon pair at y={yOff} (Level {cannonLevel})");
+        if (ship == null || !ship.purchased) return;
+        equippedShipName = ship.name;
+        ApplyShipToPlayer(ship.name);
     }
 
-    void SyncAllCannons(PlayerController player)
+    void RebuildEquippedCannons()
     {
-        CannonController[] cannons = player.GetComponentsInChildren<CannonController>();
-        foreach (var c in cannons)
+        if (ShipStatsByName.TryGetValue(equippedShipName, out ShipStats s))
         {
-            // Reset all timers to 0 so next frame they all fire together
-            var timerField = typeof(CannonController).GetField("fireTimer", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            if (timerField != null)
-                timerField.SetValue(c, 0f);
+            PlayerController player = FindAnyObjectByType<PlayerController>();
+            if (player != null) RebuildCannons(player, s.cannonPairs + extraCannonPairs);
         }
+    }
+
+    void ApplyShipToPlayer(string shipName)
+    {
+        if (!ShipStatsByName.TryGetValue(shipName, out ShipStats stats)) return;
+        PlayerController player = FindAnyObjectByType<PlayerController>();
+        if (player == null) return;
+
+        // Hull sprite, scaled to a target world height (sprites differ in pixel size)
+        SpriteRenderer sr = player.GetComponent<SpriteRenderer>();
+        Sprite hull = Resources.Load<Sprite>(stats.hullSprite);
+        if (sr != null && hull != null)
+        {
+            sr.sprite = hull;
+            float spriteH = Mathf.Max(0.01f, hull.bounds.size.y);
+            float scale = stats.worldHeight / spriteH;
+            player.transform.localScale = new Vector3(scale, scale, 1f);
+
+            BoxCollider2D col = player.GetComponent<BoxCollider2D>();
+            if (col != null) col.size = hull.bounds.size;
+        }
+
+        // Stats
+        player.maxHealth = stats.maxHealth;
+        player.moveSpeed = stats.moveSpeed;
+        player.Heal(stats.maxHealth);
+
+        RebuildCannons(player, stats.cannonPairs + extraCannonPairs);
+    }
+
+    /// <summary>Destroy current cannons and lay out the given number of pairs along the hull sides.</summary>
+    void RebuildCannons(PlayerController player, int pairs)
+    {
+        // Cache the projectile prefab from an existing cannon before destroying them
+        CannonController existing = player.GetComponentInChildren<CannonController>();
+        if (existing != null && existing.projectilePrefab != null)
+            cannonProjectilePrefab = existing.projectilePrefab;
+        if (cannonProjectilePrefab == null) return;
+
+        foreach (CannonController cc in player.GetComponentsInChildren<CannonController>())
+            DestroyImmediate(cc.gameObject);
+
+        SpriteRenderer sr = player.GetComponent<SpriteRenderer>();
+        if (sr == null || sr.sprite == null) return;
+        float halfW = sr.sprite.bounds.extents.x;   // local (unscaled) hull half-extents
+        float halfH = sr.sprite.bounds.extents.y;
+        float sideX = halfW * 0.78f;
+
+        // Counter the player's scale so cannons render at a fixed world size
+        Sprite cannonSprite = Resources.Load<Sprite>("Cannon_Top");
+        float cannonWorld = 0.18f;
+        float cannonBase = cannonSprite != null ? Mathf.Max(0.0001f, cannonSprite.bounds.size.x) : 1f;
+        Vector3 ls = player.transform.lossyScale;
+        float csx = cannonWorld / (cannonBase * Mathf.Max(0.0001f, Mathf.Abs(ls.x)));
+        float csy = cannonWorld / (cannonBase * Mathf.Max(0.0001f, Mathf.Abs(ls.y)));
+
+        for (int i = 0; i < pairs; i++)
+        {
+            float t = pairs <= 1 ? 0.5f : (float)i / (pairs - 1);
+            float y = Mathf.Lerp(halfH * 0.55f, -halfH * 0.55f, t);
+            MakeCannon(player.transform, $"Cannon_L{i}", new Vector3(-sideX, y, 0f), new Vector2(-1, 0), cannonSprite, csx, csy, true);
+            MakeCannon(player.transform, $"Cannon_R{i}", new Vector3(sideX, y, 0f), new Vector2(1, 0), cannonSprite, csx, csy, false);
+        }
+    }
+
+    void MakeCannon(Transform parent, string name, Vector3 localPos, Vector2 fireDir, Sprite sprite, float csx, float csy, bool faceLeft)
+    {
+        GameObject go = new GameObject(name);
+        go.transform.SetParent(parent, false);
+        go.transform.localPosition = localPos;
+        go.transform.localScale = new Vector3(csx, csy, 1f);
+        if (faceLeft) go.transform.localRotation = Quaternion.Euler(0, 0, 180f);
+
+        if (sprite != null)
+        {
+            SpriteRenderer csr = go.AddComponent<SpriteRenderer>();
+            csr.sprite = sprite;
+            csr.sortingOrder = 4;
+        }
+
+        CannonController cc = go.AddComponent<CannonController>();
+        cc.projectilePrefab = cannonProjectilePrefab;
+        cc.fireDirection = fireDir;
+        cc.fireRate = GameConstants.CANNON_FIRE_RATE;
+        cc.spawnOffset = fireDir * GameConstants.CANNON_PROJECTILE_SPAWN_OFFSET;
     }
 }

@@ -352,12 +352,31 @@ public class ShopUI : MonoBehaviour
         btnRect.offsetMin = Vector2.zero;
         btnRect.offsetMax = Vector2.zero;
 
+        bool isShip = item.category == ShopManager.ShopCategory.Ships;
+        bool isEquipped = isShip && ShopManager.Instance.equippedShipName == item.name;
+        bool ownedShip = isShip && item.purchased;
+
         string btnLabel;
-        if (maxed || owned)
+        if (ownedShip)
+        {
+            if (isEquipped)
+            {
+                btnImg.color = new Color(0.62f, 0.60f, 0.54f);
+                btn.interactable = false;
+                btnLabel = "\u2713 Equipped";
+            }
+            else
+            {
+                btnImg.color = new Color(0.42f, 0.58f, 0.85f); // Equip
+                btn.interactable = true;
+                btnLabel = "Equip";
+            }
+        }
+        else if (maxed || owned)
         {
             btnImg.color = new Color(0.62f, 0.60f, 0.54f);
             btn.interactable = false;
-            btnLabel = owned ? "\u2713 Equipped" : "Maxed";
+            btnLabel = owned ? "\u2713 Owned" : "Maxed";
         }
         else if (canAfford)
         {
@@ -387,10 +406,18 @@ public class ShopUI : MonoBehaviour
 
         // Click handler
         ShopManager.ShopItem captured = item;
+        bool capturedEquip = ownedShip; // owned ship -> Equip, otherwise Buy
         btn.onClick.AddListener(() =>
         {
-            if (ShopManager.Instance.Purchase(captured))
+            if (capturedEquip)
+            {
+                ShopManager.Instance.EquipShip(captured);
                 RebuildCards();
+            }
+            else if (ShopManager.Instance.Purchase(captured))
+            {
+                RebuildCards();
+            }
         });
     }
 
