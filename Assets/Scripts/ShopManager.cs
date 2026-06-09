@@ -385,7 +385,7 @@ public class ShopManager : MonoBehaviour
         // Size the cannon by its length (sprite barrel points up); player scale is uniform
         Sprite cannonSprite = Resources.Load<Sprite>("Cannon_Top");
         float cannonLen = cannonSprite != null ? Mathf.Max(cannonSprite.bounds.size.x, cannonSprite.bounds.size.y) : 1f;
-        float targetLen = 0.26f; // cannon length in world units
+        float targetLen = 0.52f; // cannon length in world units (2x)
         float ls = Mathf.Max(0.0001f, Mathf.Abs(player.transform.lossyScale.x));
         float cs = targetLen / (Mathf.Max(0.0001f, cannonLen) * ls);
 

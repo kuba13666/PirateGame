@@ -8,7 +8,7 @@ using UnityEngine;
 public class MuzzleFlash : MonoBehaviour
 {
     public float life = 0.22f;
-    public float baseScale = 0.2f;
+    public float baseScale = 0.4f;
 
     private float t;
     private SpriteRenderer sr;
@@ -28,7 +28,7 @@ public class MuzzleFlash : MonoBehaviour
     {
         t += Time.deltaTime;
         float k = t / life;
-        if (k >= 1f) { Destroy(gameObject); return; }
+        if (k >= 1f) { SpawnSmoke(); Destroy(gameObject); return; }
 
         // Two flashes: a bigger one, then a smaller second one near the end.
         float flash1 = Mathf.Exp(-Mathf.Pow((k - 0.13f) / 0.13f, 2f));          // peak 1.0
@@ -42,5 +42,24 @@ public class MuzzleFlash : MonoBehaviour
             c.a = Mathf.Clamp01(e * 1.2f);
             sr.color = c;
         }
+    }
+
+    private static Sprite smokeSprite;
+    private static bool smokeLoaded;
+
+    /// <summary>Leave a small smoke puff where the flash was.</summary>
+    void SpawnSmoke()
+    {
+        if (!smokeLoaded) { smokeSprite = Resources.Load<Sprite>("Smoke"); smokeLoaded = true; }
+        if (smokeSprite == null) return;
+        GameObject go = new GameObject("Smoke");
+        go.transform.position = transform.position;
+        SpriteRenderer ssr = go.AddComponent<SpriteRenderer>();
+        ssr.sprite = smokeSprite;
+        ssr.color = new Color(0.78f, 0.78f, 0.78f, 0.55f);
+        ssr.sortingOrder = 6;
+        SmokePuff puff = go.AddComponent<SmokePuff>();
+        float h = Mathf.Max(0.01f, smokeSprite.bounds.size.y);
+        puff.baseScale = 0.32f / h; // ~0.32 world units
     }
 }

@@ -87,7 +87,7 @@ public class CannonController : MonoBehaviour
 
         Vector2 dir = fireDirection.sqrMagnitude > 0.0001f ? fireDirection.normalized : Vector2.right;
         GameObject go = new GameObject("MuzzleFlash");
-        go.transform.position = transform.position + (Vector3)(dir * 0.15f);
+        go.transform.position = transform.position + (Vector3)(dir * 0.25f);
         float ang = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg - 90f; // flame sprite points up by default
         go.transform.rotation = Quaternion.Euler(0f, 0f, ang);
 
