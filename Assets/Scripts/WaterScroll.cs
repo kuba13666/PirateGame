@@ -34,7 +34,11 @@ public class WaterScroll : MonoBehaviour
         oy = Mathf.Repeat(oy + scrollSpeed.y * Time.deltaTime, tileSize);
 
         Vector3 c = cam != null ? cam.transform.position : Vector3.zero;
-        // Subtract one tile so the slack is centred and the view stays covered.
-        transform.position = new Vector3(c.x + ox - tileSize, c.y + oy - tileSize, zDepth);
+        // Snap to the tile grid so the pattern stays anchored to the WORLD
+        // (the ship sails past it) while the quad still follows the camera.
+        // Adding the wrapped offset on top gives the slow current drift.
+        float bx = Mathf.Floor(c.x / tileSize) * tileSize;
+        float by = Mathf.Floor(c.y / tileSize) * tileSize;
+        transform.position = new Vector3(bx + ox - tileSize, by + oy - tileSize, zDepth);
     }
 }

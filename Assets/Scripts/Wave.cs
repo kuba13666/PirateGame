@@ -1,15 +1,15 @@
 using UnityEngine;
 
 /// <summary>
-/// A single rolling wave crest on the water: fades in, drifts slowly (rolling),
-/// then fades out and self-destroys. Subtle and big rather than busy.
-/// baseScale is set by the spawner to hit a target world width.
+/// A single wave squiggle on the water: slowly fades in, sits in the world
+/// (barely drifting), then slowly fades out and self-destroys.
+/// Scale/rotation/lifetime are set by the spawner.
 /// </summary>
 public class Wave : MonoBehaviour
 {
-    public float life = 4f;
-    public float maxAlpha = 0.45f;
-    public Vector2 drift = new Vector2(0.0f, -0.06f);
+    public float life = 7f;
+    public float maxAlpha = 0.5f;
+    public Vector2 drift = Vector2.zero;
 
     private float t;
     private SpriteRenderer sr;
@@ -27,9 +27,9 @@ public class Wave : MonoBehaviour
         float k = t / life;
         if (k >= 1f) { Destroy(gameObject); return; }
 
-        // Slow fade in (first 35%), slow fade out (last 45%).
-        float a = Mathf.Min(Mathf.SmoothStep(0f, 1f, k / 0.35f),
-                            Mathf.SmoothStep(0f, 1f, (1f - k) / 0.45f));
+        // Slow fade in (first 25%), slow fade out (last 30%).
+        float a = Mathf.Min(Mathf.SmoothStep(0f, 1f, k / 0.25f),
+                            Mathf.SmoothStep(0f, 1f, (1f - k) / 0.3f));
 
         transform.position = startPos + (Vector3)(drift * t);
         if (sr != null)
