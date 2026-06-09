@@ -4238,9 +4238,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WaterManager
   waterTint: {r: 1, g: 1, b: 1, a: 1}
-  scrollSpeed: {x: 0.18, y: 0.12}
+  scrollSpeed: {x: 0.1, y: 0.06}
   waterSortingOrder: -100
-  foamInterval: 0.65
+  foamInterval: 0.9
   foamSortingOrder: -50
   foamMinSize: 0.35
   foamMaxSize: 0.8
