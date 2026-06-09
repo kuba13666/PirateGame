@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 8851895506789053933}
   - component: {fileID: 6014573488934299627}
   - component: {fileID: 2799204240163611670}
+  - component: {fileID: 2878657739273642498}
   m_Layer: 0
   m_Name: Enemy_Harpy
   m_TagString: Enemy
@@ -85,7 +86,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 2
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: c2f67b30be566d1449833e09afb6d5ce, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 36534e4614d74f34ca73240f50f3c2b9, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -160,7 +161,7 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 20.48, y: 20.48}
+    oldSize: {x: 0.9, y: 0.93}
     newSize: {x: 20.48, y: 20.48}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -201,3 +202,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f8432f6a0ce15744a6ec036ceeba53e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyHealthBar
+--- !u!114 &2878657739273642498
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5693743049828968183}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6bbca0607abbb474e8931f3cb434d359, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SpriteAnimator
+  resourcePrefix: Harpy_Anim_
+  frameCount: 7
+  fps: 6
+  randomizePhase: 1
