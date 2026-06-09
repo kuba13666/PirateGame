@@ -67,12 +67,6 @@ public class GameManager : MonoBehaviour
         // Find UI Manager in the scene
         uiManager = FindFirstObjectByType<UIManager>();
 
-        // Initialize kill count display
-        if (uiManager != null)
-        {
-            uiManager.UpdateKillCount(killCount);
-        }
-
         CreateDeathOverlay();
     }
 
@@ -109,13 +103,6 @@ public class GameManager : MonoBehaviour
         if (isGameOver) return;
 
         killCount++;
-
-        // Update UI
-        if (uiManager != null)
-        {
-            uiManager.UpdateKillCount(killCount);
-        }
-
         Debug.Log($"Enemy killed! Total kills: {killCount}");
     }
 

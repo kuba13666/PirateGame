@@ -530,22 +530,6 @@ public class GameSetupEditor : EditorWindow
         healthRect.anchoredPosition = new Vector2(10, -10);
         healthRect.sizeDelta = new Vector2(200, 50);
 
-        // Create Kill Count Text (top-right)
-        GameObject killTextObj = new GameObject("KillCountText");
-        killTextObj.transform.SetParent(canvasObj.transform);
-        TextMeshProUGUI killText = killTextObj.AddComponent<TextMeshProUGUI>();
-        killText.text = "Kills: 0";
-        killText.fontSize = 24;
-        killText.color = Color.white;
-        killText.alignment = TextAlignmentOptions.TopRight;
-        
-        RectTransform killRect = killTextObj.GetComponent<RectTransform>();
-        killRect.anchorMin = new Vector2(1, 1);
-        killRect.anchorMax = new Vector2(1, 1);
-        killRect.pivot = new Vector2(1, 1);
-        killRect.anchoredPosition = new Vector2(-10, -10);
-        killRect.sizeDelta = new Vector2(200, 50);
-
         // Wave Text (top center)
         GameObject waveTextObj = new GameObject("WaveText");
         waveTextObj.transform.SetParent(canvasObj.transform);
@@ -562,14 +546,14 @@ public class GameSetupEditor : EditorWindow
         waveRect.anchoredPosition = new Vector2(0, -10);
         waveRect.sizeDelta = new Vector2(300, 60);
 
-        // Create Loot Counter Panel (top-right, below kill count)
+        // Create Loot Counter Panel (top-right corner)
         GameObject lootPanelObj = new GameObject("LootPanel");
         lootPanelObj.transform.SetParent(canvasObj.transform);
         RectTransform lootPanelRect = lootPanelObj.AddComponent<RectTransform>();
         lootPanelRect.anchorMin = new Vector2(1, 1);
         lootPanelRect.anchorMax = new Vector2(1, 1);
         lootPanelRect.pivot = new Vector2(1, 1);
-        lootPanelRect.anchoredPosition = new Vector2(-10, -60);
+        lootPanelRect.anchoredPosition = new Vector2(-10, -10);
         lootPanelRect.sizeDelta = new Vector2(260, 40);
 
         // Create horizontal layout
@@ -659,7 +643,6 @@ public class GameSetupEditor : EditorWindow
         GameObject uiManagerObj = new GameObject("UIManager");
         UIManager uiManager = uiManagerObj.AddComponent<UIManager>();
         uiManager.healthText = healthText;
-        uiManager.killCountText = killText;
         uiManager.gameOverPanel = panelObj;
         uiManager.finalScoreText = scoreText;
         uiManager.goldCountText = goldText;

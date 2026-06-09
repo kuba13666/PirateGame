@@ -11,9 +11,6 @@ public class UIManager : MonoBehaviour
     [Tooltip("Text element to display player health")]
     public TextMeshProUGUI healthText;
 
-    [Tooltip("Text element to display kill count")]
-    public TextMeshProUGUI killCountText;
-
     [Tooltip("Wave announcement text")]
     public TextMeshProUGUI waveText;
 
@@ -57,18 +54,6 @@ public class UIManager : MonoBehaviour
         if (healthText != null)
         {
             healthText.text = $"HP: {currentHealth}/{maxHealth}";
-        }
-    }
-
-    /// <summary>
-    /// Updates the kill counter display
-    /// </summary>
-    /// <param name="kills">Current kill count</param>
-    public void UpdateKillCount(int kills)
-    {
-        if (killCountText != null)
-        {
-            killCountText.text = $"Kills: {kills}";
         }
     }
 
