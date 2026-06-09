@@ -2,39 +2,40 @@ using UnityEngine;
 
 /// <summary>
 /// Brings the ocean to life: spawns a large, gently scrolling tiled water
-/// surface behind everything, and periodically drops drifting foam whitecaps
+/// surface behind everything, and occasionally rolls a big, soft wave crest
 /// across the visible area. Drop this on a single GameObject in the scene.
-/// Sprites are loaded from Resources: "Water" (seamless tile) and "Foam".
+/// Sprites are loaded from Resources: "Water" (seamless tile) and "Wave".
 /// </summary>
 public class WaterManager : MonoBehaviour
 {
     [Header("Water Surface")]
     public Color waterTint = Color.white;
-    public Vector2 scrollSpeed = new Vector2(0.18f, 0.12f);
+    public Vector2 scrollSpeed = new Vector2(0.10f, 0.06f);
     public int waterSortingOrder = -100;
 
-    [Header("Foam")]
-    [Tooltip("Average seconds between foam spawns")]
-    public float foamInterval = 0.65f;
-    public int foamSortingOrder = -50;
-    public float foamMinSize = 0.35f;
-    public float foamMaxSize = 0.8f;
+    [Header("Waves")]
+    [Tooltip("Average seconds between wave crests")]
+    public float waveInterval = 1.8f;
+    public int waveSortingOrder = -50;
+    [Tooltip("Target wave crest width in world units")]
+    public float waveMinSize = 2.5f;
+    public float waveMaxSize = 4.5f;
 
-    private Sprite waterSprite, foamSprite;
+    private Sprite waterSprite, waveSprite;
     private Camera cam;
-    private float foamTimer;
-    private Transform foamParent;
+    private float waveTimer;
+    private Transform waveParent;
 
     void Start()
     {
         cam = Camera.main;
         waterSprite = Resources.Load<Sprite>("Water");
-        foamSprite = Resources.Load<Sprite>("Foam");
+        waveSprite = Resources.Load<Sprite>("Wave");
 
         CreateWaterSurface();
 
-        if (foamSprite != null)
-            foamParent = new GameObject("FoamContainer").transform;
+        if (waveSprite != null)
+            waveParent = new GameObject("WaveContainer").transform;
     }
 
     void CreateWaterSurface()
@@ -66,41 +67,42 @@ public class WaterManager : MonoBehaviour
 
     void Update()
     {
-        if (foamSprite == null || cam == null) return;
+        if (waveSprite == null || cam == null) return;
 
-        foamTimer -= Time.deltaTime;
-        if (foamTimer <= 0f)
+        waveTimer -= Time.deltaTime;
+        if (waveTimer <= 0f)
         {
-            SpawnFoam();
-            foamTimer = foamInterval * Random.Range(0.6f, 1.4f);
+            SpawnWave();
+            waveTimer = waveInterval * Random.Range(0.6f, 1.4f);
         }
     }
 
-    void SpawnFoam()
+    void SpawnWave()
     {
         float viewH = cam.orthographicSize * 2f;
         float viewW = viewH * cam.aspect;
         Vector3 c = cam.transform.position;
         Vector3 pos = new Vector3(
-            c.x + Random.Range(-viewW * 0.55f, viewW * 0.55f),
-            c.y + Random.Range(-viewH * 0.55f, viewH * 0.55f),
+            c.x + Random.Range(-viewW * 0.5f, viewW * 0.5f),
+            c.y + Random.Range(-viewH * 0.5f, viewH * 0.5f),
             0f);
 
-        GameObject go = new GameObject("Foam");
+        GameObject go = new GameObject("Wave");
         go.transform.position = pos;
-        go.transform.rotation = Quaternion.Euler(0f, 0f, Random.Range(0f, 360f));
-        if (foamParent != null) go.transform.SetParent(foamParent);
+        // Near-horizontal crest with a little tilt; it rolls (drifts) slowly.
+        go.transform.rotation = Quaternion.Euler(0f, 0f, Random.Range(-12f, 12f));
+        if (waveParent != null) go.transform.SetParent(waveParent);
 
         SpriteRenderer sr = go.AddComponent<SpriteRenderer>();
-        sr.sprite = foamSprite;
+        sr.sprite = waveSprite;
         sr.color = new Color(1f, 1f, 1f, 0f);
-        sr.sortingOrder = foamSortingOrder;
+        sr.sortingOrder = waveSortingOrder;
 
-        Foam f = go.AddComponent<Foam>();
-        float h = Mathf.Max(0.01f, foamSprite.bounds.size.y);
-        f.baseScale = Random.Range(foamMinSize, foamMaxSize) / h;
-        go.transform.localScale = Vector3.one * f.baseScale; // set now; Awake ran before baseScale was assigned
-        // Drift roughly with the current, with a little variation.
-        f.drift = scrollSpeed + new Vector2(Random.Range(-0.05f, 0.05f), Random.Range(-0.05f, 0.05f));
+        Wave w = go.AddComponent<Wave>();
+        float spriteW = Mathf.Max(0.01f, waveSprite.bounds.size.x);
+        float scale = Random.Range(waveMinSize, waveMaxSize) / spriteW;
+        go.transform.localScale = Vector3.one * scale;
+        // Roll slowly, mostly downward, with a little sideways drift.
+        w.drift = new Vector2(Random.Range(-0.04f, 0.04f), Random.Range(-0.08f, -0.03f));
     }
 }
