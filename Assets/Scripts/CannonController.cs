@@ -72,6 +72,30 @@ public class CannonController : MonoBehaviour
         {
             Debug.LogError("Projectile prefab missing Projectile script!");
         }
+
+        SpawnMuzzleFlash();
+    }
+
+    private static Sprite muzzleSprite;
+    private static bool muzzleLoaded;
+
+    /// <summary>Brief fire burst at the barrel when the cannon shoots.</summary>
+    void SpawnMuzzleFlash()
+    {
+        if (!muzzleLoaded) { muzzleSprite = Resources.Load<Sprite>("Flame"); muzzleLoaded = true; }
+        if (muzzleSprite == null) return;
+
+        Vector2 dir = fireDirection.sqrMagnitude > 0.0001f ? fireDirection.normalized : Vector2.right;
+        GameObject go = new GameObject("MuzzleFlash");
+        go.transform.position = transform.position + (Vector3)(dir * 0.15f);
+        float ang = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg - 90f; // flame sprite points up by default
+        go.transform.rotation = Quaternion.Euler(0f, 0f, ang);
+
+        SpriteRenderer fsr = go.AddComponent<SpriteRenderer>();
+        fsr.sprite = muzzleSprite;
+        fsr.color = new Color(1f, 0.95f, 0.7f); // bright muzzle tint
+        fsr.sortingOrder = 7;
+        go.AddComponent<MuzzleFlash>();
     }
 
     /// <summary>
