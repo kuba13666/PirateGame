@@ -127,15 +127,15 @@ public class EnemySpawner : MonoBehaviour
         GameObject enemy = Instantiate(prefabToSpawn, spawnPosition, Quaternion.identity);
         
         // Scale to a consistent world size based on the sprite
-        ScaleMonster(enemy);
+        ScaleToHeight(enemy, GameConstants.ENEMY_TARGET_HEIGHT);
     }
 
-    /// <summary>Scale a monster enemy uniformly to a consistent world height based on its sprite.</summary>
-    void ScaleMonster(GameObject enemy)
+    /// <summary>Scale an enemy uniformly to a consistent world height based on its sprite.</summary>
+    void ScaleToHeight(GameObject enemy, float targetHeight)
     {
         SpriteRenderer sr = enemy.GetComponent<SpriteRenderer>();
         float h = (sr != null && sr.sprite != null) ? sr.sprite.bounds.size.y : 1f;
-        float s = GameConstants.ENEMY_TARGET_HEIGHT / Mathf.Max(0.01f, h);
+        float s = targetHeight / Mathf.Max(0.01f, h);
         enemy.transform.localScale = new Vector3(s, s, 1f);
     }
 
@@ -151,14 +151,11 @@ public class EnemySpawner : MonoBehaviour
         // Ships use player-like scale, monsters use tiny scale
         if (enemy.GetComponent<EnemyShipController>() != null)
         {
-            enemy.transform.localScale = new Vector3(
-                GameConstants.ENEMY_SHIP_SPAWNED_SCALE_X,
-                GameConstants.ENEMY_SHIP_SPAWNED_SCALE_Y,
-                GameConstants.ENEMY_SHIP_SPAWNED_SCALE_Z);
+            ScaleToHeight(enemy, GameConstants.ENEMY_SHIP_TARGET_HEIGHT);
         }
         else
         {
-            ScaleMonster(enemy);
+            ScaleToHeight(enemy, GameConstants.ENEMY_TARGET_HEIGHT);
         }
         return enemy;
     }
