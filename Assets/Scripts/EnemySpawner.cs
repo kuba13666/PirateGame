@@ -126,8 +126,17 @@ public class EnemySpawner : MonoBehaviour
         // Create the enemy
         GameObject enemy = Instantiate(prefabToSpawn, spawnPosition, Quaternion.identity);
         
-        // Set enemy scale
-        enemy.transform.localScale = new Vector3(GameConstants.ENEMY_SPAWNED_SCALE_X, GameConstants.ENEMY_SPAWNED_SCALE_Y, GameConstants.ENEMY_SPAWNED_SCALE_Z);
+        // Scale to a consistent world size based on the sprite
+        ScaleMonster(enemy);
+    }
+
+    /// <summary>Scale a monster enemy uniformly to a consistent world height based on its sprite.</summary>
+    void ScaleMonster(GameObject enemy)
+    {
+        SpriteRenderer sr = enemy.GetComponent<SpriteRenderer>();
+        float h = (sr != null && sr.sprite != null) ? sr.sprite.bounds.size.y : 1f;
+        float s = GameConstants.ENEMY_TARGET_HEIGHT / Mathf.Max(0.01f, h);
+        enemy.transform.localScale = new Vector3(s, s, 1f);
     }
 
     /// <summary>
@@ -149,10 +158,7 @@ public class EnemySpawner : MonoBehaviour
         }
         else
         {
-            enemy.transform.localScale = new Vector3(
-                GameConstants.ENEMY_SPAWNED_SCALE_X,
-                GameConstants.ENEMY_SPAWNED_SCALE_Y,
-                GameConstants.ENEMY_SPAWNED_SCALE_Z);
+            ScaleMonster(enemy);
         }
         return enemy;
     }

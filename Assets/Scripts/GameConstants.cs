@@ -46,6 +46,7 @@ public static class GameConstants
     public const float ENEMY_SPAWNED_SCALE_X = 0.014f;  // 0.007 * 2
     public const float ENEMY_SPAWNED_SCALE_Y = 0.018f;  // 0.009 * 2
     public const float ENEMY_SPAWNED_SCALE_Z = 0.16f;   // 0.08 * 2
+    public const float ENEMY_TARGET_HEIGHT = 0.5f;      // world-units tall for monster enemies (new sprites)
     
     // Enemy Spawner Settings
     public const float SPAWN_INTERVAL = 2f;
