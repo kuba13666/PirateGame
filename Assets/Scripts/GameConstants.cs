@@ -54,19 +54,19 @@ public static class GameConstants
     public const float MIN_SPAWN_INTERVAL = 0.5f;
     public const float LOOT_DROP_CHANCE = 0.2f;
     
-    // Loot Settings
-    public const float LOOT_GOLD_SCALE_X = 0.016f;   // 0.008 * 2
-    public const float LOOT_GOLD_SCALE_Y = 0.016f;   // 0.008 * 2
-    public const float LOOT_GOLD_SCALE_Z = 0.12f;    // 0.06 * 2
-    public const float LOOT_WOOD_SCALE_X = 0.01f;    // 0.005 * 2
-    public const float LOOT_WOOD_SCALE_Y = 0.01f;    // 0.005 * 2
-    public const float LOOT_WOOD_SCALE_Z = 0.12f;    // 0.06 * 2
-    public const float LOOT_CANVAS_SCALE_X = 0.006f; // 0.003 * 2
-    public const float LOOT_CANVAS_SCALE_Y = 0.006f; // 0.003 * 2
-    public const float LOOT_CANVAS_SCALE_Z = 0.12f;  // 0.06 * 2
-    public const float LOOT_METAL_SCALE_X = 0.01f;   // 0.005 * 2
-    public const float LOOT_METAL_SCALE_Y = 0.01f;   // 0.005 * 2
-    public const float LOOT_METAL_SCALE_Z = 0.12f;   // 0.06 * 2
+    // Loot Settings (loot sprites are 20.48 world units at scale 1, so 0.03 ~= 0.6 wu)
+    public const float LOOT_GOLD_SCALE_X = 0.03f;
+    public const float LOOT_GOLD_SCALE_Y = 0.03f;
+    public const float LOOT_GOLD_SCALE_Z = 0.12f;
+    public const float LOOT_WOOD_SCALE_X = 0.025f;
+    public const float LOOT_WOOD_SCALE_Y = 0.025f;
+    public const float LOOT_WOOD_SCALE_Z = 0.12f;
+    public const float LOOT_CANVAS_SCALE_X = 0.025f;
+    public const float LOOT_CANVAS_SCALE_Y = 0.025f;
+    public const float LOOT_CANVAS_SCALE_Z = 0.12f;
+    public const float LOOT_METAL_SCALE_X = 0.025f;
+    public const float LOOT_METAL_SCALE_Y = 0.025f;
+    public const float LOOT_METAL_SCALE_Z = 0.12f;
     public const float LOOT_LIFETIME = 10f;
     
     // Enemy Ship Settings

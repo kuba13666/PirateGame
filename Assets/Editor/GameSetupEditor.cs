@@ -912,7 +912,7 @@ public class GameSetupEditor : EditorWindow
         // Base port — home harbor with shop (near center-ish, player starts at 0,0)
         CreatePortLocation("base_port", "Safe Harbor",
             new Vector2(5f, 5f), true, true,
-            "Assets/Resources/Port_1.png");
+            "Assets/Resources/Island_Home.png");
 
         // Trader's Cove — second port with shop (north-west)
         CreatePortLocation("traders_cove", "Trader's Cove",
@@ -955,6 +955,7 @@ public class GameSetupEditor : EditorWindow
         {
             sr.sprite = sprite;
             sr.color = Color.white;
+            portScale = 4.2f / sprite.bounds.size.x; // island ~4.2 world units wide
         }
         else
         {
