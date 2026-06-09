@@ -130,13 +130,21 @@ public class EnemySpawner : MonoBehaviour
         ScaleToHeight(enemy, GameConstants.ENEMY_TARGET_HEIGHT);
     }
 
-    /// <summary>Scale an enemy uniformly to a consistent world height based on its sprite.</summary>
+    /// <summary>Scale an enemy uniformly to a consistent world height and fit its collider to the sprite.</summary>
     void ScaleToHeight(GameObject enemy, float targetHeight)
     {
         SpriteRenderer sr = enemy.GetComponent<SpriteRenderer>();
         float h = (sr != null && sr.sprite != null) ? sr.sprite.bounds.size.y : 1f;
         float s = targetHeight / Mathf.Max(0.01f, h);
         enemy.transform.localScale = new Vector3(s, s, 1f);
+
+        // Fit the collider to the new sprite (old colliders were sized for the old oversized sprites)
+        BoxCollider2D col = enemy.GetComponent<BoxCollider2D>();
+        if (col != null && sr != null && sr.sprite != null)
+        {
+            col.size = sr.sprite.bounds.size;
+            col.offset = sr.sprite.bounds.center;
+        }
     }
 
     /// <summary>
