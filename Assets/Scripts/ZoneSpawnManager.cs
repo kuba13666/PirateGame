@@ -50,48 +50,48 @@ public class ZoneSpawnManager : MonoBehaviour
         zones.Add(new Zone
         {
             name = "Home Waters",
-            interval = 1.2f,
-            maxNearby = 10,
+            interval = 0.6f,
+            maxNearby = 24,
             mix = new[] { 1f, 0f, 0f, 0f }, // crabs only
             contains = pos => Vector2.Distance(pos, home) < 45f
         });
         zones.Add(new Zone
         {
             name = "The Deep",
-            interval = 0.35f,
-            maxNearby = 32,
+            interval = 0.15f,
+            maxNearby = 80,
             mix = new[] { 0.2f, 0.3f, 0.3f, 0.2f }, // everything, dense
             contains = pos => pos.y > 75f
         });
         zones.Add(new Zone
         {
             name = "Navy Waters",
-            interval = 0.6f,
-            maxNearby = 20,
+            interval = 0.25f,
+            maxNearby = 50,
             mix = new[] { 0.15f, 0.2f, 0.15f, 0.5f }, // ship-heavy
             contains = pos => pos.x > 25f && pos.y < -25f
         });
         zones.Add(new Zone
         {
             name = "The Hunting Grounds",
-            interval = 0.5f,
-            maxNearby = 22,
+            interval = 0.2f,
+            maxNearby = 55,
             mix = new[] { 0.15f, 0.4f, 0.35f, 0.1f }, // harpies & mermaids
             contains = pos => pos.x > 45f
         });
         zones.Add(new Zone
         {
             name = "The Trade Route",
-            interval = 0.6f,
-            maxNearby = 18,
+            interval = 0.25f,
+            maxNearby = 45,
             mix = new[] { 0.55f, 0.45f, 0f, 0f }, // crabs & harpies, light
             contains = pos => pos.x < -20f && pos.y > 10f
         });
         zones.Add(new Zone
         {
             name = "Open Waters",
-            interval = 0.6f,
-            maxNearby = 18,
+            interval = 0.25f,
+            maxNearby = 45,
             mix = new[] { 0.4f, 0.35f, 0.2f, 0.05f },
             contains = pos => true // fallback
         });
@@ -156,8 +156,18 @@ public class ZoneSpawnManager : MonoBehaviour
 
     void TrySpawn()
     {
-        if (CountNearbyEnemies() >= currentZone.maxNearby) return;
+        int nearby = CountNearbyEnemies();
+        int deficit = currentZone.maxNearby - nearby;
+        if (deficit <= 0) return;
 
+        // Burst when well below the cap so big zones fill fast
+        int burst = deficit > currentZone.maxNearby / 2 ? 3 : 1;
+        for (int i = 0; i < burst; i++)
+            SpawnOne();
+    }
+
+    void SpawnOne()
+    {
         GameObject prefab = PickWeighted(currentZone.mix);
         if (prefab == null) return;
 
