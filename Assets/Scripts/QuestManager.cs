@@ -101,31 +101,39 @@ public class QuestManager : MonoBehaviour
             {
                 new DialogueLine("Harbormaster", "By the gods... Davy Jones himself, in my port."),
                 new DialogueLine("Harbormaster", "I've heard the legends. You're trapped in this cursed loop, aren't you?"),
-                new DialogueLine("Harbormaster", "Our gunsmith was taken by the sea beasts. Free him — he can arm your ship properly."),
-                new DialogueLine("Harbormaster", "Maybe with a real crew, you can reach The Maelstrom and end this.")
+                new DialogueLine("Harbormaster", "Then hear this: two terrors haunt these waters. A green ghost-light in the northern fog that lures ships to their doom..."),
+                new DialogueLine("Harbormaster", "...and a white island that appears on no chart and moves between sightings. They say a man still lives inside it."),
+                new DialogueLine("Harbormaster", "Only with legends at your side will you survive The Maelstrom. But first — our gunsmith. The beasts wrecked his ship east of here. Free him, and he'll arm you properly.")
             }
         };
 
-        // Q2 — Rescue the Gunsmith: defeat enemies
+        // Q2 — Rescue the Gunsmith: find his wreck in the Hunting Grounds, clear the beasts
         var q2 = new Quest
         {
             id = "rescue_gunsmith",
             title = "Rescue the Gunsmith",
-            description = "The gunsmith is held captive by sea creatures. Defeat them to free him.",
+            description = "The gunsmith's ship was wrecked in the Hunting Grounds, east of Safe Harbor. Find the wreck and drive off the beasts.",
             questType = Quest.QuestType.Main,
             prerequisiteQuestId = "set_sail",
             objectives = new List<QuestObjective>
             {
                 new QuestObjective
                 {
+                    type = QuestObjective.ObjectiveType.TravelTo,
+                    description = "Find the Gunsmith's wreck (east)",
+                    targetLocationId = "gunsmith_wreck",
+                    requiredCount = 1
+                },
+                new QuestObjective
+                {
                     type = QuestObjective.ObjectiveType.DefeatEnemies,
-                    description = "Defeat sea creatures (0/10)",
+                    description = "Clear the beasts around the wreck (0/10)",
                     requiredCount = 10
                 }
             },
             startDialogue = new List<DialogueLine>
             {
-                new DialogueLine("Harbormaster", "The creatures dragged the gunsmith east. He's still alive — I can feel it."),
+                new DialogueLine("Harbormaster", "His ship ran aground east of here, in the Hunting Grounds. He's still alive — I can feel it."),
                 new DialogueLine("Harbormaster", "You can die trying. Literally. But you'll be back, won't you?")
             },
             completeDialogue = new List<DialogueLine>
@@ -133,16 +141,17 @@ public class QuestManager : MonoBehaviour
                 new DialogueLine("Gunsmith", "I thought I was done for! You're... wait. Davy Jones?"),
                 new DialogueLine("Gunsmith", "The cursed captain himself saved me? I must be dreaming."),
                 new DialogueLine("Gunsmith", "Dream or not — my cannons are yours. I'll upgrade your weapons."),
-                new DialogueLine("Gunsmith", "My apprentice, the Gunner, headed to the Naval Outpost. He'd be useful to you.")
+                new DialogueLine("Gunsmith", "One thing, Jones... my old friend Israel Hands vanished hunting that white island. The finest gunner who ever lived, swallowed by the sea."),
+                new DialogueLine("Gunsmith", "And if you mean to enter The Maelstrom, find yourself a pilot first. No mortal hand can hold a wheel through that storm.")
             }
         };
 
-        // Q3 — The Pilot: recruit helmsman → speed boost
+        // Q3 — The Ghost Light: the Flying Dutchman miniboss → the legendary PILOT
         var q3 = new Quest
         {
-            id = "the_pilot",
-            title = "The Pilot",
-            description = "Find a skilled helmsman at the Naval Outpost to navigate the cursed waters.",
+            id = "ghost_light",
+            title = "The Ghost Light",
+            description = "A green light haunts the fog north-west, luring ships to their doom. Investigate Dutchman's Drift.",
             questType = Quest.QuestType.Main,
             prerequisiteQuestId = "rescue_gunsmith",
             objectives = new List<QuestObjective>
@@ -150,52 +159,71 @@ public class QuestManager : MonoBehaviour
                 new QuestObjective
                 {
                     type = QuestObjective.ObjectiveType.TravelTo,
-                    description = "Sail to the Naval Outpost",
-                    targetLocationId = "naval_outpost",
+                    description = "Sail into Dutchman's Drift (north-west)",
+                    targetLocationId = "dutchmans_drift",
+                    requiredCount = 1
+                },
+                new QuestObjective
+                {
+                    type = QuestObjective.ObjectiveType.DefeatBoss,
+                    description = "Defeat the Flying Dutchman",
+                    targetBossId = "flying_dutchman",
+                    targetLocationId = "dutchmans_drift",
                     requiredCount = 1
                 }
             },
             startDialogue = new List<DialogueLine>
             {
-                new DialogueLine("Gunsmith", "There's a helmsman at the Naval Outpost — fastest sailor I've ever seen."),
-                new DialogueLine("Gunsmith", "If anyone can navigate through The Maelstrom, it's him.")
+                new DialogueLine("Harbormaster", "The ghost-light took another ship last night. Whatever burns green out there, it's no lighthouse."),
+                new DialogueLine("Voice of the Deep", "A cursed soul, like you. Van der Decken swore to sail until doomsday — and the sea holds him to it."),
+                new DialogueLine("Voice of the Deep", "The Dutchman cannot stop, Jones. Make him.")
             },
             completeDialogue = new List<DialogueLine>
             {
-                new DialogueLine("Helmsman", "Davy Jones? I thought you were a myth."),
-                new DialogueLine("Helmsman", "A cursed captain trying to break free? That's the most exciting thing I've heard in years."),
-                new DialogueLine("Helmsman", "I'm your pilot now. You'll feel the ship respond better already.")
+                new DialogueLine("Van der Decken", "Three hundred years... and the sea finally lets me drop anchor. You did this, Jones?"),
+                new DialogueLine("Van der Decken", "Then my wheel is yours. If breaking YOUR curse breaks mine, I'll steer you through hell itself."),
+                new DialogueLine("Van der Decken", "And captain — the Maelstrom IS hell. No hand but mine can hold a wheel through it.")
             }
         };
 
-        // Q4 — The Gunner: defeat enemies → fire rate boost
+        // Q4 — The White Island: Mocha Dick miniboss → the legendary GUNNER (Israel Hands)
         var q4 = new Quest
         {
-            id = "the_gunner",
-            title = "The Gunner",
-            description = "The gunsmith's apprentice is stranded in dangerous waters. Clear the beasts.",
+            id = "white_island_hunt",
+            title = "The White Island",
+            description = "An island that appears on no chart drifts near the Forgotten Isle. Israel Hands vanished hunting it.",
             questType = Quest.QuestType.Main,
-            prerequisiteQuestId = "the_pilot",
+            prerequisiteQuestId = "ghost_light",
             objectives = new List<QuestObjective>
             {
                 new QuestObjective
                 {
-                    type = QuestObjective.ObjectiveType.DefeatEnemies,
-                    description = "Clear the waters (0/15)",
-                    requiredCount = 15
+                    type = QuestObjective.ObjectiveType.TravelTo,
+                    description = "Find the White Island (south-east)",
+                    targetLocationId = "white_island",
+                    requiredCount = 1
+                },
+                new QuestObjective
+                {
+                    type = QuestObjective.ObjectiveType.DefeatBoss,
+                    description = "Slay Mocha Dick, the cursed white whale",
+                    targetBossId = "mocha_dick",
+                    targetLocationId = "white_island",
+                    requiredCount = 1
                 }
             },
             startDialogue = new List<DialogueLine>
             {
-                new DialogueLine("Helmsman", "Captain, something's wrong in the waters nearby. Screams."),
-                new DialogueLine("Helmsman", "Could be the Gunner the smithy mentioned. Let's clear them out!")
+                new DialogueLine("Gunsmith", "Hands swore he'd kill the white whale or die trying. Knowing that stubborn old gunner, he managed neither."),
+                new DialogueLine("Voice of the Deep", "The island that moves. Land upon it, and it will take you where the lost ones go."),
+                new DialogueLine("Voice of the Deep", "Perhaps, Jones... that is the way in.")
             },
             completeDialogue = new List<DialogueLine>
             {
-                new DialogueLine("Gunner", "You saved me! The sea beasts had me cornered."),
-                new DialogueLine("Gunner", "Wait — Davy Jones? THE Davy Jones?"),
-                new DialogueLine("Gunner", "I don't care if you're cursed. You saved my life. My cannons are yours, captain."),
-                new DialogueLine("Gunner", "I'll make sure we fire faster and hit harder.")
+                new DialogueLine("???", "*the dying whale convulses — and disgorges a man, furious and dripping*"),
+                new DialogueLine("Israel Hands", "TWELVE YEARS! Twelve years in that stinking gut, and you kill my whale in ten minutes?!"),
+                new DialogueLine("Israel Hands", "...Davy Jones, eh? Blackbeard shot me in the knee for less than what the sea's done to you."),
+                new DialogueLine("Israel Hands", "Fine. My cannons are yours, captain. Let's go kill something bigger.")
             }
         };
 
@@ -204,9 +232,9 @@ public class QuestManager : MonoBehaviour
         {
             id = "break_the_loop",
             title = "Break the Loop",
-            description = "Your crew is assembled. Sail to The Maelstrom and confront your destiny.",
+            description = "Your crew of legends is assembled. Van der Decken can steer through the storm wall. Sail to The Maelstrom.",
             questType = Quest.QuestType.Main,
-            prerequisiteQuestId = "the_gunner",
+            prerequisiteQuestId = "white_island_hunt",
             objectives = new List<QuestObjective>
             {
                 new QuestObjective
@@ -218,17 +246,19 @@ public class QuestManager : MonoBehaviour
                 },
                 new QuestObjective
                 {
-                    type = QuestObjective.ObjectiveType.DefeatEnemies,
-                    description = "Defeat the Kraken (0/1)",
+                    type = QuestObjective.ObjectiveType.DefeatBoss,
+                    description = "Slay the Kraken",
+                    targetBossId = "kraken",
+                    targetLocationId = "boss_arena",
                     requiredCount = 1
                 }
             },
             startDialogue = new List<DialogueLine>
             {
-                new DialogueLine("Voice of the Deep", "You've built a crew. You've died and returned more times than any mortal could."),
+                new DialogueLine("Voice of the Deep", "You've gathered legends. You've died and returned more times than any mortal could."),
                 new DialogueLine("Voice of the Deep", "The Maelstrom awaits. The source of your curse dwells within."),
-                new DialogueLine("Helmsman", "We're with you, captain. To the end."),
-                new DialogueLine("Gunner", "All cannons loaded. Let's break this curse."),
+                new DialogueLine("Van der Decken", "Three hundred years of storms, captain. This one is just louder. I'll hold the wheel."),
+                new DialogueLine("Israel Hands", "All cannons loaded. Let's break this curse."),
                 new DialogueLine("Gunsmith", "Give 'em hell, Jones.")
             },
             completeDialogue = new List<DialogueLine>
@@ -236,8 +266,8 @@ public class QuestManager : MonoBehaviour
                 new DialogueLine("Voice of the Deep", "...It's done."),
                 new DialogueLine("Voice of the Deep", "The loop is broken. The curse lifts."),
                 new DialogueLine("Davy Jones", "I'm... free?"),
-                new DialogueLine("Helmsman", "Captain! Look — the sea is calm!"),
-                new DialogueLine("Gunner", "We did it. We actually did it!"),
+                new DialogueLine("Van der Decken", "Captain! Look — the sea is calm. For both of us."),
+                new DialogueLine("Israel Hands", "We did it. We actually did it!"),
                 new DialogueLine("Voice of the Deep", "The seas will remember Davy Jones. Not as a curse — but as a legend."),
                 new DialogueLine("Voice of the Deep", "Sail on, captain. The ocean is finally yours.")
             }
@@ -290,6 +320,22 @@ public class QuestManager : MonoBehaviour
         {
             obj.AddProgress(1);
             obj.description = $"Defeat enemies ({obj.currentCount}/{obj.requiredCount})";
+            OnObjectiveProgress?.Invoke(activeQuest, obj);
+            CheckQuestCompletion();
+        }
+    }
+
+    /// <summary>
+    /// Called by boss fight logic (BossArenaManager) when a boss dies.
+    /// </summary>
+    public void ReportBossDefeated(string bossId)
+    {
+        if (activeQuest == null) return;
+        var obj = activeQuest.GetCurrentObjective();
+        if (obj == null || obj.isComplete) return;
+        if (obj.type == QuestObjective.ObjectiveType.DefeatBoss && obj.targetBossId == bossId)
+        {
+            obj.AddProgress(1);
             OnObjectiveProgress?.Invoke(activeQuest, obj);
             CheckQuestCompletion();
         }
@@ -429,19 +475,22 @@ public class QuestManager : MonoBehaviour
                 gm.damageMultiplier += 0.5f;
                 Debug.Log("Reward: Cannon upgrade — damage +50%.");
                 break;
-            case "the_pilot":
-                // Speed boost from helmsman
+            case "ghost_light":
+                // Van der Decken takes the helm: speed boost that persists
+                // across re-equips (ShopManager multiplies by speedMultiplier)
+                gm.speedMultiplier = 1.5f;
                 var player = FindFirstObjectByType<PlayerController>();
                 if (player != null)
-                    player.moveSpeed *= 1.5f;
-                Debug.Log("Reward: Helmsman recruited — speed +50%.");
+                    player.moveSpeed *= 1.5f; // apply to the ship being sailed right now
+                Debug.Log("Reward: Van der Decken at the helm — speed +50%.");
                 break;
-            case "the_gunner":
-                // Fire rate boost
-                var cannon = FindFirstObjectByType<CannonController>();
-                if (cannon != null)
-                    cannon.fireRate *= 0.7f;
-                Debug.Log("Reward: Gunner recruited — fire rate improved.");
+            case "white_island_hunt":
+                // Israel Hands on the guns: fire rate boost that persists
+                // across cannon rebuilds (ShopManager applies fireRateMultiplier)
+                gm.fireRateMultiplier = 0.7f;
+                foreach (var c in FindObjectsByType<CannonController>(FindObjectsSortMode.None))
+                    c.fireRate *= 0.7f; // apply to currently mounted cannons
+                Debug.Log("Reward: Israel Hands on the guns — fire rate +43%.");
                 break;
             case "break_the_loop":
                 Debug.Log("The curse is broken. Davy Jones is free.");
@@ -462,10 +511,17 @@ public class QuestManager : MonoBehaviour
             case "the_awakening":
                 locMgr.DiscoverLocation("traders_cove");
                 break;
+            case "set_sail":
+                locMgr.DiscoverLocation("gunsmith_wreck");
+                break;
             case "rescue_gunsmith":
                 locMgr.DiscoverLocation("naval_outpost");
+                locMgr.DiscoverLocation("dutchmans_drift");
                 break;
-            case "the_gunner":
+            case "ghost_light":
+                locMgr.DiscoverLocation("white_island");
+                break;
+            case "white_island_hunt":
                 locMgr.DiscoverLocation("boss_arena");
                 break;
         }

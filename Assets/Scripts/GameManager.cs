@@ -38,6 +38,12 @@ public class GameManager : MonoBehaviour
     [Tooltip("Loot gold multiplier from upgrades")]
     public float lootMultiplier = 1f;
 
+    [Tooltip("Ship speed multiplier (Van der Decken, the legendary Pilot)")]
+    public float speedMultiplier = 1f;
+
+    [Tooltip("Cannon fire-interval multiplier, lower = faster (Israel Hands, the legendary Gunner)")]
+    public float fireRateMultiplier = 1f;
+
     // Reference to UI manager
     public UIManager uiManager;
 

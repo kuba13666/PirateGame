@@ -53,12 +53,14 @@ public class QuestObjective
         DefeatEnemies,  // kill N enemies
         TalkTo,         // arrive at location + auto-dialogue
         Survive,        // survive N seconds
-        CollectItems    // gather N of a resource
+        CollectItems,   // gather N of a resource
+        DefeatBoss      // defeat a specific boss (matched by targetBossId)
     }
 
     public ObjectiveType type;
     public string description;          // shown in tracker UI
-    public string targetLocationId;     // for TravelTo / TalkTo
+    public string targetLocationId;     // for TravelTo / TalkTo (also set on DefeatBoss for the map marker)
+    public string targetBossId;         // for DefeatBoss (e.g. "flying_dutchman")
     public int requiredCount;           // for DefeatEnemies / CollectItems / Survive (seconds)
     public int currentCount;
     public bool isComplete;

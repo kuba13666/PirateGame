@@ -75,16 +75,36 @@ public class CompassUI : MonoBehaviour
         if (playerDot != null) playerDot.SetAsLastSibling();
     }
 
+    private string questTargetId;
+
     void LateUpdate()
     {
         if (playerTransform == null || LocationManager.Instance == null) return;
 
         Vector2 playerPos = playerTransform.position;
-        List<Location> discovered = LocationManager.Instance.GetDiscovered();
+        List<Location> shown = LocationManager.Instance.GetDiscovered();
+
+        // The active quest objective's target always shows (gold), even if
+        // the location hasn't been discovered yet — the player needs a heading.
+        questTargetId = GetQuestTargetId();
+        if (!string.IsNullOrEmpty(questTargetId))
+        {
+            Location target = LocationManager.Instance.Get(questTargetId);
+            if (target != null && !shown.Contains(target))
+                shown.Add(target);
+        }
 
         UpdatePlayerDot(playerPos);
-        UpdateLocationDots(discovered, playerPos);
-        UpdateEdgeArrows(discovered, playerPos);
+        UpdateLocationDots(shown, playerPos);
+        UpdateEdgeArrows(shown, playerPos);
+    }
+
+    static string GetQuestTargetId()
+    {
+        if (QuestManager.Instance == null) return null;
+        Quest q = QuestManager.Instance.GetActiveQuest();
+        var obj = q != null ? q.GetCurrentObjective() : null;
+        return obj != null ? obj.targetLocationId : null;
     }
 
     // ─── MINIMAP ────────────────────────────────
@@ -108,9 +128,9 @@ public class CompassUI : MonoBehaviour
                 locationDots[i].gameObject.SetActive(true);
                 locationDots[i].anchoredPosition = WorldToMinimap(locations[i].worldPosition);
 
-                // Color by type
+                // Color by type; the active quest target glows gold
                 Image img = locationDots[i].GetComponent<Image>();
-                if (img != null) img.color = GetLocationColor(locations[i]);
+                if (img != null) img.color = ColorFor(locations[i]);
 
                 // Label
                 if (i < dotLabels.Count)
@@ -210,9 +230,9 @@ public class CompassUI : MonoBehaviour
             float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
             edgeArrows[i].rotation = Quaternion.Euler(0, 0, angle);
 
-            // Color
+            // Color; the active quest target glows gold
             Image img = edgeArrows[i].GetComponent<Image>();
-            if (img != null) img.color = GetLocationColor(locations[i]);
+            if (img != null) img.color = ColorFor(locations[i]);
         }
     }
 
@@ -265,6 +285,13 @@ public class CompassUI : MonoBehaviour
     }
 
     // ─── HELPERS ────────────────────────────────
+
+    Color ColorFor(Location loc)
+    {
+        if (!string.IsNullOrEmpty(questTargetId) && loc.locationId == questTargetId)
+            return new Color(1f, 0.82f, 0.15f); // quest gold
+        return GetLocationColor(loc);
+    }
 
     static Color GetLocationColor(Location loc)
     {

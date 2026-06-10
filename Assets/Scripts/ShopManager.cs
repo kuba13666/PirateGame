@@ -351,9 +351,10 @@ public class ShopManager : MonoBehaviour
             if (col != null) col.size = hull.bounds.size;
         }
 
-        // Stats
+        // Stats (crew buffs persist across re-equips via GameManager multipliers)
+        float speedMult = GameManager.Instance != null ? GameManager.Instance.speedMultiplier : 1f;
         player.maxHealth = stats.maxHealth;
-        player.moveSpeed = stats.moveSpeed;
+        player.moveSpeed = stats.moveSpeed * speedMult;
         player.Heal(stats.maxHealth);
 
         RebuildCannons(player, stats.cannonPairs + extraCannonPairs);
@@ -417,7 +418,9 @@ public class ShopManager : MonoBehaviour
         CannonController cc = go.AddComponent<CannonController>();
         cc.projectilePrefab = cannonProjectilePrefab;
         cc.fireDirection = fireDir;
-        cc.fireRate = GameConstants.CANNON_FIRE_RATE;
+        // Israel Hands' fire-rate buff persists across cannon rebuilds
+        float fireMult = GameManager.Instance != null ? GameManager.Instance.fireRateMultiplier : 1f;
+        cc.fireRate = GameConstants.CANNON_FIRE_RATE * fireMult;
         cc.spawnOffset = fireDir * GameConstants.CANNON_PROJECTILE_SPAWN_OFFSET;
     }
 }
