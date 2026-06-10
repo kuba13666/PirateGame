@@ -201,6 +201,25 @@ public class EnemySpawner : MonoBehaviour
     /// Returns a random position along the edges relative to player position
     /// </summary>
     /// <summary>
+    /// Distance from the camera center at which a point in direction `dir`
+    /// is just off-screen (margin units past the visible edge). Spawning at
+    /// this distance means enemies enter view within a second or two instead
+    /// of crawling in from the corner diagonal.
+    /// </summary>
+    public static float OffscreenDistance(Vector2 dir, float margin = 2f)
+    {
+        Camera cam = Camera.main;
+        if (cam == null || dir.sqrMagnitude < 0.0001f)
+            return GameConstants.ENEMY_SPAWN_DISTANCE;
+
+        dir.Normalize();
+        float halfH = cam.orthographicSize + margin;
+        float halfW = cam.orthographicSize * cam.aspect + margin;
+        float k = Mathf.Max(Mathf.Abs(dir.x) / halfW, Mathf.Abs(dir.y) / halfH);
+        return k > 0.0001f ? 1f / k : GameConstants.ENEMY_SPAWN_DISTANCE;
+    }
+
+    /// <summary>
     /// Spawn clamp area: follows the PLAYER's current movement bounds, so
     /// spawning keeps working inside off-map pockets (Awakening, boss arenas)
     /// where the player's clamps are temporarily relocated. Falls back to the

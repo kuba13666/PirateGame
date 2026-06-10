@@ -249,7 +249,7 @@ public class WaveManager : MonoBehaviour
             dir = new Vector2(Mathf.Cos(ang), Mathf.Sin(ang));
         }
 
-        float dist = GameConstants.ENEMY_SPAWN_DISTANCE + Random.Range(0f, 3f);
+        float dist = EnemySpawner.OffscreenDistance(dir) + Random.Range(0f, 2f);
         return center + (Vector3)(dir * dist);
     }
 

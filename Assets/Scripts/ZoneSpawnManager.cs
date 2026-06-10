@@ -49,48 +49,48 @@ public class ZoneSpawnManager : MonoBehaviour
         zones.Add(new Zone
         {
             name = "Home Waters",
-            interval = 4.5f,
-            maxNearby = 4,
+            interval = 1.8f,
+            maxNearby = 8,
             mix = new[] { 1f, 0f, 0f, 0f }, // crabs only
             contains = pos => Vector2.Distance(pos, home) < 45f
         });
         zones.Add(new Zone
         {
             name = "The Deep",
-            interval = 1.2f,
-            maxNearby = 12,
+            interval = 0.5f,
+            maxNearby = 24,
             mix = new[] { 0.2f, 0.3f, 0.3f, 0.2f }, // everything, dense
             contains = pos => pos.y > 75f
         });
         zones.Add(new Zone
         {
             name = "Navy Waters",
-            interval = 2.0f,
-            maxNearby = 8,
+            interval = 0.9f,
+            maxNearby = 14,
             mix = new[] { 0.15f, 0.2f, 0.15f, 0.5f }, // ship-heavy
             contains = pos => pos.x > 25f && pos.y < -25f
         });
         zones.Add(new Zone
         {
             name = "The Hunting Grounds",
-            interval = 1.8f,
-            maxNearby = 9,
+            interval = 0.8f,
+            maxNearby = 16,
             mix = new[] { 0.15f, 0.4f, 0.35f, 0.1f }, // harpies & mermaids
             contains = pos => pos.x > 45f
         });
         zones.Add(new Zone
         {
             name = "The Trade Route",
-            interval = 2.2f,
-            maxNearby = 6,
+            interval = 1.0f,
+            maxNearby = 12,
             mix = new[] { 0.55f, 0.45f, 0f, 0f }, // crabs & harpies, light
             contains = pos => pos.x < -20f && pos.y > 10f
         });
         zones.Add(new Zone
         {
             name = "Open Waters",
-            interval = 2.4f,
-            maxNearby = 7,
+            interval = 1.0f,
+            maxNearby = 13,
             mix = new[] { 0.4f, 0.35f, 0.2f, 0.05f },
             contains = pos => true // fallback
         });
@@ -176,7 +176,7 @@ public class ZoneSpawnManager : MonoBehaviour
             dir = new Vector2(Mathf.Cos(ang), Mathf.Sin(ang));
         }
 
-        float dist = GameConstants.ENEMY_SPAWN_DISTANCE + Random.Range(0f, 3f);
+        float dist = EnemySpawner.OffscreenDistance(dir) + Random.Range(0f, 2f);
         spawner.SpawnEnemyPrefabAt(prefab, player.position + (Vector3)(dir * dist));
     }
 
