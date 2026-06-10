@@ -179,7 +179,7 @@ public class GameManager : MonoBehaviour
             player.maxX = GameConstants.MAP_MAX_X;
             player.minY = GameConstants.MAP_MIN_Y;
             player.maxY = GameConstants.MAP_MAX_Y;
-            player.Respawn(new Vector3(GameConstants.HOME_PORT_X, GameConstants.HOME_PORT_Y, 0f));
+            player.Respawn(new Vector3(GameConstants.HOME_DOCK_X, GameConstants.HOME_DOCK_Y, 0f));
         }
 
         // ── 6. Notify quest system (may show dialogue on the overlay) ──

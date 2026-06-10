@@ -10,9 +10,12 @@ public static class GameConstants
     public const float MAP_MIN_Y = -125f;
     public const float MAP_MAX_Y = 125f;
 
-    // Home port (Safe Harbor) position — player respawns here
+    // Home port (Safe Harbor) island position
     public const float HOME_PORT_X = 12.5f;
     public const float HOME_PORT_Y = 12.5f;
+    // Player respawn point: on the water just south of the island (not on it)
+    public const float HOME_DOCK_X = 12.5f;
+    public const float HOME_DOCK_Y = 8.8f;
     public const float MAP_WIDTH = MAP_MAX_X - MAP_MIN_X;
     public const float MAP_HEIGHT = MAP_MAX_Y - MAP_MIN_Y;
     public const float WALL_THICKNESS = 0.5f;

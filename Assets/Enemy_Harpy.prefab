@@ -181,7 +181,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 565fbcc96b2213142904b86b83c25e58, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyController
-  moveSpeed: 0.8
+  moveSpeed: 1.45
   collisionDamage: 1
   maxHealth: 2
   lootDropChance: 0.2

@@ -72,31 +72,31 @@ public class WaveManager : MonoBehaviour
         GameObject shipPrefab = spawner.enemyShipPrefab;
         Debug.Log($"Building waves. Ship prefab: {(shipPrefab != null ? shipPrefab.name : "NULL")}");
 
-        // Wave 1: 10 crabs + 2 enemy ships (for testing)
+        // Wave 1: 10 crabs + 2 enemy ships
         Wave w1 = new Wave();
-        w1.entries.Add(new WaveEntry { prefab = spawner.crabEnemyPrefab, count = 10, interval = 1f });
-        w1.entries.Add(new WaveEntry { prefab = shipPrefab, count = 2, interval = 2f });
+        w1.entries.Add(new WaveEntry { prefab = spawner.crabEnemyPrefab, count = 10, interval = 0.4f });
+        w1.entries.Add(new WaveEntry { prefab = shipPrefab, count = 2, interval = 1.2f });
         waves.Add(w1);
 
         // Wave 2: 8 crabs + 5 harpies
         Wave w2 = new Wave();
-        w2.entries.Add(new WaveEntry { prefab = spawner.crabEnemyPrefab, count = 8, interval = 0.9f });
-        w2.entries.Add(new WaveEntry { prefab = spawner.harpyEnemyPrefab, count = 5, interval = 0.8f });
+        w2.entries.Add(new WaveEntry { prefab = spawner.crabEnemyPrefab, count = 8, interval = 0.4f });
+        w2.entries.Add(new WaveEntry { prefab = spawner.harpyEnemyPrefab, count = 5, interval = 0.35f });
         waves.Add(w2);
 
         // Wave 3: 10 crabs + 8 harpies + 4 mermaids + 2 ships
         Wave w3 = new Wave();
-        w3.entries.Add(new WaveEntry { prefab = spawner.crabEnemyPrefab, count = 10, interval = 0.7f });
-        w3.entries.Add(new WaveEntry { prefab = spawner.harpyEnemyPrefab, count = 8, interval = 0.6f });
-        w3.entries.Add(new WaveEntry { prefab = spawner.mermaidEnemyPrefab, count = 4, interval = 0.5f });
-        w3.entries.Add(new WaveEntry { prefab = shipPrefab, count = 2, interval = 2f });
+        w3.entries.Add(new WaveEntry { prefab = spawner.crabEnemyPrefab, count = 10, interval = 0.35f });
+        w3.entries.Add(new WaveEntry { prefab = spawner.harpyEnemyPrefab, count = 8, interval = 0.3f });
+        w3.entries.Add(new WaveEntry { prefab = spawner.mermaidEnemyPrefab, count = 4, interval = 0.3f });
+        w3.entries.Add(new WaveEntry { prefab = shipPrefab, count = 2, interval = 1.2f });
         waves.Add(w3);
 
         // Wave 4: tougher mix + 3 ships
         Wave w4 = new Wave();
-        w4.entries.Add(new WaveEntry { prefab = spawner.harpyEnemyPrefab, count = 10, interval = 0.5f });
-        w4.entries.Add(new WaveEntry { prefab = spawner.mermaidEnemyPrefab, count = 8, interval = 0.4f });
-        w4.entries.Add(new WaveEntry { prefab = shipPrefab, count = 3, interval = 1.5f });
+        w4.entries.Add(new WaveEntry { prefab = spawner.harpyEnemyPrefab, count = 10, interval = 0.3f });
+        w4.entries.Add(new WaveEntry { prefab = spawner.mermaidEnemyPrefab, count = 8, interval = 0.25f });
+        w4.entries.Add(new WaveEntry { prefab = shipPrefab, count = 3, interval = 1f });
         waves.Add(w4);
     }
 

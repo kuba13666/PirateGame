@@ -181,7 +181,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2afa811bef1af8a42be78f18e7194bde, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyShipController
-  moveSpeed: 1.2
+  moveSpeed: 1.5
   circleRadius: 4
   maxHealth: 5
   collisionDamage: 2
