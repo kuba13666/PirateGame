@@ -6675,7 +6675,7 @@ MonoBehaviour:
   spawnInterval: 2
   minSpawnInterval: 0.5
   spawnIntervalDecreaseRate: 0.01
-  spawnDistance: 8
+  spawnDistance: 17
   redEnemyChance: 60
   blueEnemyChance: 30
   greenEnemyChance: 10

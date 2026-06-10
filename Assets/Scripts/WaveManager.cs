@@ -170,10 +170,10 @@ public class WaveManager : MonoBehaviour
     // The Awakening happens in pure open ocean (SE quadrant), far from any
     // port, island or the map edge — overwhelmed with nowhere to run.
     static readonly Vector3 AWAKENING_POSITION = new Vector3(90f, -90f, 0f);
-    const float AWAKENING_SPEED_MULT = 2.6f;  // monsters OUTPACE the player — running only delays
-    const float AWAKENING_SHIP_MULT = 1.7f;
     const int AWAKENING_MAX_ALIVE = 120;      // FPS guard
-    const float AWAKENING_CULL_DIST = 30f;    // outrun stragglers get recycled into fresh spawns
+    // Recycle range sits just beyond the off-screen spawn ring (17), so the
+    // moment the player outruns part of the swarm it respawns ahead of them.
+    const float AWAKENING_CULL_DIST = 24f;
 
     /// <summary>
     /// The Awakening: an overwhelming, unrelenting flood of enemies in open
@@ -253,22 +253,31 @@ public class WaveManager : MonoBehaviour
             if (Vector3.Distance(enemy.transform.position, p) > AWAKENING_CULL_DIST)
             {
                 Destroy(enemy);
-                if (++culled >= 6) break;
+                if (++culled >= 10) break;
             }
         }
     }
 
-    /// <summary>Spawn an awakening enemy, fast enough that running is hopeless.</summary>
+    /// <summary>
+    /// Spawn an awakening enemy faster than the player's ACTUAL ship (works
+    /// for any equipped hull) so running is hopeless. Varied per-enemy speed
+    /// keeps the swarm loose instead of one synchronized blob.
+    /// </summary>
     void SpawnAwakening(GameObject prefab)
     {
         if (spawner == null || prefab == null) return;
         GameObject enemy = spawner.SpawnEnemyPrefab(prefab);
         if (enemy == null) return;
 
+        float playerSpeed = GameConstants.PLAYER_MOVE_SPEED;
+        var pcGo = GameObject.FindGameObjectWithTag("Player");
+        var pc = pcGo != null ? pcGo.GetComponent<PlayerController>() : null;
+        if (pc != null) playerSpeed = pc.moveSpeed;
+
         var ec = enemy.GetComponent<EnemyController>();
-        if (ec != null) ec.moveSpeed *= AWAKENING_SPEED_MULT;
+        if (ec != null) ec.moveSpeed = playerSpeed * Random.Range(1.05f, 1.25f);
         var ship = enemy.GetComponent<EnemyShipController>();
-        if (ship != null) ship.moveSpeed *= AWAKENING_SHIP_MULT;
+        if (ship != null) ship.moveSpeed = playerSpeed * Random.Range(0.85f, 1.0f); // they shoot, slight chase is enough
     }
 
     bool AnyEnemiesAlive()

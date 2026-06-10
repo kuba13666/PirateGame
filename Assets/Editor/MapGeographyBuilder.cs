@@ -285,11 +285,15 @@ public static class MapGeographyBuilder
         float scale = d.size / Mathf.Max(0.01f, sprite.bounds.size.x);
         go.transform.localScale = new Vector3(scale, scale, 1f);
 
-        // Solid collider. Islets get forgiving beaches (70%); rocks are small
-        // and hard, so they need near-full colliders or the ship visually
-        // plows through them before its hull-circle ever touches the box.
+        // Trigger collider: the PLAYER is blocked in code (PlayerController
+        // overlap-checks the Terrain layer, and overlap queries hit triggers),
+        // but nothing physical collides — sea monsters swim over islands
+        // instead of piling up against them like a shield wall.
+        // Islets get forgiving beaches (70%); rocks are small and hard, so
+        // they need near-full colliders or the ship visually plows through.
         float colFactor = d.sprite.StartsWith("Rock") ? 0.95f : 0.7f;
         var col = go.AddComponent<BoxCollider2D>();
+        col.isTrigger = true;
         col.size = sprite.bounds.size * colFactor;
         col.offset = sprite.bounds.center;
         return go;

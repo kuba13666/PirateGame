@@ -22,7 +22,9 @@ public static class GameConstants
     public const float ENEMY_SPAWN_MAX_X = MAP_MAX_X - 2f;
     public const float ENEMY_SPAWN_MIN_Y = MAP_MIN_Y + 2f;
     public const float ENEMY_SPAWN_MAX_Y = MAP_MAX_Y - 2f;
-    public const float ENEMY_SPAWN_DISTANCE = 8f;
+    // Must exceed the camera half-diagonal (~16 at orthoSize 8, 16:9) so
+    // enemies always spawn OFF-SCREEN and sail/swim into view.
+    public const float ENEMY_SPAWN_DISTANCE = 17f;
     
     // Player Settings
     public const float PLAYER_SCALE_X = 0.54f;  // 0.27 * 2
