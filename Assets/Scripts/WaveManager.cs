@@ -170,8 +170,10 @@ public class WaveManager : MonoBehaviour
     // The Awakening happens in pure open ocean (SE quadrant), far from any
     // port, island or the map edge — overwhelmed with nowhere to run.
     static readonly Vector3 AWAKENING_POSITION = new Vector3(90f, -90f, 0f);
-    const float AWAKENING_SPEED_MULT = 1.9f; // monsters nearly match player speed
-    const int AWAKENING_MAX_ALIVE = 120;     // FPS guard; the flood never thins
+    const float AWAKENING_SPEED_MULT = 2.6f;  // monsters OUTPACE the player — running only delays
+    const float AWAKENING_SHIP_MULT = 1.7f;
+    const int AWAKENING_MAX_ALIVE = 120;      // FPS guard
+    const float AWAKENING_CULL_DIST = 30f;    // outrun stragglers get recycled into fresh spawns
 
     /// <summary>
     /// The Awakening: an overwhelming, unrelenting flood of enemies in open
@@ -194,8 +196,7 @@ public class WaveManager : MonoBehaviour
 
         yield return new WaitForSeconds(1.5f); // a breath of calm before the storm
 
-        if (GameManager.Instance != null && GameManager.Instance.uiManager != null)
-            GameManager.Instance.uiManager.ShowWave(0);
+        // (no wave banner — the onslaught is outside the wave system)
 
         // Opening salvo: a tight storm of beasts from every side
         for (int i = 0; i < 25; i++)
@@ -210,10 +211,15 @@ public class WaveManager : MonoBehaviour
         }
 
         // Unrelenting flood until the sea takes you: mixed monsters with
-        // cannon-armed ships joining the hunt.
+        // cannon-armed ships joining the hunt. If the player kites the swarm,
+        // outrun stragglers are silently recycled into fresh spawns around
+        // the player's CURRENT position — the pressure never stops.
         int n = 0;
         while (true)
         {
+            if (GameObject.FindGameObjectsWithTag("Enemy").Length >= AWAKENING_MAX_ALIVE)
+                CullDistantAwakeningEnemies();
+
             if (GameObject.FindGameObjectsWithTag("Enemy").Length < AWAKENING_MAX_ALIVE)
             {
                 n++;
@@ -230,6 +236,28 @@ public class WaveManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Silently despawn a few enemies the player has outrun (no kill credit,
+    /// no loot — Destroy bypasses the death path) so the flood can respawn
+    /// them around the player's current position.
+    /// </summary>
+    void CullDistantAwakeningEnemies()
+    {
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player == null) return;
+        Vector3 p = player.transform.position;
+
+        int culled = 0;
+        foreach (var enemy in GameObject.FindGameObjectsWithTag("Enemy"))
+        {
+            if (Vector3.Distance(enemy.transform.position, p) > AWAKENING_CULL_DIST)
+            {
+                Destroy(enemy);
+                if (++culled >= 6) break;
+            }
+        }
+    }
+
     /// <summary>Spawn an awakening enemy, fast enough that running is hopeless.</summary>
     void SpawnAwakening(GameObject prefab)
     {
@@ -240,7 +268,7 @@ public class WaveManager : MonoBehaviour
         var ec = enemy.GetComponent<EnemyController>();
         if (ec != null) ec.moveSpeed *= AWAKENING_SPEED_MULT;
         var ship = enemy.GetComponent<EnemyShipController>();
-        if (ship != null) ship.moveSpeed *= 1.4f;
+        if (ship != null) ship.moveSpeed *= AWAKENING_SHIP_MULT;
     }
 
     bool AnyEnemiesAlive()
