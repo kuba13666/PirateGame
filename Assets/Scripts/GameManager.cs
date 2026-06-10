@@ -170,9 +170,17 @@ public class GameManager : MonoBehaviour
         if (waveManager != null) waveManager.StopWaves();
 
         // ── 5. Respawn player at Safe Harbor ──
+        // Restore the real map bounds first — death may happen inside an
+        // off-map pocket (Awakening/boss arena) with relocated clamps.
         PlayerController player = FindFirstObjectByType<PlayerController>(FindObjectsInactive.Include);
         if (player != null)
+        {
+            player.minX = GameConstants.MAP_MIN_X;
+            player.maxX = GameConstants.MAP_MAX_X;
+            player.minY = GameConstants.MAP_MIN_Y;
+            player.maxY = GameConstants.MAP_MAX_Y;
             player.Respawn(new Vector3(GameConstants.HOME_PORT_X, GameConstants.HOME_PORT_Y, 0f));
+        }
 
         // ── 6. Notify quest system (may show dialogue on the overlay) ──
         bool questHandledDialogue = false;

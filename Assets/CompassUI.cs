@@ -129,9 +129,10 @@ public class CompassUI : MonoBehaviour
 
     Vector2 WorldToMinimap(Vector2 worldPos)
     {
-        // Map world [-50..50] → minimap [-halfSize..halfSize]
-        float nx = (worldPos.x - WORLD_MIN) / WORLD_SIZE; // 0..1
-        float ny = (worldPos.y - WORLD_MIN) / WORLD_SIZE;
+        // Map world bounds → minimap [-halfSize..halfSize]; clamped so
+        // off-map positions (Awakening/boss pockets) pin to the panel edge.
+        float nx = Mathf.Clamp01((worldPos.x - WORLD_MIN) / WORLD_SIZE);
+        float ny = Mathf.Clamp01((worldPos.y - WORLD_MIN) / WORLD_SIZE);
         float mapSize = minimapHalfSize * 2f;
         return new Vector2(nx * mapSize - minimapHalfSize, ny * mapSize - minimapHalfSize);
     }

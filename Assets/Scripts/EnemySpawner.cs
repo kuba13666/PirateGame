@@ -162,8 +162,9 @@ public class EnemySpawner : MonoBehaviour
     public GameObject SpawnEnemyPrefabAt(GameObject prefab, Vector3 position)
     {
         if (prefab == null) return null;
-        position.x = Mathf.Clamp(position.x, GameConstants.ENEMY_SPAWN_MIN_X, GameConstants.ENEMY_SPAWN_MAX_X);
-        position.y = Mathf.Clamp(position.y, GameConstants.ENEMY_SPAWN_MIN_Y, GameConstants.ENEMY_SPAWN_MAX_Y);
+        Vector4 b = GetSpawnBounds();
+        position.x = Mathf.Clamp(position.x, b.x, b.y);
+        position.y = Mathf.Clamp(position.y, b.z, b.w);
         GameObject enemy = Instantiate(prefab, position, Quaternion.identity);
 
         // Ships use player-like scale, monsters use tiny scale
@@ -199,13 +200,29 @@ public class EnemySpawner : MonoBehaviour
     /// <summary>
     /// Returns a random position along the edges relative to player position
     /// </summary>
+    /// <summary>
+    /// Spawn clamp area: follows the PLAYER's current movement bounds, so
+    /// spawning keeps working inside off-map pockets (Awakening, boss arenas)
+    /// where the player's clamps are temporarily relocated. Falls back to the
+    /// map constants. Returns (minX, maxX, minY, maxY).
+    /// </summary>
+    Vector4 GetSpawnBounds()
+    {
+        PlayerController pc = playerTransform != null ? playerTransform.GetComponent<PlayerController>() : null;
+        if (pc != null)
+            return new Vector4(pc.minX + 2f, pc.maxX - 2f, pc.minY + 2f, pc.maxY - 2f);
+        return new Vector4(GameConstants.ENEMY_SPAWN_MIN_X, GameConstants.ENEMY_SPAWN_MAX_X,
+                           GameConstants.ENEMY_SPAWN_MIN_Y, GameConstants.ENEMY_SPAWN_MAX_Y);
+    }
+
     Vector3 GetRandomEdgePosition()
     {
-        // Map boundaries
-        float minX = GameConstants.ENEMY_SPAWN_MIN_X;
-        float maxX = GameConstants.ENEMY_SPAWN_MAX_X;
-        float minY = GameConstants.ENEMY_SPAWN_MIN_Y;
-        float maxY = GameConstants.ENEMY_SPAWN_MAX_Y;
+        // Spawn boundaries (player-bounds aware)
+        Vector4 b = GetSpawnBounds();
+        float minX = b.x;
+        float maxX = b.y;
+        float minY = b.z;
+        float maxY = b.w;
 
         // Get player position (or use origin if no player)
         Vector3 playerPos = playerTransform != null ? playerTransform.position : Vector3.zero;

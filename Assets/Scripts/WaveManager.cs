@@ -167,9 +167,11 @@ public class WaveManager : MonoBehaviour
         wavesRoutine = StartCoroutine(RunWaves());
     }
 
-    // The Awakening happens in pure open ocean (SE quadrant), far from any
-    // port, island or the map edge — overwhelmed with nowhere to run.
-    static readonly Vector3 AWAKENING_POSITION = new Vector3(90f, -90f, 0f);
+    // The Awakening happens in an OFF-MAP ocean pocket — same scene, but far
+    // outside the world bounds, so there is genuinely nothing there: no
+    // harbors, no islands, no POIs. Just empty sea and the swarm.
+    static readonly Vector3 AWAKENING_POSITION = new Vector3(400f, -400f, 0f);
+    const float AWAKENING_ARENA_HALF = 60f; // temporary movement bounds around the pocket
     const int AWAKENING_MAX_ALIVE = 120;      // FPS guard
     // Recycle range sits just beyond the off-screen spawn ring (17), so the
     // moment the player outruns part of the swarm it respawns ahead of them.
@@ -181,11 +183,20 @@ public class WaveManager : MonoBehaviour
     /// </summary>
     IEnumerator RunAwakeningWave()
     {
-        // Strand the player in empty ocean, far from every port and island
+        // Strand the player in the off-map pocket and re-clamp their movement
+        // around it (GameManager restores the real map bounds on death).
         GameObject player = GameObject.FindGameObjectWithTag("Player");
         if (player != null)
         {
             player.transform.position = AWAKENING_POSITION;
+            var pc = player.GetComponent<PlayerController>();
+            if (pc != null)
+            {
+                pc.minX = AWAKENING_POSITION.x - AWAKENING_ARENA_HALF;
+                pc.maxX = AWAKENING_POSITION.x + AWAKENING_ARENA_HALF;
+                pc.minY = AWAKENING_POSITION.y - AWAKENING_ARENA_HALF;
+                pc.maxY = AWAKENING_POSITION.y + AWAKENING_ARENA_HALF;
+            }
             if (Camera.main != null)
             {
                 Vector3 cam = AWAKENING_POSITION;
