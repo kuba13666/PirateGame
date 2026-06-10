@@ -123,6 +123,12 @@ public static class MapGeographyBuilder
         ApplyLocationSprite("Loc_traders_cove", "Port_TradersCove", 4.2f);
         ApplyLocationSprite("Loc_naval_outpost", "Port_NavalOutpost", 4.2f);
 
+        // The Maelstrom: spinning whirlpool instead of the red placeholder disc
+        ApplyLocationSprite("Loc_boss_arena", "Maelstrom", 5.5f);
+        var boss = GameObject.Find("Loc_boss_arena");
+        if (boss != null && boss.GetComponent<SlowSpin>() == null && Resources.Load<Sprite>("Maelstrom") != null)
+            boss.AddComponent<SlowSpin>();
+
         var scene = EditorSceneManager.GetActiveScene();
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
@@ -162,9 +168,12 @@ public static class MapGeographyBuilder
         float scale = d.size / Mathf.Max(0.01f, sprite.bounds.size.x);
         go.transform.localScale = new Vector3(scale, scale, 1f);
 
-        // Solid collider, slightly smaller than the art so beaches feel forgiving
+        // Solid collider. Islets get forgiving beaches (70%); rocks are small
+        // and hard, so they need near-full colliders or the ship visually
+        // plows through them before its hull-circle ever touches the box.
+        float colFactor = d.sprite.StartsWith("Rock") ? 0.95f : 0.7f;
         var col = go.AddComponent<BoxCollider2D>();
-        col.size = sprite.bounds.size * 0.7f;
+        col.size = sprite.bounds.size * colFactor;
         col.offset = sprite.bounds.center;
         return go;
     }
