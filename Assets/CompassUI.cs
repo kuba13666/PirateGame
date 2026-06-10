@@ -40,6 +40,39 @@ public class CompassUI : MonoBehaviour
 
         if (minimapPanel != null)
             minimapHalfSize = minimapPanel.rect.width * 0.5f;
+
+        SpawnGeographyDots();
+    }
+
+    /// <summary>
+    /// One-time static terrain layer: islets and rocks from MapGeography as
+    /// tiny dots, so the minimap shows the actual shape of the world.
+    /// </summary>
+    void SpawnGeographyDots()
+    {
+        GameObject root = GameObject.Find("MapGeography");
+        if (root == null || minimapPanel == null) return;
+
+        foreach (var sr in root.GetComponentsInChildren<SpriteRenderer>())
+        {
+            // POIs are Locations — they appear as named dots once discovered
+            if (sr.GetComponent<Location>() != null) continue;
+
+            bool isIslet = sr.sprite != null && sr.sprite.name.StartsWith("Islet");
+
+            GameObject dot = new GameObject("GeoDot");
+            dot.transform.SetParent(minimapPanel, false);
+            Image img = dot.AddComponent<Image>();
+            img.raycastTarget = false;
+            img.color = isIslet ? new Color(0.80f, 0.70f, 0.42f, 0.95f)  // sand
+                                : new Color(0.55f, 0.57f, 0.62f, 0.9f);  // rock grey
+            RectTransform rt = dot.GetComponent<RectTransform>();
+            rt.sizeDelta = isIslet ? new Vector2(5, 5) : new Vector2(3, 3);
+            rt.anchoredPosition = WorldToMinimap(sr.transform.position);
+        }
+
+        // Keep the player dot rendered above the terrain layer
+        if (playerDot != null) playerDot.SetAsLastSibling();
     }
 
     void LateUpdate()
