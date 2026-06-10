@@ -156,6 +156,25 @@ public class UIManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Shows the zone name briefly when the player sails into a new zone.
+    /// </summary>
+    public void ShowZoneEnter(string zoneName)
+    {
+        if (waveText == null) return;
+        StopAllCoroutines();
+        StartCoroutine(ZoneRoutine(zoneName));
+    }
+
+    System.Collections.IEnumerator ZoneRoutine(string zoneName)
+    {
+        waveText.gameObject.SetActive(true);
+        waveText.alpha = 0.85f;
+        waveText.text = $"~ {zoneName} ~";
+        yield return new WaitForSeconds(2.5f);
+        waveText.gameObject.SetActive(false);
+    }
+
+    /// <summary>
     /// Shows port welcome message
     /// </summary>
     public void ShowPortWelcome(string portName, float duration)

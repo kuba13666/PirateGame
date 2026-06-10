@@ -118,53 +118,10 @@ public class WaveManager : MonoBehaviour
             }
         }
 
-        for (int i = 0; i < waves.Count; i++)
-        {
-            int waveNumber = i + 1;
-
-            // Show wave text
-            if (GameManager.Instance != null && GameManager.Instance.uiManager != null)
-            {
-                GameManager.Instance.uiManager.ShowWave(waveNumber);
-            }
-
-            // Spawn all entries in this wave (scaled by escalation)
-            foreach (var entry in waves[i].entries)
-            {
-                if (entry.prefab == null)
-                {
-                    Debug.LogWarning($"Wave {waveNumber}: skipping entry with null prefab");
-                    continue;
-                }
-                int scaledCount = entry.count + Mathf.FloorToInt(entry.count * escalationLevel * 0.2f);
-                for (int c = 0; c < scaledCount; c++)
-                {
-                    if (spawner != null)
-                    {
-                        GameObject enemy = spawner.SpawnEnemyPrefab(entry.prefab);
-                        ApplyEscalation(enemy);
-                    }
-                    yield return new WaitForSeconds(entry.interval);
-                }
-            }
-
-            // Wait until all enemies dead
-            while (AnyEnemiesAlive())
-            {
-                yield return new WaitForSeconds(0.5f);
-            }
-
-            // Rest between waves (except after last wave)
-            if (i < waves.Count - 1)
-            {
-                yield return new WaitForSeconds(restBetweenWaves);
-            }
-        }
-
-        // All waves cleared — escalate and loop
-        escalationLevel++;
-        Debug.Log($"Wave cycle complete. Escalation level: {escalationLevel}");
-        wavesRoutine = StartCoroutine(RunWaves());
+        // Ambient spawning on the open sea is owned by ZoneSpawnManager
+        // (Phase B): danger comes from WHERE the player sails. The timed
+        // wave cycle is retired; WaveManager keeps only the Awakening.
+        yield break;
     }
 
     // The Awakening happens in an OFF-MAP ocean pocket — same scene, but far
