@@ -167,9 +167,9 @@ public class WaveManager : MonoBehaviour
         wavesRoutine = StartCoroutine(RunWaves());
     }
 
-    // The Awakening happens in pure open ocean (SE corner), far from any port
-    // or island — the player is meant to be overwhelmed with nowhere to run.
-    static readonly Vector3 AWAKENING_POSITION = new Vector3(110f, -110f, 0f);
+    // The Awakening happens in pure open ocean (SE quadrant), far from any
+    // port, island or the map edge — overwhelmed with nowhere to run.
+    static readonly Vector3 AWAKENING_POSITION = new Vector3(90f, -90f, 0f);
     const float AWAKENING_SPEED_MULT = 1.9f; // monsters nearly match player speed
     const int AWAKENING_MAX_ALIVE = 120;     // FPS guard; the flood never thins
 

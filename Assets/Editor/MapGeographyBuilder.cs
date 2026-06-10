@@ -199,52 +199,45 @@ public static class MapGeographyBuilder
     }
 
     /// <summary>
-    /// A band of mist just outside the map boundary on all four sides —
-    /// signals "unavailable waters" where the old brown walls used to be.
-    /// Static fog sprites, deterministic layout, no colliders needed
-    /// (PlayerController clamps to the map bounds in code).
+    /// A milky mist band just outside the map boundary on all four sides —
+    /// signals "unavailable waters". Four Tiled strips of a seamless gradient
+    /// texture (transparent at the map edge, dense outward). No colliders
+    /// needed: PlayerController clamps to the map bounds in code.
     /// </summary>
     static void BuildMistBorder(Transform root)
     {
-        Sprite fog = Resources.Load<Sprite>("Fog");
-        if (fog == null) { Debug.LogWarning("MistBorder: Fog sprite missing"); return; }
+        Sprite strip = Resources.Load<Sprite>("MistStrip");
+        if (strip == null) { Debug.LogWarning("MistBorder: MistStrip sprite missing"); return; }
 
         var parent = new GameObject("MistBorder").transform;
         parent.SetParent(root);
-        var rng = new System.Random(421);
 
-        float min = GameConstants.MAP_MIN_X, max = GameConstants.MAP_MAX_X;
-        const float STEP = 7f, BAND = 128.5f;
+        float bandW = strip.bounds.size.y;            // world band depth (16 wu at PPU 4)
+        float edge = GameConstants.MAP_MAX_X;         // square map
+        float center = edge + bandW * 0.5f;           // inner edge sits exactly on the boundary
+        float length = GameConstants.MAP_WIDTH + bandW * 2f; // overlap corners
 
-        for (float a = min - 8f; a <= max + 8f; a += STEP)
-        {
-            // top, bottom, left, right
-            PlaceMist(parent, fog, rng, a + Jit(rng, 3f),  BAND + Jit(rng, 3f));
-            PlaceMist(parent, fog, rng, a + Jit(rng, 3f), -BAND - Jit(rng, 3f));
-            PlaceMist(parent, fog, rng, -BAND - Jit(rng, 3f), a + Jit(rng, 3f));
-            PlaceMist(parent, fog, rng,  BAND + Jit(rng, 3f), a + Jit(rng, 3f));
-        }
+        // Sprite gradient runs transparent (local -y) → dense (local +y),
+        // so each strip is rotated to face its outer side away from the map.
+        PlaceMistStrip(parent, strip, new Vector3(0,  center, 0),   0f, length); // top
+        PlaceMistStrip(parent, strip, new Vector3(0, -center, 0), 180f, length); // bottom
+        PlaceMistStrip(parent, strip, new Vector3(-center, 0, 0),  90f, length); // left
+        PlaceMistStrip(parent, strip, new Vector3( center, 0, 0), -90f, length); // right
     }
 
-    static float Jit(System.Random rng, float range) =>
-        (float)(rng.NextDouble() * 2.0 - 1.0) * range;
-
-    static void PlaceMist(Transform parent, Sprite fog, System.Random rng, float x, float y)
+    static void PlaceMistStrip(Transform parent, Sprite strip, Vector3 pos, float zRot, float length)
     {
-        var go = new GameObject("Mist");
+        var go = new GameObject("MistStrip");
         go.transform.SetParent(parent);
-        go.transform.position = new Vector3(x, y, 0f);
-        go.transform.rotation = Quaternion.Euler(0f, 0f, (float)(rng.NextDouble() * 360.0));
+        go.transform.position = pos;
+        go.transform.rotation = Quaternion.Euler(0f, 0f, zRot);
 
         var sr = go.AddComponent<SpriteRenderer>();
-        sr.sprite = fog;
-        sr.flipX = rng.NextDouble() < 0.5;
-        sr.color = new Color(1f, 1f, 1f, 0.55f + (float)rng.NextDouble() * 0.25f);
-        sr.sortingOrder = 6; // mist drifts above ships
-
-        float targetW = 9f + (float)rng.NextDouble() * 4f;
-        float scale = targetW / Mathf.Max(0.01f, fog.bounds.size.x);
-        go.transform.localScale = new Vector3(scale, scale, 1f);
+        sr.sprite = strip;
+        sr.drawMode = SpriteDrawMode.Tiled;
+        sr.tileMode = SpriteTileMode.Continuous;
+        sr.size = new Vector2(length, strip.bounds.size.y);
+        sr.sortingOrder = 6; // mist sits above ships
     }
 
     static void MoveLocation(string name, Vector2 pos)
