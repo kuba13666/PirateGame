@@ -152,6 +152,8 @@ public static class MapGeographyBuilder
         go.transform.SetParent(parent);
         go.transform.position = new Vector3(d.x, d.y, 0f);
         go.transform.rotation = Quaternion.Euler(0f, 0f, d.rot);
+        int terrain = LayerMask.NameToLayer("Terrain");
+        if (terrain >= 0) go.layer = terrain; // PlayerController blocks on this layer
 
         var sr = go.AddComponent<SpriteRenderer>();
         sr.sprite = sprite;

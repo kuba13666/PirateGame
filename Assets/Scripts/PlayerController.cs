@@ -119,31 +119,55 @@ public class PlayerController : MonoBehaviour
         isMoving = true;
     }
 
+    // Hull radius used when testing terrain collision (ship beam is ~0.4 wu)
+    private const float HULL_RADIUS = 0.2f;
+    private static int terrainMask = -1;
+
     /// <summary>
-    /// Smoothly moves the ship toward the target position
+    /// Smoothly moves the ship toward the target position.
+    /// Movement is transform-based, so islands/rocks (Terrain layer) are
+    /// blocked here explicitly, with axis sliding so coasts feel smooth.
     /// </summary>
     void MoveTowardTarget()
     {
         if (!isMoving) return;
 
-        // Move toward target position
-        transform.position = Vector3.MoveTowards(
+        if (terrainMask < 0) terrainMask = LayerMask.GetMask("Terrain");
+
+        Vector3 next = Vector3.MoveTowards(
             transform.position,
             targetPosition,
             moveSpeed * Time.deltaTime
         );
 
-        // Clamp position within boundaries
-        Vector3 clampedPosition = transform.position;
-        clampedPosition.x = Mathf.Clamp(clampedPosition.x, minX, maxX);
-        clampedPosition.y = Mathf.Clamp(clampedPosition.y, minY, maxY);
-        transform.position = clampedPosition;
+        // Clamp within map boundaries
+        next.x = Mathf.Clamp(next.x, minX, maxX);
+        next.y = Mathf.Clamp(next.y, minY, maxY);
+
+        // Terrain blocking: try full move, then slide along each axis
+        if (!HitsTerrain(next))
+        {
+            transform.position = next;
+        }
+        else
+        {
+            Vector3 slideX = new Vector3(next.x, transform.position.y, next.z);
+            Vector3 slideY = new Vector3(transform.position.x, next.y, next.z);
+            if (!HitsTerrain(slideX)) transform.position = slideX;
+            else if (!HitsTerrain(slideY)) transform.position = slideY;
+            else { isMoving = false; return; } // fully blocked
+        }
 
         // Stop moving when we reach the target (within a small threshold)
         if (Vector3.Distance(transform.position, targetPosition) < 0.1f)
         {
             isMoving = false;
         }
+    }
+
+    bool HitsTerrain(Vector3 pos)
+    {
+        return Physics2D.OverlapCircle(pos, HULL_RADIUS, terrainMask) != null;
     }
 
     /// <summary>
