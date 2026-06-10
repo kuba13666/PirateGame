@@ -20,7 +20,8 @@ public class ZoneSpawnManager : MonoBehaviour
         public System.Func<Vector2, bool> contains;
     }
 
-    private const float NEARBY_RADIUS = 30f;
+    private const float NEARBY_RADIUS = 16f;   // ~on-screen: only these count toward the cap
+    private const float CLEANUP_DIST = 45f;    // outrun enemies beyond this get despawned
     private const float EVALUATE_EVERY = 0.5f;
 
     private EnemySpawner spawner;
@@ -49,48 +50,48 @@ public class ZoneSpawnManager : MonoBehaviour
         zones.Add(new Zone
         {
             name = "Home Waters",
-            interval = 1.8f,
-            maxNearby = 8,
+            interval = 1.2f,
+            maxNearby = 10,
             mix = new[] { 1f, 0f, 0f, 0f }, // crabs only
             contains = pos => Vector2.Distance(pos, home) < 45f
         });
         zones.Add(new Zone
         {
             name = "The Deep",
-            interval = 0.5f,
-            maxNearby = 24,
+            interval = 0.35f,
+            maxNearby = 32,
             mix = new[] { 0.2f, 0.3f, 0.3f, 0.2f }, // everything, dense
             contains = pos => pos.y > 75f
         });
         zones.Add(new Zone
         {
             name = "Navy Waters",
-            interval = 0.9f,
-            maxNearby = 14,
+            interval = 0.6f,
+            maxNearby = 20,
             mix = new[] { 0.15f, 0.2f, 0.15f, 0.5f }, // ship-heavy
             contains = pos => pos.x > 25f && pos.y < -25f
         });
         zones.Add(new Zone
         {
             name = "The Hunting Grounds",
-            interval = 0.8f,
-            maxNearby = 16,
+            interval = 0.5f,
+            maxNearby = 22,
             mix = new[] { 0.15f, 0.4f, 0.35f, 0.1f }, // harpies & mermaids
             contains = pos => pos.x > 45f
         });
         zones.Add(new Zone
         {
             name = "The Trade Route",
-            interval = 1.0f,
-            maxNearby = 12,
+            interval = 0.6f,
+            maxNearby = 18,
             mix = new[] { 0.55f, 0.45f, 0f, 0f }, // crabs & harpies, light
             contains = pos => pos.x < -20f && pos.y > 10f
         });
         zones.Add(new Zone
         {
             name = "Open Waters",
-            interval = 1.0f,
-            maxNearby = 13,
+            interval = 0.6f,
+            maxNearby = 18,
             mix = new[] { 0.4f, 0.35f, 0.2f, 0.05f },
             contains = pos => true // fallback
         });
@@ -112,6 +113,7 @@ public class ZoneSpawnManager : MonoBehaviour
         {
             evaluateTimer = EVALUATE_EVERY;
             UpdateCurrentZone();
+            CleanupOutrunEnemies();
         }
 
         if (currentZone == null) return;
@@ -180,14 +182,41 @@ public class ZoneSpawnManager : MonoBehaviour
         spawner.SpawnEnemyPrefabAt(prefab, player.position + (Vector3)(dir * dist));
     }
 
+    /// <summary>
+    /// Counts enemies that actually threaten the player: close by, and (when
+    /// sailing) not clearly behind. Outrun stragglers trailing the ship used
+    /// to fill the cap and stall all new spawns for the rest of a voyage.
+    /// </summary>
     int CountNearbyEnemies()
     {
         Vector3 p = player.position;
+        bool moving = heading.sqrMagnitude > 0.0001f;
+        Vector2 h = moving ? heading.normalized : Vector2.zero;
+
         int count = 0;
         foreach (var enemy in GameObject.FindGameObjectsWithTag("Enemy"))
-            if (Vector3.Distance(enemy.transform.position, p) < NEARBY_RADIUS)
-                count++;
+        {
+            Vector3 to = enemy.transform.position - p;
+            if (to.magnitude >= NEARBY_RADIUS) continue;
+            if (moving && Vector2.Dot(((Vector2)to).normalized, h) < -0.25f) continue; // behind us
+            count++;
+        }
         return count;
+    }
+
+    /// <summary>Despawn enemies the player has long outrun (no kill credit).</summary>
+    void CleanupOutrunEnemies()
+    {
+        Vector3 p = player.position;
+        int removed = 0;
+        foreach (var enemy in GameObject.FindGameObjectsWithTag("Enemy"))
+        {
+            if (Vector3.Distance(enemy.transform.position, p) > CLEANUP_DIST)
+            {
+                Destroy(enemy);
+                if (++removed >= 8) break;
+            }
+        }
     }
 
     GameObject PickWeighted(float[] mix)
