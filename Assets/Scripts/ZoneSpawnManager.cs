@@ -29,6 +29,8 @@ public class ZoneSpawnManager : MonoBehaviour
     private Zone currentZone;
     private float spawnTimer;
     private float evaluateTimer;
+    private Vector3 lastPlayerPos;
+    private Vector2 heading;
 
     void Start()
     {
@@ -63,7 +65,7 @@ public class ZoneSpawnManager : MonoBehaviour
         zones.Add(new Zone
         {
             name = "Navy Waters",
-            interval = 2.2f,
+            interval = 2.0f,
             maxNearby = 8,
             mix = new[] { 0.15f, 0.2f, 0.15f, 0.5f }, // ship-heavy
             contains = pos => pos.x > 25f && pos.y < -25f
@@ -71,7 +73,7 @@ public class ZoneSpawnManager : MonoBehaviour
         zones.Add(new Zone
         {
             name = "The Hunting Grounds",
-            interval = 2.0f,
+            interval = 1.8f,
             maxNearby = 9,
             mix = new[] { 0.15f, 0.4f, 0.35f, 0.1f }, // harpies & mermaids
             contains = pos => pos.x > 45f
@@ -79,7 +81,7 @@ public class ZoneSpawnManager : MonoBehaviour
         zones.Add(new Zone
         {
             name = "The Trade Route",
-            interval = 3.0f,
+            interval = 2.2f,
             maxNearby = 6,
             mix = new[] { 0.55f, 0.45f, 0f, 0f }, // crabs & harpies, light
             contains = pos => pos.x < -20f && pos.y > 10f
@@ -87,7 +89,7 @@ public class ZoneSpawnManager : MonoBehaviour
         zones.Add(new Zone
         {
             name = "Open Waters",
-            interval = 3.0f,
+            interval = 2.4f,
             maxNearby = 7,
             mix = new[] { 0.4f, 0.35f, 0.2f, 0.05f },
             contains = pos => true // fallback
@@ -100,6 +102,10 @@ public class ZoneSpawnManager : MonoBehaviour
         if (Time.timeScale == 0f) return;                 // port / dialogue pause
         if (!spawner.enabled) return;                     // port disables spawning
         if (IsAwakeningActive()) return;                  // WaveManager owns the onslaught
+
+        // Track the player's sailing direction (for ahead-biased spawns)
+        heading = player.position - lastPlayerPos;
+        lastPlayerPos = player.position;
 
         evaluateTimer -= Time.deltaTime;
         if (evaluateTimer <= 0f)
@@ -151,8 +157,27 @@ public class ZoneSpawnManager : MonoBehaviour
         if (CountNearbyEnemies() >= currentZone.maxNearby) return;
 
         GameObject prefab = PickWeighted(currentZone.mix);
-        if (prefab != null)
-            spawner.SpawnEnemyPrefab(prefab); // spawns off-screen around the player
+        if (prefab == null) return;
+
+        // A moving ship outruns side/behind spawns before they ever reach the
+        // screen — bias spawns AHEAD of the heading so the player actually
+        // meets the zone's dangers. Stationary players get surrounded evenly.
+        Vector2 dir;
+        if (heading.sqrMagnitude > 0.0001f && Random.value < 0.65f)
+        {
+            float ang = Random.Range(-70f, 70f) * Mathf.Deg2Rad;
+            float c = Mathf.Cos(ang), s = Mathf.Sin(ang);
+            Vector2 h = heading.normalized;
+            dir = new Vector2(h.x * c - h.y * s, h.x * s + h.y * c);
+        }
+        else
+        {
+            float ang = Random.Range(0f, Mathf.PI * 2f);
+            dir = new Vector2(Mathf.Cos(ang), Mathf.Sin(ang));
+        }
+
+        float dist = GameConstants.ENEMY_SPAWN_DISTANCE + Random.Range(0f, 3f);
+        spawner.SpawnEnemyPrefabAt(prefab, player.position + (Vector3)(dir * dist));
     }
 
     int CountNearbyEnemies()
