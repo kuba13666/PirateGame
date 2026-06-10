@@ -878,19 +878,12 @@ public class GameSetupEditor : EditorWindow
 
     static void CreateBoundaryWall(string name, Vector3 position, Vector3 scale)
     {
+        // Invisible collider only. No sprite: tiling a 9-sliced sprite over a
+        // 250-unit wall exceeds Unity's mesh limits, and the map edge is shown
+        // by the MistBorder (MapGeographyBuilder) instead.
         GameObject wall = new GameObject(name);
         wall.transform.position = position;
-        wall.transform.localScale = new Vector3(1f, 1f, 10f);
 
-        // Add sprite renderer
-        SpriteRenderer sr = wall.AddComponent<SpriteRenderer>();
-        sr.sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
-        sr.color = new Color(0.3f, 0.2f, 0.1f, 1f); // Dark brown color
-        sr.drawMode = SpriteDrawMode.Tiled;
-        sr.size = new Vector2(scale.x, scale.y); // Set actual world size
-        sr.sortingOrder = -1; // Behind other objects
-
-        // Add collider to stop movement
         BoxCollider2D col = wall.AddComponent<BoxCollider2D>();
         col.size = new Vector2(scale.x, scale.y);
         col.isTrigger = false; // Solid wall

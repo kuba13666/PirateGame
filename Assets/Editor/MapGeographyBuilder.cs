@@ -149,6 +149,8 @@ public static class MapGeographyBuilder
         if (boss != null && boss.GetComponent<SlowSpin>() == null && Resources.Load<Sprite>("Maelstrom") != null)
             boss.AddComponent<SlowSpin>();
 
+        BuildMistBorder(root.transform);
+
         MigrateWorldToCurrentBounds();
 
         var scene = EditorSceneManager.GetActiveScene();
@@ -181,16 +183,68 @@ public static class MapGeographyBuilder
             pc.maxY = GameConstants.MAP_MAX_Y;
         }
 
-        // Boundary walls
-        float t = GameConstants.WALL_THICKNESS;
-        float minX = GameConstants.MAP_MIN_X, maxX = GameConstants.MAP_MAX_X;
-        float minY = GameConstants.MAP_MIN_Y, maxY = GameConstants.MAP_MAX_Y;
-        float w = GameConstants.MAP_WIDTH, h = GameConstants.MAP_HEIGHT;
-        MoveWall("Boundary_Top", new Vector3(0, maxY + t / 2, 0), new Vector2(w + t * 2, t));
-        MoveWall("Boundary_Bottom", new Vector3(0, minY - t / 2, 0), new Vector2(w + t * 2, t));
-        MoveWall("Boundary_Left", new Vector3(minX - t / 2, 0, 0), new Vector2(t, h + t * 2));
-        MoveWall("Boundary_Right", new Vector3(maxX + t / 2, 0, 0), new Vector2(t, h + t * 2));
+        // The old visible walls are gone — the player is clamped in code and
+        // the edge is communicated by the mist border instead.
+        DestroyIfExists("Boundary_Top");
+        DestroyIfExists("Boundary_Bottom");
+        DestroyIfExists("Boundary_Left");
+        DestroyIfExists("Boundary_Right");
         Debug.Log("✓ World migrated to current map bounds");
+    }
+
+    static void DestroyIfExists(string name)
+    {
+        var go = GameObject.Find(name);
+        if (go != null) Object.DestroyImmediate(go);
+    }
+
+    /// <summary>
+    /// A band of mist just outside the map boundary on all four sides —
+    /// signals "unavailable waters" where the old brown walls used to be.
+    /// Static fog sprites, deterministic layout, no colliders needed
+    /// (PlayerController clamps to the map bounds in code).
+    /// </summary>
+    static void BuildMistBorder(Transform root)
+    {
+        Sprite fog = Resources.Load<Sprite>("Fog");
+        if (fog == null) { Debug.LogWarning("MistBorder: Fog sprite missing"); return; }
+
+        var parent = new GameObject("MistBorder").transform;
+        parent.SetParent(root);
+        var rng = new System.Random(421);
+
+        float min = GameConstants.MAP_MIN_X, max = GameConstants.MAP_MAX_X;
+        const float STEP = 7f, BAND = 128.5f;
+
+        for (float a = min - 8f; a <= max + 8f; a += STEP)
+        {
+            // top, bottom, left, right
+            PlaceMist(parent, fog, rng, a + Jit(rng, 3f),  BAND + Jit(rng, 3f));
+            PlaceMist(parent, fog, rng, a + Jit(rng, 3f), -BAND - Jit(rng, 3f));
+            PlaceMist(parent, fog, rng, -BAND - Jit(rng, 3f), a + Jit(rng, 3f));
+            PlaceMist(parent, fog, rng,  BAND + Jit(rng, 3f), a + Jit(rng, 3f));
+        }
+    }
+
+    static float Jit(System.Random rng, float range) =>
+        (float)(rng.NextDouble() * 2.0 - 1.0) * range;
+
+    static void PlaceMist(Transform parent, Sprite fog, System.Random rng, float x, float y)
+    {
+        var go = new GameObject("Mist");
+        go.transform.SetParent(parent);
+        go.transform.position = new Vector3(x, y, 0f);
+        go.transform.rotation = Quaternion.Euler(0f, 0f, (float)(rng.NextDouble() * 360.0));
+
+        var sr = go.AddComponent<SpriteRenderer>();
+        sr.sprite = fog;
+        sr.flipX = rng.NextDouble() < 0.5;
+        sr.color = new Color(1f, 1f, 1f, 0.55f + (float)rng.NextDouble() * 0.25f);
+        sr.sortingOrder = 6; // mist drifts above ships
+
+        float targetW = 9f + (float)rng.NextDouble() * 4f;
+        float scale = targetW / Mathf.Max(0.01f, fog.bounds.size.x);
+        go.transform.localScale = new Vector3(scale, scale, 1f);
     }
 
     static void MoveLocation(string name, Vector2 pos)
@@ -202,16 +256,6 @@ public static class MapGeographyBuilder
         if (loc != null) loc.worldPosition = pos;
     }
 
-    static void MoveWall(string name, Vector3 pos, Vector2 size)
-    {
-        var go = GameObject.Find(name);
-        if (go == null) { Debug.LogWarning($"MigrateWorld: {name} not found"); return; }
-        go.transform.position = pos;
-        var sr = go.GetComponent<SpriteRenderer>();
-        if (sr != null) sr.size = size;
-        var col = go.GetComponent<BoxCollider2D>();
-        if (col != null) col.size = size;
-    }
 
     static Decor RingDecor(float angleDeg, int i)
     {
