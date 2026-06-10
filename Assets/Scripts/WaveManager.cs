@@ -211,29 +211,84 @@ public class WaveManager : MonoBehaviour
         }
 
         // Unrelenting flood until the sea takes you: mixed monsters with
-        // cannon-armed ships joining the hunt. If the player kites the swarm,
-        // outrun stragglers are silently recycled into fresh spawns around
-        // the player's CURRENT position — the pressure never stops.
+        // cannon-armed ships joining the hunt. Most spawns drop AHEAD of the
+        // player's heading (running into fresh enemies, not away from old
+        // ones), and every few seconds a wall of beasts cuts across their
+        // course. Outrun stragglers recycle into new spawns — no escape.
         int n = 0;
+        Vector3 lastPlayerPos = player != null ? player.transform.position : Vector3.zero;
         while (true)
         {
+            // Estimate the player's heading from actual movement
+            Vector2 heading = Vector2.zero;
+            if (player != null)
+            {
+                Vector3 p = player.transform.position;
+                heading = (p - lastPlayerPos);
+                lastPlayerPos = p;
+            }
+
             if (GameObject.FindGameObjectsWithTag("Enemy").Length >= AWAKENING_MAX_ALIVE)
                 CullDistantAwakeningEnemies();
 
             if (GameObject.FindGameObjectsWithTag("Enemy").Length < AWAKENING_MAX_ALIVE)
             {
                 n++;
-                if (n % 10 == 0)
-                    SpawnAwakening(spawner.enemyShipPrefab);
-                else if (n % 3 == 0)
-                    SpawnAwakening(spawner.mermaidEnemyPrefab);
-                else if (n % 2 == 0)
-                    SpawnAwakening(spawner.harpyEnemyPrefab);
-                else
-                    SpawnAwakening(spawner.crabEnemyPrefab);
+                GameObject prefab =
+                    (n % 10 == 0) ? spawner.enemyShipPrefab :
+                    (n % 3 == 0) ? spawner.mermaidEnemyPrefab :
+                    (n % 2 == 0) ? spawner.harpyEnemyPrefab :
+                                   spawner.crabEnemyPrefab;
+                SpawnAwakening(prefab, AwakeningSpawnPos(heading));
+
+                // Every ~4s: a wall of harpies straight across the escape path
+                if (n % 34 == 0 && heading.sqrMagnitude > 0.0001f)
+                {
+                    Vector2 dir = heading.normalized;
+                    for (int k = -2; k <= 2; k++)
+                    {
+                        float ang = k * 18f * Mathf.Deg2Rad;
+                        Vector2 d = Rotate(dir, ang);
+                        Vector3 pos = lastPlayerPos + (Vector3)(d * 15f);
+                        SpawnAwakening(spawner.harpyEnemyPrefab, pos);
+                    }
+                }
             }
             yield return new WaitForSeconds(0.12f);
         }
+    }
+
+    /// <summary>
+    /// Spawn position for the flood: 70% in a wide arc ahead of the player's
+    /// heading (off-screen), the rest anywhere on the ring. Stationary players
+    /// get surrounded evenly.
+    /// </summary>
+    Vector3 AwakeningSpawnPos(Vector2 heading)
+    {
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        Vector3 center = player != null ? player.transform.position : AWAKENING_POSITION;
+
+        Vector2 dir;
+        if (heading.sqrMagnitude > 0.0001f && Random.value < 0.7f)
+        {
+            // Ahead: within ±75° of the escape direction
+            float ang = Random.Range(-75f, 75f) * Mathf.Deg2Rad;
+            dir = Rotate(heading.normalized, ang);
+        }
+        else
+        {
+            float ang = Random.Range(0f, Mathf.PI * 2f);
+            dir = new Vector2(Mathf.Cos(ang), Mathf.Sin(ang));
+        }
+
+        float dist = GameConstants.ENEMY_SPAWN_DISTANCE + Random.Range(0f, 3f);
+        return center + (Vector3)(dir * dist);
+    }
+
+    static Vector2 Rotate(Vector2 v, float radians)
+    {
+        float c = Mathf.Cos(radians), s = Mathf.Sin(radians);
+        return new Vector2(v.x * c - v.y * s, v.x * s + v.y * c);
     }
 
     /// <summary>
@@ -263,10 +318,14 @@ public class WaveManager : MonoBehaviour
     /// for any equipped hull) so running is hopeless. Varied per-enemy speed
     /// keeps the swarm loose instead of one synchronized blob.
     /// </summary>
-    void SpawnAwakening(GameObject prefab)
+    void SpawnAwakening(GameObject prefab) => SpawnAwakening(prefab, (Vector3?)null);
+
+    void SpawnAwakening(GameObject prefab, Vector3? position)
     {
         if (spawner == null || prefab == null) return;
-        GameObject enemy = spawner.SpawnEnemyPrefab(prefab);
+        GameObject enemy = position.HasValue
+            ? spawner.SpawnEnemyPrefabAt(prefab, position.Value)
+            : spawner.SpawnEnemyPrefab(prefab);
         if (enemy == null) return;
 
         float playerSpeed = GameConstants.PLAYER_MOVE_SPEED;

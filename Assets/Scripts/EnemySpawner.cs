@@ -152,9 +152,19 @@ public class EnemySpawner : MonoBehaviour
     /// </summary>
     public GameObject SpawnEnemyPrefab(GameObject prefab)
     {
+        return SpawnEnemyPrefabAt(prefab, GetRandomEdgePosition());
+    }
+
+    /// <summary>
+    /// Spawns a specific prefab at an exact position (used by WaveManager for
+    /// directed spawns, e.g. cutting off the player's escape path).
+    /// </summary>
+    public GameObject SpawnEnemyPrefabAt(GameObject prefab, Vector3 position)
+    {
         if (prefab == null) return null;
-        Vector3 spawnPosition = GetRandomEdgePosition();
-        GameObject enemy = Instantiate(prefab, spawnPosition, Quaternion.identity);
+        position.x = Mathf.Clamp(position.x, GameConstants.ENEMY_SPAWN_MIN_X, GameConstants.ENEMY_SPAWN_MAX_X);
+        position.y = Mathf.Clamp(position.y, GameConstants.ENEMY_SPAWN_MIN_Y, GameConstants.ENEMY_SPAWN_MAX_Y);
+        GameObject enemy = Instantiate(prefab, position, Quaternion.identity);
 
         // Ships use player-like scale, monsters use tiny scale
         if (enemy.GetComponent<EnemyShipController>() != null)
