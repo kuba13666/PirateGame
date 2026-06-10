@@ -172,7 +172,7 @@ public class GameManager : MonoBehaviour
         // ── 5. Respawn player at Safe Harbor ──
         PlayerController player = FindFirstObjectByType<PlayerController>(FindObjectsInactive.Include);
         if (player != null)
-            player.Respawn(new Vector3(5f, 5f, 0f));
+            player.Respawn(new Vector3(GameConstants.HOME_PORT_X, GameConstants.HOME_PORT_Y, 0f));
 
         // ── 6. Notify quest system (may show dialogue on the overlay) ──
         bool questHandledDialogue = false;

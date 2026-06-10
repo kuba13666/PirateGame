@@ -4,11 +4,15 @@
 /// </summary>
 public static class GameConstants
 {
-    // Map Boundaries
-    public const float MAP_MIN_X = -50f;
-    public const float MAP_MAX_X = 50f;
-    public const float MAP_MIN_Y = -50f;
-    public const float MAP_MAX_Y = 50f;
+    // Map Boundaries (Biome 1 is 250x250 — a real voyage, ~2 min to cross)
+    public const float MAP_MIN_X = -125f;
+    public const float MAP_MAX_X = 125f;
+    public const float MAP_MIN_Y = -125f;
+    public const float MAP_MAX_Y = 125f;
+
+    // Home port (Safe Harbor) position — player respawns here
+    public const float HOME_PORT_X = 12.5f;
+    public const float HOME_PORT_Y = 12.5f;
     public const float MAP_WIDTH = MAP_MAX_X - MAP_MIN_X;
     public const float MAP_HEIGHT = MAP_MAX_Y - MAP_MIN_Y;
     public const float WALL_THICKNESS = 0.5f;

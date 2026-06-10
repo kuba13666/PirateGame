@@ -19,7 +19,10 @@ public static class MapGeographyBuilder
         { this.sprite = sprite; this.x = x; this.y = y; this.size = size; this.rot = rot; }
     }
 
-    // ── Layout (world is 100x100, see design doc map sketch) ──
+    // ── Layout ──
+    // Tables are authored in the original 100x100 "design space" from the
+    // design doc map sketch; S scales them onto the real 250x250 world.
+    const float S = 2.5f;
 
     static readonly Decor[] Islets =
     {
@@ -43,6 +46,16 @@ public static class MapGeographyBuilder
         new Decor("Islet_1", -35f,  -8f, 2.6f),
         new Decor("Islet_0", -22f, -28f, 1.9f),
         new Decor("Islet_2", -40f, -35f, 2.3f),
+        // Extra fill for the 250x250 ocean
+        new Decor("Islet_0", -44f,  42f, 2.1f),
+        new Decor("Islet_1", -26f,  42f, 1.7f),
+        new Decor("Islet_2",  30f,  40f, 2.4f),
+        new Decor("Islet_0",  46f,  40f, 1.8f),
+        new Decor("Islet_1",   0f, -44f, 2.2f),
+        new Decor("Islet_2", -30f, -44f, 1.9f),
+        new Decor("Islet_0",  30f, -44f, 2.0f),
+        new Decor("Islet_1", -46f, -12f, 1.6f),
+        new Decor("Islet_2",  46f,   8f, 2.1f),
     };
 
     static readonly Decor[] Rocks =
@@ -69,6 +82,13 @@ public static class MapGeographyBuilder
         new Decor("Rock_2",  44f, -15f, 1.0f, 230f),
         new Decor("Rock_0",   8f, -38f, 1.2f, 110f),
         new Decor("Rock_1",  -8f, -30f, 0.9f, 350f),
+        // Extra fill for the 250x250 ocean
+        new Decor("Rock_2",  20f, -22f, 1.1f,  25f),
+        new Decor("Rock_0", -25f,  22f, 1.0f, 170f),
+        new Decor("Rock_1",  40f,  22f, 1.2f, 295f),
+        new Decor("Rock_2", -40f, -25f, 0.9f,  60f),
+        new Decor("Rock_0",   5f,  18f, 1.0f, 210f),
+        new Decor("Rock_1",  12f,  38f, 1.1f, 135f),
     };
 
     // Maelstrom ring around (0, 42), radius 6.5, gap to the south.
@@ -112,11 +132,11 @@ public static class MapGeographyBuilder
         // ── Story POIs ──
         var poiParent = new GameObject("POIs").transform;
         poiParent.SetParent(root.transform);
-        CreatePoi(poiParent, "dutchmans_drift", "Dutchman's Drift", new Vector2(-35f, 38f),
+        CreatePoi(poiParent, "dutchmans_drift", "Dutchman's Drift", new Vector2(-35f, 38f) * S,
             "Fog", 4.0f, sortingOrder: 5, triggerScale: 1.0f); // fog renders above ships
-        CreatePoi(poiParent, "gunsmith_wreck", "Gunsmith's Wreck", new Vector2(24f, 12f),
+        CreatePoi(poiParent, "gunsmith_wreck", "Gunsmith's Wreck", new Vector2(24f, 12f) * S,
             "Wreck", 1.8f, sortingOrder: -10, triggerScale: 1.6f);
-        CreatePoi(poiParent, "white_island", "The White Island", new Vector2(42f, -5f),
+        CreatePoi(poiParent, "white_island", "The White Island", new Vector2(42f, -5f) * S,
             "WhiteIsland", 2.6f, sortingOrder: -10, triggerScale: 1.3f);
 
         // ── New port island art for existing locations (if generated) ──
@@ -129,19 +149,79 @@ public static class MapGeographyBuilder
         if (boss != null && boss.GetComponent<SlowSpin>() == null && Resources.Load<Sprite>("Maelstrom") != null)
             boss.AddComponent<SlowSpin>();
 
+        MigrateWorldToCurrentBounds();
+
         var scene = EditorSceneManager.GetActiveScene();
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
         Debug.Log($"✓ Map geography built: {placed} decor objects + 3 POIs. Scene saved.");
     }
 
+    /// <summary>
+    /// Moves pre-existing scene objects (ports, walls, player bounds) onto the
+    /// current GameConstants map size. Safe to run repeatedly.
+    /// </summary>
+    static void MigrateWorldToCurrentBounds()
+    {
+        // Existing locations → scaled positions
+        MoveLocation("Loc_base_port", new Vector2(GameConstants.HOME_PORT_X, GameConstants.HOME_PORT_Y));
+        MoveLocation("Loc_traders_cove", new Vector2(-75f, 62.5f));
+        MoveLocation("Loc_naval_outpost", new Vector2(75f, -50f));
+        MoveLocation("Loc_secret_island", new Vector2(100f, 25f));
+        MoveLocation("Loc_boss_arena", new Vector2(0f, 105f));
+
+        // Player movement clamps
+        var playerGo = GameObject.FindGameObjectWithTag("Player");
+        var pc = playerGo != null ? playerGo.GetComponent<PlayerController>() : null;
+        if (pc != null)
+        {
+            pc.minX = GameConstants.MAP_MIN_X;
+            pc.maxX = GameConstants.MAP_MAX_X;
+            pc.minY = GameConstants.MAP_MIN_Y;
+            pc.maxY = GameConstants.MAP_MAX_Y;
+        }
+
+        // Boundary walls
+        float t = GameConstants.WALL_THICKNESS;
+        float minX = GameConstants.MAP_MIN_X, maxX = GameConstants.MAP_MAX_X;
+        float minY = GameConstants.MAP_MIN_Y, maxY = GameConstants.MAP_MAX_Y;
+        float w = GameConstants.MAP_WIDTH, h = GameConstants.MAP_HEIGHT;
+        MoveWall("Boundary_Top", new Vector3(0, maxY + t / 2, 0), new Vector2(w + t * 2, t));
+        MoveWall("Boundary_Bottom", new Vector3(0, minY - t / 2, 0), new Vector2(w + t * 2, t));
+        MoveWall("Boundary_Left", new Vector3(minX - t / 2, 0, 0), new Vector2(t, h + t * 2));
+        MoveWall("Boundary_Right", new Vector3(maxX + t / 2, 0, 0), new Vector2(t, h + t * 2));
+        Debug.Log("✓ World migrated to current map bounds");
+    }
+
+    static void MoveLocation(string name, Vector2 pos)
+    {
+        var go = GameObject.Find(name);
+        if (go == null) { Debug.LogWarning($"MigrateWorld: {name} not found"); return; }
+        go.transform.position = new Vector3(pos.x, pos.y, 0f);
+        var loc = go.GetComponent<Location>();
+        if (loc != null) loc.worldPosition = pos;
+    }
+
+    static void MoveWall(string name, Vector3 pos, Vector2 size)
+    {
+        var go = GameObject.Find(name);
+        if (go == null) { Debug.LogWarning($"MigrateWorld: {name} not found"); return; }
+        go.transform.position = pos;
+        var sr = go.GetComponent<SpriteRenderer>();
+        if (sr != null) sr.size = size;
+        var col = go.GetComponent<BoxCollider2D>();
+        if (col != null) col.size = size;
+    }
+
     static Decor RingDecor(float angleDeg, int i)
     {
         float rad = angleDeg * Mathf.Deg2Rad;
         string sprite = "Rock_" + (i % 3);
+        // Ring center scales onto the world; the radius stays tight around
+        // the whirlpool, so divide by S to cancel the scale applied in Place.
         return new Decor(sprite,
-            RING_CX + RING_R * Mathf.Cos(rad),
-            RING_CY + RING_R * Mathf.Sin(rad),
+            RING_CX + (RING_R * Mathf.Cos(rad)) / S,
+            RING_CY + (RING_R * Mathf.Sin(rad)) / S,
             1.4f, (i * 47f) % 360f);
     }
 
@@ -156,7 +236,7 @@ public static class MapGeographyBuilder
 
         var go = new GameObject($"{prefix}_{d.x:F0}_{d.y:F0}");
         go.transform.SetParent(parent);
-        go.transform.position = new Vector3(d.x, d.y, 0f);
+        go.transform.position = new Vector3(d.x * S, d.y * S, 0f);
         go.transform.rotation = Quaternion.Euler(0f, 0f, d.rot);
         int terrain = LayerMask.NameToLayer("Terrain");
         if (terrain >= 0) go.layer = terrain; // PlayerController blocks on this layer

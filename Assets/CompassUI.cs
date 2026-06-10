@@ -24,9 +24,9 @@ public class CompassUI : MonoBehaviour
     private Transform playerTransform;
     private float minimapHalfSize;
 
-    // World bounds (matches GameConstants)
-    private const float WORLD_MIN = -50f;
-    private const float WORLD_MAX = 50f;
+    // World bounds
+    private const float WORLD_MIN = GameConstants.MAP_MIN_X;
+    private const float WORLD_MAX = GameConstants.MAP_MAX_X;
     private const float WORLD_SIZE = WORLD_MAX - WORLD_MIN;
 
     // Edge arrow settings

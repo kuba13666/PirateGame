@@ -911,27 +911,27 @@ public class GameSetupEditor : EditorWindow
     {
         // Base port — home harbor with shop (near center-ish, player starts at 0,0)
         CreatePortLocation("base_port", "Safe Harbor",
-            new Vector2(5f, 5f), true, true,
+            new Vector2(GameConstants.HOME_PORT_X, GameConstants.HOME_PORT_Y), true, true,
             "Assets/Resources/Island_Home.png");
 
         // Trader's Cove — second port with shop (north-west)
         CreatePortLocation("traders_cove", "Trader's Cove",
-            new Vector2(-30f, 25f), true, false,
+            new Vector2(-75f, 62.5f), true, false,
             null); // placeholder
 
         // Naval Outpost — third port, no shop (south-east)
         CreatePortLocation("naval_outpost", "Naval Outpost",
-            new Vector2(30f, -20f), false, false,
+            new Vector2(75f, -50f), false, false,
             null); // placeholder
 
         // Secret Island — side quest (far east, hidden)
         CreateIslandLocation("secret_island", "Forgotten Isle",
-            new Vector2(40f, 10f), false,
+            new Vector2(100f, 25f), false,
             "Assets/Resources/island_large.png");
 
         // Boss Arena — final encounter (far north)
         CreateBossArenaLocation("boss_arena", "The Maelstrom",
-            new Vector2(0f, 42f), false);
+            new Vector2(0f, 105f), false);
 
         Debug.Log("✓ All 5 world locations created");
     }

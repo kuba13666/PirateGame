@@ -102,6 +102,11 @@ public class WaveManager : MonoBehaviour
 
     IEnumerator RunWaves()
     {
+        // Wait one frame so QuestManager.Start has activated the first quest
+        // (Start order is undefined — checking immediately raced and missed
+        // the Awakening quest, silently running normal waves instead).
+        yield return null;
+
         // If The Awakening quest is active, spawn an impossible wave first
         if (QuestManager.Instance != null)
         {
@@ -162,43 +167,80 @@ public class WaveManager : MonoBehaviour
         wavesRoutine = StartCoroutine(RunWaves());
     }
 
+    // The Awakening happens in pure open ocean (SE corner), far from any port
+    // or island — the player is meant to be overwhelmed with nowhere to run.
+    static readonly Vector3 AWAKENING_POSITION = new Vector3(110f, -110f, 0f);
+    const float AWAKENING_SPEED_MULT = 1.9f; // monsters nearly match player speed
+    const int AWAKENING_MAX_ALIVE = 120;     // FPS guard; the flood never thins
+
     /// <summary>
-    /// The Awakening: an overwhelming flood of enemies. Player is meant to die.
+    /// The Awakening: an overwhelming, unrelenting flood of enemies in open
+    /// ocean. The player is meant to die — it's the curse-reveal tutorial.
     /// </summary>
     IEnumerator RunAwakeningWave()
     {
-        yield return new WaitForSeconds(1f); // brief calm before the storm
+        // Strand the player in empty ocean, far from every port and island
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
+        {
+            player.transform.position = AWAKENING_POSITION;
+            if (Camera.main != null)
+            {
+                Vector3 cam = AWAKENING_POSITION;
+                cam.z = Camera.main.transform.position.z;
+                Camera.main.transform.position = cam;
+            }
+        }
+
+        yield return new WaitForSeconds(1.5f); // a breath of calm before the storm
 
         if (GameManager.Instance != null && GameManager.Instance.uiManager != null)
-            GameManager.Instance.uiManager.ShowWave(0); // shows "Wave 0" or whatever the UI does
+            GameManager.Instance.uiManager.ShowWave(0);
 
-        // Spawn 30 crabs almost instantly
-        for (int i = 0; i < 30; i++)
+        // Opening salvo: a tight storm of beasts from every side
+        for (int i = 0; i < 25; i++)
         {
-            if (spawner != null) spawner.SpawnEnemyPrefab(spawner.crabEnemyPrefab);
-            yield return new WaitForSeconds(0.1f);
-        }
-
-        // Spawn 20 harpies fast
-        for (int i = 0; i < 20; i++)
-        {
-            if (spawner != null) spawner.SpawnEnemyPrefab(spawner.harpyEnemyPrefab);
-            yield return new WaitForSeconds(0.08f);
-        }
-
-        // Spawn 10 mermaids
-        for (int i = 0; i < 10; i++)
-        {
-            if (spawner != null) spawner.SpawnEnemyPrefab(spawner.mermaidEnemyPrefab);
+            SpawnAwakening(spawner.crabEnemyPrefab);
             yield return new WaitForSeconds(0.06f);
         }
+        for (int i = 0; i < 18; i++)
+        {
+            SpawnAwakening(spawner.harpyEnemyPrefab);
+            yield return new WaitForSeconds(0.05f);
+        }
 
-        // Keep spawning until the player dies
+        // Unrelenting flood until the sea takes you: mixed monsters with
+        // cannon-armed ships joining the hunt.
+        int n = 0;
         while (true)
         {
-            if (spawner != null) spawner.SpawnEnemyPrefab(spawner.harpyEnemyPrefab);
-            yield return new WaitForSeconds(0.15f);
+            if (GameObject.FindGameObjectsWithTag("Enemy").Length < AWAKENING_MAX_ALIVE)
+            {
+                n++;
+                if (n % 10 == 0)
+                    SpawnAwakening(spawner.enemyShipPrefab);
+                else if (n % 3 == 0)
+                    SpawnAwakening(spawner.mermaidEnemyPrefab);
+                else if (n % 2 == 0)
+                    SpawnAwakening(spawner.harpyEnemyPrefab);
+                else
+                    SpawnAwakening(spawner.crabEnemyPrefab);
+            }
+            yield return new WaitForSeconds(0.12f);
         }
+    }
+
+    /// <summary>Spawn an awakening enemy, fast enough that running is hopeless.</summary>
+    void SpawnAwakening(GameObject prefab)
+    {
+        if (spawner == null || prefab == null) return;
+        GameObject enemy = spawner.SpawnEnemyPrefab(prefab);
+        if (enemy == null) return;
+
+        var ec = enemy.GetComponent<EnemyController>();
+        if (ec != null) ec.moveSpeed *= AWAKENING_SPEED_MULT;
+        var ship = enemy.GetComponent<EnemyShipController>();
+        if (ship != null) ship.moveSpeed *= 1.4f;
     }
 
     bool AnyEnemiesAlive()
