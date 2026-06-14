@@ -17,6 +17,15 @@ public class BossHealth : MonoBehaviour
 
     void Awake() { Health = maxHealth; }
 
+    /// <summary>Set max HP and refill — call this after AddComponent so the
+    /// spawner's value isn't clobbered by Awake's default.</summary>
+    public void Init(int max)
+    {
+        maxHealth = max;
+        Health = max;
+        dead = false;
+    }
+
     public void TakeDamage(int dmg)
     {
         if (dead || invulnerable || dmg <= 0) return;

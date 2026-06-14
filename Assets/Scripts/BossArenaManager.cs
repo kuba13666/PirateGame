@@ -42,6 +42,11 @@ public class BossArenaManager : MonoBehaviour
     private Vector3 returnPos;
     private bool transitioning;
 
+    // Boss health bar
+    private GameObject bossBar;
+    private Image bossBarFill;
+    private TMPro.TextMeshProUGUI bossBarName;
+
     void Awake()
     {
         if (Instance == null) Instance = this;
@@ -52,6 +57,7 @@ public class BossArenaManager : MonoBehaviour
     void Start()
     {
         BuildFadeOverlay();
+        BuildBossBar();
         foreach (var a in arenas) BuildArenaWalls(a);
     }
 
@@ -95,6 +101,13 @@ public class BossArenaManager : MonoBehaviour
         foreach (var e in GameObject.FindGameObjectsWithTag("Enemy")) Destroy(e);
         currentBoss = SpawnBoss(currentArena.bossId, arena.center);
 
+        var bhp = currentBoss != null ? currentBoss.GetComponent<BossHealth>() : null;
+        if (bhp != null)
+        {
+            ShowBossBar(DisplayName(currentArena.bossId), bhp.maxHealth);
+            bhp.onHealthChanged += UpdateBossBar;
+        }
+
         yield return Fade(1f, 0f);
         transitioning = false;
     }
@@ -127,6 +140,7 @@ public class BossArenaManager : MonoBehaviour
         InArena = false;
         currentArena = null;
         if (currentBoss != null) Destroy(currentBoss);
+        HideBossBar();
 
         yield return Fade(1f, 0f);
         transitioning = false;
@@ -148,34 +162,154 @@ public class BossArenaManager : MonoBehaviour
         currentArena = null;
         transitioning = false;
         if (currentBoss != null) Destroy(currentBoss);
+        HideBossBar();
         if (fadeOverlay != null) SetAlpha(0f);
+    }
+
+    // ─── BOSS HEALTH BAR ────────────────────────
+
+    void BuildBossBar()
+    {
+        Canvas canvas = FindFirstObjectByType<Canvas>();
+        if (canvas == null) return;
+
+        bossBar = new GameObject("BossBar");
+        bossBar.transform.SetParent(canvas.transform, false);
+        var rt = bossBar.AddComponent<RectTransform>();
+        rt.anchorMin = new Vector2(0.5f, 1f); rt.anchorMax = new Vector2(0.5f, 1f);
+        rt.pivot = new Vector2(0.5f, 1f);
+        rt.anchoredPosition = new Vector2(0f, -12f);
+        rt.sizeDelta = new Vector2(520f, 40f);
+
+        bossBarName = new GameObject("Name").AddComponent<TMPro.TextMeshProUGUI>();
+        bossBarName.transform.SetParent(bossBar.transform, false);
+        bossBarName.fontSize = 20; bossBarName.alignment = TMPro.TextAlignmentOptions.Center;
+        bossBarName.color = new Color(0.95f, 0.9f, 0.8f);
+        var nrt = bossBarName.rectTransform;
+        nrt.anchorMin = new Vector2(0, 1); nrt.anchorMax = new Vector2(1, 1); nrt.pivot = new Vector2(0.5f, 1f);
+        nrt.offsetMin = new Vector2(0, -22); nrt.offsetMax = new Vector2(0, 0);
+
+        var back = new GameObject("BarBack").AddComponent<Image>();
+        back.transform.SetParent(bossBar.transform, false);
+        back.color = new Color(0.1f, 0.05f, 0.05f, 0.9f);
+        var brt = back.rectTransform;
+        brt.anchorMin = new Vector2(0, 0); brt.anchorMax = new Vector2(1, 0); brt.pivot = new Vector2(0.5f, 0f);
+        brt.sizeDelta = new Vector2(0, 14); brt.anchoredPosition = new Vector2(0, 0);
+
+        bossBarFill = new GameObject("BarFill").AddComponent<Image>();
+        bossBarFill.transform.SetParent(back.transform, false);
+        bossBarFill.color = new Color(0.8f, 0.15f, 0.2f);
+        bossBarFill.type = Image.Type.Filled;
+        bossBarFill.fillMethod = Image.FillMethod.Horizontal;
+        bossBarFill.fillOrigin = 0;
+        var frt = bossBarFill.rectTransform;
+        frt.anchorMin = Vector2.zero; frt.anchorMax = Vector2.one;
+        frt.offsetMin = new Vector2(2, 2); frt.offsetMax = new Vector2(-2, -2);
+
+        bossBar.SetActive(false);
+    }
+
+    void ShowBossBar(string name, int max)
+    {
+        if (bossBar == null) return;
+        bossBar.SetActive(true);
+        if (bossBarName != null) bossBarName.text = name;
+        if (bossBarFill != null) bossBarFill.fillAmount = 1f;
+    }
+
+    void UpdateBossBar(int current, int max)
+    {
+        if (bossBarFill != null) bossBarFill.fillAmount = max > 0 ? (float)current / max : 0f;
+    }
+
+    void HideBossBar()
+    {
+        if (bossBar != null) bossBar.SetActive(false);
     }
 
     // ─── BOSS SPAWN (placeholder for Phase D) ───
 
     GameObject SpawnBoss(string bossId, Vector2 center)
     {
+        switch (bossId)
+        {
+            case "flying_dutchman": return SpawnFlyingDutchman(center);
+            default: return SpawnPlaceholder(bossId, center);
+        }
+    }
+
+    GameObject SpawnFlyingDutchman(Vector2 center)
+    {
+        var go = new GameObject("Boss_flying_dutchman");
+        go.transform.position = new Vector3(center.x, center.y + 6f, 0f);
+
+        var sr = go.AddComponent<SpriteRenderer>();
+        Sprite ghost = Resources.Load<Sprite>("Dutchman"); // generated spectral ship, if present
+        if (ghost != null) { sr.sprite = ghost; sr.color = new Color(1f, 1f, 1f, 0.9f); }
+        else { sr.sprite = Resources.Load<Sprite>("Galleon_Top"); sr.color = new Color(0.45f, 0.95f, 0.75f, 0.85f); } // spectral tint fallback
+        sr.sortingOrder = 2;
+        float h = sr.sprite != null ? sr.sprite.bounds.size.y : 1f;
+        float scale = 3.8f / Mathf.Max(0.01f, h);
+        go.transform.localScale = new Vector3(scale, scale, 1f);
+
+        // Kinematic body + trigger: projectiles hit it, and it can ram the player
+        var rb = go.AddComponent<Rigidbody2D>();
+        rb.bodyType = RigidbodyType2D.Kinematic; rb.gravityScale = 0f;
+        var col = go.AddComponent<BoxCollider2D>();
+        col.isTrigger = true;
+        if (sr.sprite != null) { col.size = sr.sprite.bounds.size * 0.7f; col.offset = sr.sprite.bounds.center; }
+
+        var hp = go.AddComponent<BossHealth>();
+        hp.Init(120);
+        hp.onDeath = OnBossDefeated;
+
+        var fd = go.AddComponent<FlyingDutchman>();
+        var spawner = FindFirstObjectByType<EnemySpawner>();
+        if (spawner != null)
+        {
+            if (spawner.enemyShipPrefab != null)
+            {
+                var esc = spawner.enemyShipPrefab.GetComponent<EnemyShipController>();
+                if (esc != null) fd.projectilePrefab = esc.projectilePrefab;
+            }
+            fd.addPrefabs = new[] { spawner.crabEnemyPrefab, spawner.harpyEnemyPrefab, spawner.mermaidEnemyPrefab };
+        }
+        return go;
+    }
+
+    GameObject SpawnPlaceholder(string bossId, Vector2 center)
+    {
         var go = new GameObject("Boss_" + bossId);
         go.transform.position = new Vector3(center.x, center.y + 4f, 0f);
 
         var sr = go.AddComponent<SpriteRenderer>();
-        Sprite sprite = Resources.Load<Sprite>("Galleon_Top"); // placeholder hull
+        Sprite sprite = Resources.Load<Sprite>("Galleon_Top");
         sr.sprite = sprite;
-        sr.color = new Color(0.45f, 0.55f, 0.6f); // ghostly grey-blue
+        sr.color = new Color(0.45f, 0.55f, 0.6f);
         sr.sortingOrder = 2;
         float h = sprite != null ? sprite.bounds.size.y : 1f;
-        float scale = 3.5f / Mathf.Max(0.01f, h); // ~3.5 wu tall, boss-sized
-        go.transform.localScale = new Vector3(scale, scale, 1f);
+        go.transform.localScale = Vector3.one * (3.5f / Mathf.Max(0.01f, h));
 
         var col = go.AddComponent<BoxCollider2D>();
         if (sprite != null) { col.size = sprite.bounds.size * 0.7f; col.offset = sprite.bounds.center; }
 
         var hp = go.AddComponent<BossHealth>();
-        hp.maxHealth = 60;
+        hp.Init(60);
         hp.onDeath = OnBossDefeated;
 
         go.AddComponent<IdleSway>();
         return go;
+    }
+
+    static string DisplayName(string bossId)
+    {
+        switch (bossId)
+        {
+            case "flying_dutchman": return "The Flying Dutchman";
+            case "mocha_dick": return "Mocha Dick, the White Island";
+            case "kraken": return "The Kraken";
+            default: return bossId;
+        }
     }
 
     // ─── HELPERS ────────────────────────────────
