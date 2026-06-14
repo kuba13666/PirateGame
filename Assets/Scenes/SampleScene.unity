@@ -944,7 +944,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WorldMapUI
   worldCenter: {x: 0, y: 0}
   chartAnchor: {x: 0.5, y: 0.47}
-  uvPerWorldUnit: {x: 0.0013, y: 0.0015}
+  uvPerWorldUnit: {x: 0.0042, y: 0.004}
+  padding: 36
+  topPadding: 56
 --- !u!4 &62035574
 Transform:
   m_ObjectHideFlags: 0
@@ -2474,9 +2476,9 @@ RectTransform:
   - {fileID: 38831063}
   m_Father: {fileID: 2101033055}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 231, y: -20}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 58, y: 40}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &228272617
@@ -3622,9 +3624,9 @@ RectTransform:
   - {fileID: 695975137}
   m_Father: {fileID: 2101033055}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 33, y: -20}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 58, y: 40}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &562698582
@@ -8908,9 +8910,9 @@ RectTransform:
   - {fileID: 57671772}
   m_Father: {fileID: 2101033055}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 99, y: -20}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 58, y: 40}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1205277261
@@ -11429,9 +11431,9 @@ RectTransform:
   - {fileID: 565489209}
   m_Father: {fileID: 2101033055}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 165, y: -20}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 58, y: 40}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1488418722

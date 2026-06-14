@@ -13,9 +13,14 @@ public class WorldMapUI : MonoBehaviour
     [Header("Marker calibration (tune so home sits under the marker)")]
     public Vector2 worldCenter = Vector2.zero;            // world point...
     public Vector2 chartAnchor = new Vector2(0.5f, 0.47f); // ...maps to this UV on the chart
-    public Vector2 uvPerWorldUnit = new Vector2(0.00130f, 0.00150f);
+    public Vector2 uvPerWorldUnit = new Vector2(0.00420f, 0.00400f);
+
+    [Tooltip("Screen padding around the fitted chart (px)")]
+    public float padding = 36f;
+    public float topPadding = 56f;
 
     private GameObject panel;
+    private RectTransform panelRect;
     private RectTransform chartRect;
     private RectTransform marker;
     private Transform player;
@@ -58,6 +63,7 @@ public class WorldMapUI : MonoBehaviour
         if (panel != null) panel.SetActive(value);
         if (value)
         {
+            FitChart();
             savedTimeScale = Time.timeScale;
             Time.timeScale = 0f;
         }
@@ -66,6 +72,24 @@ public class WorldMapUI : MonoBehaviour
             // Don't stomp a port/dialogue pause
             if (PortZone.GetActivePort() == null) Time.timeScale = savedTimeScale == 0f ? 1f : savedTimeScale;
         }
+    }
+
+    /// <summary>Size the chart to fit inside the screen (letterboxed), so the
+    /// whole map is visible and the marker maps against the real displayed size.</summary>
+    void FitChart()
+    {
+        if (chartRect == null || panelRect == null) return;
+        Sprite cs = (chartRect.GetComponent<Image>() != null) ? chartRect.GetComponent<Image>().sprite : null;
+        float aspect = cs != null ? cs.rect.width / cs.rect.height : 1.83f;
+
+        Vector2 avail = panelRect.rect.size;
+        avail.x -= padding * 2f;
+        avail.y -= padding * 2f + topPadding;
+
+        float w, h;
+        if (avail.x / avail.y > aspect) { h = avail.y; w = h * aspect; } // fit by height
+        else { w = avail.x; h = w / aspect; }                            // fit by width
+        chartRect.sizeDelta = new Vector2(w, h);
     }
 
     void BuildUI()
@@ -77,9 +101,9 @@ public class WorldMapUI : MonoBehaviour
         panel.transform.SetParent(canvas.transform, false);
         var pImg = panel.AddComponent<Image>();
         pImg.color = new Color(0.04f, 0.05f, 0.08f, 0.96f);
-        var pRt = pImg.rectTransform;
-        pRt.anchorMin = Vector2.zero; pRt.anchorMax = Vector2.one;
-        pRt.offsetMin = Vector2.zero; pRt.offsetMax = Vector2.zero;
+        panelRect = pImg.rectTransform;
+        panelRect.anchorMin = Vector2.zero; panelRect.anchorMax = Vector2.one;
+        panelRect.offsetMin = Vector2.zero; panelRect.offsetMax = Vector2.zero;
 
         // Chart image, fit to screen preserving aspect
         var chartGo = new GameObject("Chart");
@@ -92,10 +116,7 @@ public class WorldMapUI : MonoBehaviour
         chartRect.anchorMin = new Vector2(0.5f, 0.5f);
         chartRect.anchorMax = new Vector2(0.5f, 0.5f);
         chartRect.pivot = new Vector2(0.5f, 0.5f);
-        Sprite cs = chartImg.sprite;
-        float aspect = cs != null ? cs.rect.width / cs.rect.height : 1.83f;
-        float h = 620f, w = h * aspect; // fits a 16:9 reference height comfortably
-        chartRect.sizeDelta = new Vector2(w, h);
+        chartRect.anchoredPosition = new Vector2(0f, -topPadding * 0.5f); // nudge below the title
 
         // "You are here" marker (gold diamond)
         var mGo = new GameObject("Marker");
