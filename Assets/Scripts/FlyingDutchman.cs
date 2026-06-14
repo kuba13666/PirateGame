@@ -24,8 +24,10 @@ public class FlyingDutchman : MonoBehaviour
     private SpriteRenderer sr;
     private Color baseColor;
     private float orbitAngle, fireTimer, summonTimer, contactCd, flashTimer, repositionTimer;
-    private float lockTimer, fadeCd;
-    private bool fading;
+    private float lockTimer, fadeCd, broadsideTimer, wispTimer;
+    private bool fading, squallActive;
+    private GameObject stormOverlay;
+    private Vector2 arenaCenter;
     private int lastPhase = 1;
 
     void Start()
@@ -39,6 +41,9 @@ public class FlyingDutchman : MonoBehaviour
         orbitAngle = Random.Range(0f, 360f);
         fireTimer = 1.5f;
         summonTimer = 4f;
+        broadsideTimer = 6f;
+        wispTimer = 8f;
+        arenaCenter = transform.position;
         if (hp != null) hp.onHealthChanged += (c, m) => flashTimer = 0.12f; // hit flash
     }
 
@@ -100,12 +105,21 @@ public class FlyingDutchman : MonoBehaviour
             fireTimer = phase == 3 ? 0.85f : phase == 2 ? 1.2f : 1.7f;
         }
 
-        // Ghost crew (phase 2+)
+        // Ghost crew + ghost-lights + broadsides (phase 2+)
         if (phase >= 2)
         {
             summonTimer -= Time.deltaTime;
             if (summonTimer <= 0f) { SummonAdds(phase == 3 ? 3 : 2); summonTimer = 6.5f; }
+
+            broadsideTimer -= Time.deltaTime;
+            if (broadsideTimer <= 0f) { SpectralBroadside(); broadsideTimer = phase == 3 ? 3.8f : 6f; }
+
+            wispTimer -= Time.deltaTime;
+            if (wispTimer <= 0f) { SpawnWisps(phase == 3 ? 3 : 2); wispTimer = 8f; }
         }
+
+        // Doomsday Squall begins once, in phase 3
+        if (phase == 3 && !squallActive) StartSquall();
 
         // Hit flash (bright) over the ghostly alpha pulse
         if (sr != null)
@@ -161,6 +175,80 @@ public class FlyingDutchman : MonoBehaviour
     {
         if (sr == null) return;
         Color c = baseColor; c.a = a; sr.color = c;
+    }
+
+    /// <summary>A full broadside — a wide wall of spectral cannonfire toward the player.</summary>
+    void SpectralBroadside()
+    {
+        if (projectilePrefab == null || player == null) return;
+        Vector2 toP = ((Vector2)player.position - (Vector2)transform.position).normalized;
+        const int shots = 7;
+        for (int i = 0; i < shots; i++)
+        {
+            float spread = (i - (shots - 1) * 0.5f) * 11f * Mathf.Deg2Rad;
+            Vector2 d = Rotate(toP, spread);
+            var proj = Instantiate(projectilePrefab, transform.position + (Vector3)(d * 1.6f), Quaternion.identity);
+            var ep = proj.GetComponent<EnemyProjectile>();
+            if (ep != null) ep.SetDirection(d);
+        }
+    }
+
+    /// <summary>Cast luring ghost-lights that slowly home toward the player.</summary>
+    void SpawnWisps(int n)
+    {
+        Sprite flame = Resources.Load<Sprite>("Flame");
+        for (int i = 0; i < n; i++)
+        {
+            var go = new GameObject("GhostWisp");
+            go.transform.position = (Vector3)((Vector2)transform.position + Random.insideUnitCircle * 2f);
+            var wsr = go.AddComponent<SpriteRenderer>();
+            wsr.sprite = flame;
+            wsr.color = new Color(0.45f, 1f, 0.65f, 0.8f);
+            wsr.sortingOrder = 6;
+            if (flame != null) { float s = 0.9f / Mathf.Max(0.01f, flame.bounds.size.y); go.transform.localScale = new Vector3(s, s, 1f); }
+            var wrb = go.AddComponent<Rigidbody2D>(); wrb.bodyType = RigidbodyType2D.Kinematic; wrb.gravityScale = 0f;
+            var wcol = go.AddComponent<CircleCollider2D>(); wcol.isTrigger = true;
+            wcol.radius = flame != null ? flame.bounds.size.y * 0.28f : 0.3f;
+            var w = go.AddComponent<GhostWisp>(); w.target = player;
+        }
+    }
+
+    /// <summary>Doomsday Squall — the storm that damned van der Decken: the
+    /// arena darkens and the cursed ship drags the player toward it.</summary>
+    void StartSquall()
+    {
+        squallActive = true;
+        var go = new GameObject("DoomsdaySquall");
+        go.transform.position = new Vector3(arenaCenter.x, arenaCenter.y, 0f);
+        var ssr = go.AddComponent<SpriteRenderer>();
+        var tex = new Texture2D(1, 1); tex.SetPixel(0, 0, Color.white); tex.Apply();
+        ssr.sprite = Sprite.Create(tex, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f), 1f);
+        ssr.color = new Color(0.05f, 0.07f, 0.13f, 0f);
+        ssr.sortingOrder = 8;
+        go.transform.localScale = new Vector3(80f, 80f, 1f);
+        stormOverlay = go;
+        StartCoroutine(FadeStorm());
+    }
+
+    IEnumerator FadeStorm()
+    {
+        var ssr = stormOverlay != null ? stormOverlay.GetComponent<SpriteRenderer>() : null;
+        float t = 0f;
+        while (t < 1f && ssr != null) { t += Time.deltaTime; Color c = ssr.color; c.a = Mathf.Lerp(0f, 0.34f, t); ssr.color = c; yield return null; }
+    }
+
+    // Storm pull runs in LateUpdate so it lands after the player's own movement.
+    void LateUpdate()
+    {
+        if (!squallActive || player == null) return;
+        Vector2 d = (Vector2)transform.position - (Vector2)player.position;
+        if (d.magnitude > 2.5f)
+            player.transform.position += (Vector3)(d.normalized * 0.6f * Time.deltaTime);
+    }
+
+    void OnDestroy()
+    {
+        if (stormOverlay != null) Destroy(stormOverlay);
     }
 
     void FireVolley(int shots)
