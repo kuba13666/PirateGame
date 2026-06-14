@@ -4,12 +4,31 @@
 
 ---
 
+## 0. Game Structure (where Biome 1 sits)
+
+The game spans **multiple biomes** (cursed seas), each a self-contained arc:
+its own waters, two minibosses that recruit crew/grant power, and a **guardian
+boss** at a gateway. Defeating a biome's guardian does **not** end the curse —
+it opens the passage to the **next, deeper sea**.
+
+**Breaking the curse — "Break the Loop" — is the final quest of the FINAL
+biome, not Biome 1.** Biome 1, "The Cursed Shallows," is only the first sea.
+Its finale (the Kraken at the Maelstrom) is a cliffhanger: the whirlpool is a
+door, and it swallows you down into Biome 2.
+
+*(The full curse-break finale dialogue — "the loop is broken, the sea is
+calm" — is reserved for the last biome and intentionally NOT used here.)*
+
+---
+
 ## 1. Plot Summary — The Curse of Davy Jones
 
 You are **Davy Jones**, cursed to die at sea and be reborn, endlessly. The sea
-spits you back every time you fall. Guided by the **Voice of the Deep**, you
-learn the only way out: assemble a crew of legends, sail into **The
-Maelstrom**, and destroy the source of the curse — the **Kraken**.
+spits you back every time you fall. The **Voice of the Deep** promises a way
+out: assemble a crew of legends and conquer **The Maelstrom**. But the
+Maelstrom is no exit — it is a passage, guarded by the **Kraken**, that opens
+onto deeper, stranger seas. Biome 1 is only the first of them; the true source
+of the curse lies far below, biomes away.
 
 Two other cursed legends haunt these waters, mirrors of your own damnation:
 
@@ -107,13 +126,17 @@ Linear main chain. One quest active at a time (current QuestManager model).
     captain. Let's go kill something bigger."
 - **Reward:** **GUNNER joins** — fire rate/damage buff.
 
-### Q5 — Break the Loop *(exists, updated)*
+### Q5 — Into the Maelstrom *(Biome 1 finale — guardian boss, NOT the curse-break)*
+- **Quest id:** `into_the_maelstrom` (was "break_the_loop").
 - **Requires:** Q3 + Q4 complete (pilot + gunner aboard).
 - **Objective:** TravelTo `boss_arena` (Maelstrom entrance, N) → arena →
   DefeatBoss `kraken`.
 - **Beat:** Van der Decken steers through the storm wall (the rock-ring gap
-  visually "opens" only now). Kraken fight. Curse breaks; finale dialogue
-  (already written) plays.
+  "opens" only now). The Kraken — the Maelstrom's **guardian** — rises and is
+  slain. But killing it does **not** free you: the whirlpool yawns wider and
+  drags the ship **down into Biome 2**. The curse holds. Cliffhanger.
+- **Sets:** `GameManager.biome1Complete = true`. (No Biome 2 content yet — the
+  chain ends here as "to be continued".)
 
 **Side quest (existing, unchanged):** Forgotten Isle treasure hook stays
 available as optional content.
@@ -197,10 +220,36 @@ Giant albino sperm whale, sickly green "infection" growths (corruption).
 - **Phase 3 (≤33%) — Frenzy:** faster charges, tail-slam shockwave rings,
   more parasites. Only damageable while surfaced.
 
-### 4.3 The Kraken (Q5 final boss) — *separate milestone*
+### 4.3 The Kraken (Q5 — Biome 1 **guardian** boss) — *separate milestone*
+The leviathan coiled at the Maelstrom's mouth. It is **not** the source of the
+curse — it is the gate. Slaying it opens the passage down into Biome 2.
 Multi-part preferred: central body + independent tentacles with own HP that
 attack/grab; body vulnerable only after tentacles are down. Detailed design
 deferred to its own phase.
+
+---
+
+## 7. Implementation Status
+
+- **Phase A — Map geography:** ✅ done. PixelLab asset pack, 250×250 world
+  (scaled 2.5×), islets/rock belts/Maelstrom ring, 3 story POIs, mist border,
+  port/island art, minimap terrain. Islands/rocks block the ship (Terrain
+  layer).
+- **Phase B — Spawn zones:** ✅ done. `ZoneSpawnManager` (Home / Trade Route /
+  Hunting Grounds / Navy / Deep / Open), ahead-of-heading off-screen spawning,
+  threat-aware density caps. The Awakening is its own off-map onslaught.
+- **Phase C — Quest chain anchored to map:** ✅ done. `DefeatBoss` objective +
+  `ReportBossDefeated`; Q2 anchored to the wreck; Q3 "The Ghost Light"
+  (Dutchman → Pilot, speed ×1.5); Q4 "The White Island" (Mocha Dick → Israel
+  Hands, fire ×0.7); Q5 "Into the Maelstrom" (Kraken, cliffhanger). Crew buffs
+  persist across re-equips (GameManager multipliers). Gold quest marker on
+  minimap/edge arrows. Progressive location reveals.
+- **Phase D — Boss arena framework:** ⏳ pending (§4 arena architecture).
+- **Phase E — The two minibosses:** ⏳ pending (§4.1 Dutchman, §4.2 Mocha Dick).
+- **Phase F — Kraken finale + Maelstrom gate open:** ⏳ pending (§4.3).
+
+Final quest ids (as built): `the_awakening` → `set_sail` → `rescue_gunsmith`
+→ `ghost_light` → `white_island_hunt` → `into_the_maelstrom`.
 
 ---
 

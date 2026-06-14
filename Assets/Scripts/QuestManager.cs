@@ -227,12 +227,15 @@ public class QuestManager : MonoBehaviour
             }
         };
 
-        // Q5 — Break the Loop: boss fight
+        // Q5 — Into the Maelstrom: Biome 1 guardian boss (Kraken). NOTE: this
+        // does NOT break the curse — that is the finale of the FINAL biome.
+        // The Maelstrom is a passage; defeating its guardian opens the way
+        // DOWN into the next cursed sea (Biome 2).
         var q5 = new Quest
         {
-            id = "break_the_loop",
-            title = "Break the Loop",
-            description = "Your crew of legends is assembled. Van der Decken can steer through the storm wall. Sail to The Maelstrom.",
+            id = "into_the_maelstrom",
+            title = "Into the Maelstrom",
+            description = "Your crew of legends is assembled. Van der Decken can steer through the storm wall. Sail to The Maelstrom and face its guardian.",
             questType = Quest.QuestType.Main,
             prerequisiteQuestId = "white_island_hunt",
             objectives = new List<QuestObjective>
@@ -256,20 +259,21 @@ public class QuestManager : MonoBehaviour
             startDialogue = new List<DialogueLine>
             {
                 new DialogueLine("Voice of the Deep", "You've gathered legends. You've died and returned more times than any mortal could."),
-                new DialogueLine("Voice of the Deep", "The Maelstrom awaits. The source of your curse dwells within."),
+                new DialogueLine("Voice of the Deep", "The Maelstrom awaits — and a leviathan coils at its mouth. Break past the Kraken, and the way opens."),
                 new DialogueLine("Van der Decken", "Three hundred years of storms, captain. This one is just louder. I'll hold the wheel."),
-                new DialogueLine("Israel Hands", "All cannons loaded. Let's break this curse."),
+                new DialogueLine("Israel Hands", "All cannons loaded. Let's carve a path through that thing."),
                 new DialogueLine("Gunsmith", "Give 'em hell, Jones.")
             },
+            // Cliffhanger, NOT the curse-break — that is the final biome's finale.
             completeDialogue = new List<DialogueLine>
             {
-                new DialogueLine("Voice of the Deep", "...It's done."),
-                new DialogueLine("Voice of the Deep", "The loop is broken. The curse lifts."),
-                new DialogueLine("Davy Jones", "I'm... free?"),
-                new DialogueLine("Van der Decken", "Captain! Look — the sea is calm. For both of us."),
-                new DialogueLine("Israel Hands", "We did it. We actually did it!"),
-                new DialogueLine("Voice of the Deep", "The seas will remember Davy Jones. Not as a curse — but as a legend."),
-                new DialogueLine("Voice of the Deep", "Sail on, captain. The ocean is finally yours.")
+                new DialogueLine("Israel Hands", "It's dead! The Kraken's DEAD — captain, we did it!"),
+                new DialogueLine("Van der Decken", "...Then why does the sea still pull at us?"),
+                new DialogueLine("Voice of the Deep", "The Kraken was a gatekeeper. Did you think one beast could hold a curse this old?"),
+                new DialogueLine("Voice of the Deep", "The Maelstrom is no exit, Davy Jones. It is a door."),
+                new DialogueLine("Davy Jones", "The wheel — she won't answer! We're going down!"),
+                new DialogueLine("Voice of the Deep", "Down into deeper waters. Sail on, captain. Worse things than the Kraken wait below."),
+                new DialogueLine("Voice of the Deep", "*The whirlpool swallows the ship whole...*")
             }
         };
 
@@ -492,8 +496,11 @@ public class QuestManager : MonoBehaviour
                     c.fireRate *= 0.7f; // apply to currently mounted cannons
                 Debug.Log("Reward: Israel Hands on the guns — fire rate +43%.");
                 break;
-            case "break_the_loop":
-                Debug.Log("The curse is broken. Davy Jones is free.");
+            case "into_the_maelstrom":
+                // Biome 1 cleared — the Maelstrom opens to Biome 2.
+                // (Curse remains; "Break the Loop" is the final biome's finale.)
+                gm.biome1Complete = true;
+                Debug.Log("The Kraken falls — the Maelstrom drags you deeper. (Biome 2 to come.)");
                 break;
         }
     }

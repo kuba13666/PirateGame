@@ -53,6 +53,7 @@ public class GameManager : MonoBehaviour
     [Header("Death Tracking")]
     public int deathCount = 0;
     public bool hasAwakened = false; // true after first death intro
+    public bool biome1Complete = false; // Kraken defeated, Maelstrom passage opened
 
     void Awake()
     {
