@@ -24,6 +24,9 @@ public class ZoneSpawnManager : MonoBehaviour
     private const float CLEANUP_DIST = 45f;    // outrun enemies beyond this get despawned
     private const float EVALUATE_EVERY = 0.5f;
 
+    /// <summary>Dev toggle (DebugControls, press P): when true, no enemies spawn.</summary>
+    public static bool SpawningDisabled = false;
+
     private EnemySpawner spawner;
     private Transform player;
     private readonly List<Zone> zones = new List<Zone>();
@@ -100,6 +103,7 @@ public class ZoneSpawnManager : MonoBehaviour
     void Update()
     {
         if (player == null || spawner == null) return;
+        if (SpawningDisabled) return;                     // dev peace mode (press P)
         if (Time.timeScale == 0f) return;                 // port / dialogue pause
         if (!spawner.enabled) return;                     // port disables spawning
         if (IsAwakeningActive()) return;                  // WaveManager owns the onslaught

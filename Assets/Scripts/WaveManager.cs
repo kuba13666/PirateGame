@@ -291,6 +291,7 @@ public class WaveManager : MonoBehaviour
     void SpawnAwakening(GameObject prefab, Vector3? position)
     {
         if (spawner == null || prefab == null) return;
+        if (ZoneSpawnManager.SpawningDisabled) return; // dev peace mode (press P)
         GameObject enemy = position.HasValue
             ? spawner.SpawnEnemyPrefabAt(prefab, position.Value)
             : spawner.SpawnEnemyPrefab(prefab);
