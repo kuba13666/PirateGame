@@ -15,9 +15,13 @@ public class WorldMapUI : MonoBehaviour
     public Vector2 chartAnchor = new Vector2(0.5f, 0.47f); // ...maps to this UV on the chart
     public Vector2 uvPerWorldUnit = new Vector2(0.00420f, 0.00400f);
 
-    [Tooltip("Screen padding around the fitted chart (px)")]
-    public float padding = 36f;
-    public float topPadding = 56f;
+    [Header("Zoom: the playable region fills the screen; the rest of the chart bleeds off")]
+    [Tooltip("UV centre of the sailable region on the chart")]
+    public Vector2 playableCenterUV = new Vector2(0.48f, 0.51f);
+    [Tooltip("UV extent of the sailable region (Trader's Cove..White Island, Outpost..Maelstrom)")]
+    public Vector2 playableSpanUV = new Vector2(0.90f, 0.82f);
+    [Tooltip("Fraction of the screen the playable region fills (rest shows the world beyond)")]
+    public float fillFraction = 0.92f;
 
     private GameObject panel;
     private RectTransform panelRect;
@@ -74,22 +78,36 @@ public class WorldMapUI : MonoBehaviour
         }
     }
 
-    /// <summary>Size the chart to fit inside the screen (letterboxed), so the
-    /// whole map is visible and the marker maps against the real displayed size.</summary>
+    /// <summary>Zoom the chart so the sailable region fills (fillFraction of)
+    /// the screen, centred on it; the decorative Indies bleed off the edges
+    /// (clipped by the panel mask). The marker maps against this scaled size.</summary>
     void FitChart()
     {
         if (chartRect == null || panelRect == null) return;
-        Sprite cs = (chartRect.GetComponent<Image>() != null) ? chartRect.GetComponent<Image>().sprite : null;
+        Image img = chartRect.GetComponent<Image>();
+        Sprite cs = img != null ? img.sprite : null;
         float aspect = cs != null ? cs.rect.width / cs.rect.height : 1.83f;
 
         Vector2 avail = panelRect.rect.size;
-        avail.x -= padding * 2f;
-        avail.y -= padding * 2f + topPadding;
 
-        float w, h;
-        if (avail.x / avail.y > aspect) { h = avail.y; w = h * aspect; } // fit by height
-        else { w = avail.x; h = w / aspect; }                            // fit by width
+        // Size so the playable span fills fillFraction of the screen width...
+        float w = avail.x * fillFraction / Mathf.Max(0.01f, playableSpanUV.x);
+        float h = w / aspect;
+        // ...but don't let the playable span overflow vertically
+        if (playableSpanUV.y * h > avail.y * fillFraction)
+        {
+            h = avail.y * fillFraction / Mathf.Max(0.01f, playableSpanUV.y);
+            w = h * aspect;
+        }
+        // Cover the screen fully (no dark bars) — the frame bleeds off the edges
+        if (h < avail.y) { float k = avail.y / h; h = avail.y; w *= k; }
+        if (w < avail.x) { float k = avail.x / w; w = avail.x; h *= k; }
         chartRect.sizeDelta = new Vector2(w, h);
+
+        // Offset so the playable centre sits at screen centre
+        chartRect.anchoredPosition = new Vector2(
+            -(playableCenterUV.x - 0.5f) * w,
+            -(playableCenterUV.y - 0.5f) * h);
     }
 
     void BuildUI()
@@ -104,6 +122,7 @@ public class WorldMapUI : MonoBehaviour
         panelRect = pImg.rectTransform;
         panelRect.anchorMin = Vector2.zero; panelRect.anchorMax = Vector2.one;
         panelRect.offsetMin = Vector2.zero; panelRect.offsetMax = Vector2.zero;
+        panel.AddComponent<RectMask2D>(); // clip the oversized chart to the screen
 
         // Chart image, fit to screen preserving aspect
         var chartGo = new GameObject("Chart");
@@ -116,7 +135,6 @@ public class WorldMapUI : MonoBehaviour
         chartRect.anchorMin = new Vector2(0.5f, 0.5f);
         chartRect.anchorMax = new Vector2(0.5f, 0.5f);
         chartRect.pivot = new Vector2(0.5f, 0.5f);
-        chartRect.anchoredPosition = new Vector2(0f, -topPadding * 0.5f); // nudge below the title
 
         // "You are here" marker (gold diamond)
         var mGo = new GameObject("Marker");
