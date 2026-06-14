@@ -257,10 +257,10 @@ public class BossArenaManager : MonoBehaviour
         rb.bodyType = RigidbodyType2D.Kinematic; rb.gravityScale = 0f;
         var col = go.AddComponent<BoxCollider2D>();
         col.isTrigger = true;
-        if (sr.sprite != null) { col.size = sr.sprite.bounds.size * 0.7f; col.offset = sr.sprite.bounds.center; }
+        if (sr.sprite != null) { col.size = sr.sprite.bounds.size * 0.85f; col.offset = sr.sprite.bounds.center; }
 
         var hp = go.AddComponent<BossHealth>();
-        hp.Init(120);
+        hp.Init(45);
         hp.onDeath = OnBossDefeated;
 
         var fd = go.AddComponent<FlyingDutchman>();

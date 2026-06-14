@@ -18,15 +18,17 @@ public class FlyingDutchman : MonoBehaviour
     public float moveSpeed = 2.4f;
 
     private BossHealth hp;
+    private Rigidbody2D rb;
     private Transform player;
     private SpriteRenderer sr;
     private Color baseColor;
-    private float orbitAngle, fireTimer, summonTimer, contactCd;
+    private float orbitAngle, fireTimer, summonTimer, contactCd, flashTimer;
     private int lastPhase = 1;
 
     void Start()
     {
         hp = GetComponent<BossHealth>();
+        rb = GetComponent<Rigidbody2D>();
         var p = GameObject.FindGameObjectWithTag("Player");
         if (p != null) player = p.transform;
         sr = GetComponent<SpriteRenderer>();
@@ -34,6 +36,7 @@ public class FlyingDutchman : MonoBehaviour
         orbitAngle = Random.Range(0f, 360f);
         fireTimer = 1.5f;
         summonTimer = 4f;
+        if (hp != null) hp.onHealthChanged += (c, m) => flashTimer = 0.12f; // hit flash
     }
 
     int Phase()
@@ -50,20 +53,25 @@ public class FlyingDutchman : MonoBehaviour
 
         float speed = phase == 3 ? moveSpeed * 1.7f : moveSpeed;
 
+        Vector2 cur = rb != null ? rb.position : (Vector2)transform.position;
+        Vector2 newPos;
         if (phase < 3)
         {
             // Circle the player, presenting a broadside
             orbitAngle += 34f * Time.deltaTime;
             Vector2 off = new Vector2(Mathf.Cos(orbitAngle * Mathf.Deg2Rad), Mathf.Sin(orbitAngle * Mathf.Deg2Rad)) * orbitRadius;
-            Vector3 target = (Vector3)((Vector2)player.position + off);
-            transform.position = Vector3.MoveTowards(transform.position, target, speed * Time.deltaTime);
+            Vector2 target = (Vector2)player.position + off;
+            newPos = Vector2.MoveTowards(cur, target, speed * Time.deltaTime);
         }
         else
         {
             // Doomsday: ram the player
-            Vector2 dir = ((Vector2)player.position - (Vector2)transform.position).normalized;
-            transform.position += (Vector3)(dir * speed * Time.deltaTime);
+            Vector2 dir = ((Vector2)player.position - cur).normalized;
+            newPos = cur + dir * speed * Time.deltaTime;
         }
+        // Move via the kinematic body so trigger collisions stay reliable
+        if (rb != null) rb.MovePosition(newPos);
+        else transform.position = newPos;
 
         // Volleys
         fireTimer -= Time.deltaTime;
@@ -80,12 +88,20 @@ public class FlyingDutchman : MonoBehaviour
             if (summonTimer <= 0f) { SummonAdds(phase == 3 ? 3 : 2); summonTimer = 6.5f; }
         }
 
-        // Ghostly alpha pulse
+        // Hit flash (bright) over the ghostly alpha pulse
         if (sr != null)
         {
-            Color c = baseColor;
-            c.a = baseColor.a * (0.78f + 0.18f * Mathf.Sin(Time.time * 3.2f));
-            sr.color = c;
+            if (flashTimer > 0f)
+            {
+                flashTimer -= Time.deltaTime;
+                sr.color = Color.white;
+            }
+            else
+            {
+                Color c = baseColor;
+                c.a = baseColor.a * (0.78f + 0.18f * Mathf.Sin(Time.time * 3.2f));
+                sr.color = c;
+            }
         }
 
         if (contactCd > 0f) contactCd -= Time.deltaTime;
