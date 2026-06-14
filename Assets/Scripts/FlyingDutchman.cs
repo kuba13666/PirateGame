@@ -14,15 +14,15 @@ public class FlyingDutchman : MonoBehaviour
     [HideInInspector] public GameObject projectilePrefab; // EnemyProjectile
     [HideInInspector] public GameObject[] addPrefabs;     // crab/harpy/mermaid
 
-    public float orbitRadius = 9f;
-    public float moveSpeed = 2.4f;
+    public float orbitRadius = 6.5f;
+    public float moveSpeed = 2.2f;
 
     private BossHealth hp;
     private Rigidbody2D rb;
     private Transform player;
     private SpriteRenderer sr;
     private Color baseColor;
-    private float orbitAngle, fireTimer, summonTimer, contactCd, flashTimer;
+    private float orbitAngle, fireTimer, summonTimer, contactCd, flashTimer, repositionTimer;
     private int lastPhase = 1;
 
     void Start()
@@ -57,8 +57,14 @@ public class FlyingDutchman : MonoBehaviour
         Vector2 newPos;
         if (phase < 3)
         {
-            // Circle the player, presenting a broadside
-            orbitAngle += 34f * Time.deltaTime;
+            // Hold a broadside bearing off the player (tracking them so it stays
+            // a hittable target), and jump to a new bearing every few seconds.
+            repositionTimer -= Time.deltaTime;
+            if (repositionTimer <= 0f)
+            {
+                orbitAngle += Random.Range(80f, 150f);
+                repositionTimer = phase == 2 ? 2.3f : 3.2f;
+            }
             Vector2 off = new Vector2(Mathf.Cos(orbitAngle * Mathf.Deg2Rad), Mathf.Sin(orbitAngle * Mathf.Deg2Rad)) * orbitRadius;
             Vector2 target = (Vector2)player.position + off;
             newPos = Vector2.MoveTowards(cur, target, speed * Time.deltaTime);
