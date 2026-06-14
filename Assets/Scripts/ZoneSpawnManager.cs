@@ -64,7 +64,7 @@ public class ZoneSpawnManager : MonoBehaviour
             interval = 0.15f,
             maxNearby = 80,
             mix = new[] { 0.2f, 0.3f, 0.3f, 0.2f }, // everything, dense
-            contains = pos => pos.y > 75f
+            contains = pos => pos.y > 45f // stormy north (Maelstrom + Dutchman's Drift)
         });
         zones.Add(new Zone
         {
@@ -72,7 +72,7 @@ public class ZoneSpawnManager : MonoBehaviour
             interval = 0.25f,
             maxNearby = 50,
             mix = new[] { 0.15f, 0.2f, 0.15f, 0.5f }, // ship-heavy
-            contains = pos => pos.x > 25f && pos.y < -25f
+            contains = pos => pos.y < -55f // the south (Naval Outpost, Forgotten Isle)
         });
         zones.Add(new Zone
         {
@@ -80,7 +80,7 @@ public class ZoneSpawnManager : MonoBehaviour
             interval = 0.2f,
             maxNearby = 55,
             mix = new[] { 0.15f, 0.4f, 0.35f, 0.1f }, // harpies & mermaids
-            contains = pos => pos.x > 45f
+            contains = pos => pos.x > 50f // the east (wreck, White Island)
         });
         zones.Add(new Zone
         {
@@ -88,7 +88,7 @@ public class ZoneSpawnManager : MonoBehaviour
             interval = 0.25f,
             maxNearby = 45,
             mix = new[] { 0.55f, 0.45f, 0f, 0f }, // crabs & harpies, light
-            contains = pos => pos.x < -20f && pos.y > 10f
+            contains = pos => pos.x < -45f // the SW channel toward Trader's Cove
         });
         zones.Add(new Zone
         {

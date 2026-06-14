@@ -24,75 +24,70 @@ public static class MapGeographyBuilder
     // design doc map sketch; S scales them onto the real 250x250 world.
     const float S = 2.5f;
 
+    // Chart geography (design-space, ×2.5 → world). Trade Route channel runs
+    // SW (Trader's Cove ~-42,-22) up to Safe Harbor (centre); the Deep/storm
+    // belt is north, the Hunting Grounds east, Navy Waters south.
     static readonly Decor[] Islets =
     {
-        // Trade Route channel (home → Trader's Cove)
-        new Decor("Islet_0",  -6f,   9f, 2.0f),
-        new Decor("Islet_1", -14f,  21f, 2.4f),
-        new Decor("Islet_2", -20f,  11f, 1.8f),
-        new Decor("Islet_0", -27f,  17f, 1.6f),
-        // Home waters
-        new Decor("Islet_1",  14f,  -4f, 1.8f),
-        new Decor("Islet_2",  -3f, -12f, 2.2f),
+        // Trade Route islet channel: Trader's Cove (SW) → home (centre)
+        new Decor("Islet_0", -37f, -19f, 2.0f),
+        new Decor("Islet_1", -31f, -16f, 2.4f),
+        new Decor("Islet_2", -25f, -13f, 1.8f),
+        new Decor("Islet_0", -19f, -10f, 1.6f),
+        new Decor("Islet_1", -13f,  -6f, 2.0f),
+        new Decor("Islet_2",  -7f,  -3f, 1.7f),
+        // Home waters scatter
+        new Decor("Islet_0",   8f,   6f, 1.8f),
+        new Decor("Islet_1",  -5f,   9f, 1.6f),
+        new Decor("Islet_2",   9f,  -7f, 2.0f),
         // Hunting Grounds (E)
-        new Decor("Islet_0",  24f,   4f, 2.0f),
-        new Decor("Islet_1",  33f,  20f, 2.5f),
-        new Decor("Islet_2",  18f,  17f, 1.6f),
-        // Navy Waters (SE)
-        new Decor("Islet_0",  12f, -28f, 2.2f),
-        new Decor("Islet_2",  35f, -33f, 1.7f),
-        new Decor("Islet_1",  22f, -13f, 1.5f),
-        // Open west / southwest
-        new Decor("Islet_1", -35f,  -8f, 2.6f),
-        new Decor("Islet_0", -22f, -28f, 1.9f),
-        new Decor("Islet_2", -40f, -35f, 2.3f),
-        // Extra fill for the 250x250 ocean
-        new Decor("Islet_0", -44f,  42f, 2.1f),
-        new Decor("Islet_1", -26f,  42f, 1.7f),
-        new Decor("Islet_2",  30f,  40f, 2.4f),
-        new Decor("Islet_0",  46f,  40f, 1.8f),
-        new Decor("Islet_1",   0f, -44f, 2.2f),
-        new Decor("Islet_2", -30f, -44f, 1.9f),
-        new Decor("Islet_0",  30f, -44f, 2.0f),
-        new Decor("Islet_1", -46f, -12f, 1.6f),
-        new Decor("Islet_2",  46f,   8f, 2.1f),
+        new Decor("Islet_0",  28f,   8f, 2.2f),
+        new Decor("Islet_1",  36f,  18f, 2.5f),
+        new Decor("Islet_2",  24f,  -2f, 1.7f),
+        new Decor("Islet_0",  41f,   2f, 1.9f),
+        // Navy Waters (S)
+        new Decor("Islet_1", -26f, -30f, 2.2f),
+        new Decor("Islet_2",  -6f, -40f, 1.8f),
+        new Decor("Islet_0",  14f, -34f, 2.0f),
+        new Decor("Islet_1", -34f, -26f, 1.6f),
+        // North / Deep approach
+        new Decor("Islet_2", -20f,  30f, 1.9f),
+        new Decor("Islet_0",  12f,  34f, 1.7f),
+        // Far west / open
+        new Decor("Islet_1", -44f,   4f, 2.3f),
+        new Decor("Islet_2", -40f, -10f, 1.8f),
     };
 
     static readonly Decor[] Rocks =
     {
-        // North rock belt (gap at x -2..6 aligns with the Maelstrom approach)
-        new Decor("Rock_0", -44f, 31f, 1.2f,  15f),
-        new Decor("Rock_1", -36f, 32f, 1.0f, 130f),
-        new Decor("Rock_2", -28f, 30f, 1.3f, 250f),
-        new Decor("Rock_0", -20f, 33f, 0.9f,  70f),
-        new Decor("Rock_1", -13f, 31f, 1.1f, 310f),
-        new Decor("Rock_2",  -6f, 32f, 1.0f, 180f),
-        new Decor("Rock_0",   8f, 31f, 1.2f,  40f),
-        new Decor("Rock_1",  16f, 33f, 0.9f, 220f),
-        new Decor("Rock_2",  24f, 30f, 1.1f,  95f),
-        new Decor("Rock_0",  32f, 32f, 1.3f, 160f),
-        new Decor("Rock_1",  40f, 31f, 1.0f, 285f),
-        new Decor("Rock_2",  46f, 33f, 0.9f,  10f),
+        // North rock belt guarding the Maelstrom; gap (~x -6) aligns with the
+        // southern approach to the whirlpool.
+        new Decor("Rock_0", -46f, 31f, 1.2f,  15f),
+        new Decor("Rock_1", -38f, 32f, 1.0f, 130f),
+        new Decor("Rock_2", -30f, 30f, 1.3f, 250f),
+        new Decor("Rock_0", -22f, 33f, 0.9f,  70f),
+        // gap here (Maelstrom approach)
+        new Decor("Rock_1",   6f, 31f, 1.1f, 310f),
+        new Decor("Rock_2",  14f, 33f, 1.0f, 180f),
+        new Decor("Rock_0",  22f, 30f, 1.2f,  40f),
+        new Decor("Rock_1",  30f, 32f, 0.9f, 220f),
+        new Decor("Rock_2",  38f, 31f, 1.1f,  95f),
+        new Decor("Rock_0",  46f, 33f, 1.3f, 160f),
         // Scattered hazards
-        new Decor("Rock_0", -15f,   2f, 1.1f, 200f),
-        new Decor("Rock_1",  28f,  -5f, 1.0f,  55f),
-        new Decor("Rock_2", -30f, -20f, 1.2f, 140f),
-        new Decor("Rock_0",  15f,  25f, 0.9f, 320f),
-        new Decor("Rock_1", -44f,  12f, 1.1f,  80f),
-        new Decor("Rock_2",  44f, -15f, 1.0f, 230f),
-        new Decor("Rock_0",   8f, -38f, 1.2f, 110f),
-        new Decor("Rock_1",  -8f, -30f, 0.9f, 350f),
-        // Extra fill for the 250x250 ocean
-        new Decor("Rock_2",  20f, -22f, 1.1f,  25f),
-        new Decor("Rock_0", -25f,  22f, 1.0f, 170f),
-        new Decor("Rock_1",  40f,  22f, 1.2f, 295f),
-        new Decor("Rock_2", -40f, -25f, 0.9f,  60f),
-        new Decor("Rock_0",   5f,  18f, 1.0f, 210f),
-        new Decor("Rock_1",  12f,  38f, 1.1f, 135f),
+        new Decor("Rock_1", -20f, -18f, 1.1f,  80f),
+        new Decor("Rock_2",  24f,  -6f, 1.0f, 230f),
+        new Decor("Rock_0",  34f,  12f, 1.2f, 110f),
+        new Decor("Rock_1", -30f,  10f, 0.9f, 350f),
+        new Decor("Rock_2",  12f,  16f, 1.1f,  25f),
+        new Decor("Rock_0", -10f, -28f, 1.0f, 170f),
+        new Decor("Rock_1",  40f, -22f, 1.2f, 295f),
+        new Decor("Rock_2",   4f, -40f, 0.9f,  60f),
+        new Decor("Rock_0", -44f, -20f, 1.1f, 200f),
+        new Decor("Rock_1",  44f, -10f, 1.0f, 135f),
     };
 
-    // Maelstrom ring around (0, 42), radius 6.5, gap to the south.
-    const float RING_CX = 0f, RING_CY = 42f, RING_R = 6.5f;
+    // Maelstrom ring around design (-6, 42) → world (-15, 105), gap to the south.
+    const float RING_CX = -6f, RING_CY = 42f, RING_R = 6.5f;
     static readonly float[] RingAngles = { 0f, 30f, 60f, 90f, 120f, 150f, 180f, 210f, 240f, 300f, 330f };
     static readonly float[] GateAngles = { 262f, 278f }; // close the gap until Q5
 
@@ -132,11 +127,11 @@ public static class MapGeographyBuilder
         // ── Story POIs ──
         var poiParent = new GameObject("POIs").transform;
         poiParent.SetParent(root.transform);
-        CreatePoi(poiParent, "dutchmans_drift", "Dutchman's Drift", new Vector2(-35f, 38f) * S,
+        CreatePoi(poiParent, "dutchmans_drift", "Dutchman's Drift", new Vector2(-44f, 20f) * S,
             "Fog", 4.0f, sortingOrder: 5, triggerScale: 1.0f); // fog renders above ships
-        CreatePoi(poiParent, "gunsmith_wreck", "Gunsmith's Wreck", new Vector2(24f, 12f) * S,
+        CreatePoi(poiParent, "gunsmith_wreck", "Gunsmith's Wreck", new Vector2(28f, 4f) * S,
             "Wreck", 1.8f, sortingOrder: -10, triggerScale: 1.6f);
-        CreatePoi(poiParent, "white_island", "The White Island", new Vector2(42f, -5f) * S,
+        CreatePoi(poiParent, "white_island", "The White Island", new Vector2(38f, -12f) * S,
             "WhiteIsland", 2.6f, sortingOrder: -10, triggerScale: 1.3f);
 
         // ── New port island art for existing locations (if generated) ──
@@ -165,12 +160,17 @@ public static class MapGeographyBuilder
     /// </summary>
     static void MigrateWorldToCurrentBounds()
     {
-        // Existing locations → scaled positions
+        // Existing locations → chart-matched positions (see Docs/BIOME1_DESIGN.md)
         MoveLocation("Loc_base_port", new Vector2(GameConstants.HOME_PORT_X, GameConstants.HOME_PORT_Y));
-        MoveLocation("Loc_traders_cove", new Vector2(-75f, 62.5f));
-        MoveLocation("Loc_naval_outpost", new Vector2(75f, -50f));
-        MoveLocation("Loc_secret_island", new Vector2(100f, 25f));
-        MoveLocation("Loc_boss_arena", new Vector2(0f, 105f));
+        MoveLocation("Loc_traders_cove", new Vector2(-105f, -55f));   // SW
+        MoveLocation("Loc_naval_outpost", new Vector2(-40f, -85f));   // S
+        MoveLocation("Loc_secret_island", new Vector2(5f, -90f));     // S (Forgotten Isle)
+        MoveLocation("Loc_boss_arena", new Vector2(-15f, 105f));      // N (Maelstrom)
+
+        // Keep the player's start beside home so they don't begin on the island
+        var pgo = GameObject.FindGameObjectWithTag("Player");
+        if (pgo != null)
+            pgo.transform.position = new Vector3(GameConstants.HOME_DOCK_X, GameConstants.HOME_DOCK_Y, 0f);
 
         // Player movement clamps
         var playerGo = GameObject.FindGameObjectWithTag("Player");
