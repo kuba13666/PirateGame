@@ -199,11 +199,11 @@ public class BossArenaManager : MonoBehaviour
         bossBarFill = new GameObject("BarFill").AddComponent<Image>();
         bossBarFill.transform.SetParent(back.transform, false);
         bossBarFill.color = new Color(0.8f, 0.15f, 0.2f);
-        bossBarFill.type = Image.Type.Filled;
-        bossBarFill.fillMethod = Image.FillMethod.Horizontal;
-        bossBarFill.fillOrigin = 0;
         var frt = bossBarFill.rectTransform;
+        // Left pivot so localScale.x shrinks the bar from the right (no sprite
+        // needed — a plain Image quad won't honour fillAmount without one).
         frt.anchorMin = Vector2.zero; frt.anchorMax = Vector2.one;
+        frt.pivot = new Vector2(0f, 0.5f);
         frt.offsetMin = new Vector2(2, 2); frt.offsetMax = new Vector2(-2, -2);
 
         bossBar.SetActive(false);
@@ -214,12 +214,16 @@ public class BossArenaManager : MonoBehaviour
         if (bossBar == null) return;
         bossBar.SetActive(true);
         if (bossBarName != null) bossBarName.text = name;
-        if (bossBarFill != null) bossBarFill.fillAmount = 1f;
+        if (bossBarFill != null) bossBarFill.transform.localScale = Vector3.one;
     }
 
     void UpdateBossBar(int current, int max)
     {
-        if (bossBarFill != null) bossBarFill.fillAmount = max > 0 ? (float)current / max : 0f;
+        if (bossBarFill != null)
+        {
+            float f = max > 0 ? Mathf.Clamp01((float)current / max) : 0f;
+            bossBarFill.transform.localScale = new Vector3(f, 1f, 1f);
+        }
     }
 
     void HideBossBar()
