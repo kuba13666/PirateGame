@@ -134,6 +134,13 @@ public static class MapGeographyBuilder
         CreatePoi(poiParent, "white_island", "The White Island", new Vector2(38f, -12f) * S,
             "WhiteIsland", 2.6f, sortingOrder: -10, triggerScale: 1.3f);
 
+        // ── Caribbean landmasses framing the E/NE/SE/S edges (the chart) ──
+        BuildCaribbeanFrame(root.transform);
+
+        // ── New named ports: Port Royal (English) + Tortuga (pirate haven) ──
+        CreateNamedPort("port_royal", "Port Royal", new Vector2(95f, 75f), "Port_Royal", 8f);
+        CreateNamedPort("tortuga", "Tortuga", new Vector2(55f, 95f), "Tortuga", 7.5f);
+
         // ── New port island art for existing locations (if generated) ──
         ApplyLocationSprite("Loc_traders_cove", "Port_TradersCove", 4.2f);
         ApplyLocationSprite("Loc_naval_outpost", "Port_NavalOutpost", 4.2f);
@@ -355,6 +362,106 @@ public static class MapGeographyBuilder
             var bt = go.AddComponent<BossPoiTrigger>();
             bt.locationId = id;
         }
+    }
+
+    // ── Caribbean frame (decorative impassable landmasses at the edges) ──
+    static void BuildCaribbeanFrame(Transform root)
+    {
+        Sprite land = Resources.Load<Sprite>("Landmass_Large");
+        if (land == null) { Debug.LogWarning("Landmass_Large missing"); return; }
+        var parent = new GameObject("CaribbeanFrame").transform;
+        parent.SetParent(root);
+
+        // name, x, y, worldWidth, rot, flipX
+        (string n, float x, float y, float w, float r, bool f)[] isles =
+        {
+            ("Cuba",          108f, 116f, 46f,  10f, false),
+            ("Jamaica",        78f,  92f, 16f, 200f, true ),
+            ("Hispaniola",    130f,  22f, 36f, 340f, false),
+            ("PuertoRico",    124f, -44f, 24f,  60f, true ),
+            ("LesserAntilles1",122f,-74f, 14f, 120f, false),
+            ("LesserAntilles2",131f,-96f, 12f,  20f, true ),
+            ("LesserAntilles3",115f,-110f,11f, 250f, false),
+            ("SpanishMain1",   12f,-130f, 50f,  15f, false),
+            ("SpanishMain2",  -52f,-132f, 44f, 190f, true ),
+            ("SpanishMain3",   74f,-126f, 38f, 300f, false),
+            ("SpanishMain4", -112f,-128f, 36f,  80f, true ),
+        };
+        foreach (var i in isles)
+            PlaceLandmass(parent, land, i.n, i.x, i.y, i.w, i.r, i.f);
+    }
+
+    static void PlaceLandmass(Transform parent, Sprite land, string name,
+        float x, float y, float worldW, float rot, bool flipX)
+    {
+        var go = new GameObject("Land_" + name);
+        go.transform.SetParent(parent);
+        go.transform.position = new Vector3(x, y, 0f);
+        go.transform.rotation = Quaternion.Euler(0f, 0f, rot);
+        int terrain = LayerMask.NameToLayer("Terrain");
+        if (terrain >= 0) go.layer = terrain;
+
+        var sr = go.AddComponent<SpriteRenderer>();
+        sr.sprite = land;
+        sr.flipX = flipX;
+        sr.sortingOrder = -9; // above water, below ships/POIs
+        float scale = worldW / Mathf.Max(0.01f, land.bounds.size.x);
+        go.transform.localScale = new Vector3(scale, scale, 1f);
+
+        var col = go.AddComponent<PolygonCollider2D>(); // hug the island shape
+    }
+
+    // ── A named port (Location + PortZone + shop), seated on a landmass base ──
+    static void CreateNamedPort(string id, string displayName, Vector2 pos, string townSprite, float worldW)
+    {
+        string objName = "Loc_" + id;
+        var existing = GameObject.Find(objName);
+        if (existing != null) Object.DestroyImmediate(existing);
+
+        var go = new GameObject(objName);
+        go.transform.position = new Vector3(pos.x, pos.y, 0f);
+
+        // Landmass base behind the town so it reads as a coastal island town
+        Sprite land = Resources.Load<Sprite>("Landmass_Large");
+        if (land != null)
+        {
+            var baseGo = new GameObject("IslandBase");
+            baseGo.transform.SetParent(go.transform);
+            baseGo.transform.localPosition = Vector3.zero;
+            var bsr = baseGo.AddComponent<SpriteRenderer>();
+            bsr.sprite = land;
+            bsr.sortingOrder = -2;
+            float bs = (worldW * 1.7f) / Mathf.Max(0.01f, land.bounds.size.x);
+            baseGo.transform.localScale = new Vector3(bs, bs, 1f);
+        }
+
+        // Town sprite
+        var sr = go.AddComponent<SpriteRenderer>();
+        Sprite town = Resources.Load<Sprite>(townSprite);
+        if (town != null)
+        {
+            sr.sprite = town;
+            sr.sortingOrder = 0;
+            float s = worldW / Mathf.Max(0.01f, town.bounds.size.x);
+            go.transform.localScale = new Vector3(s, s, 1f);
+        }
+
+        // Trigger zone (in LOCAL units — transform scale stretches it to world)
+        var col = go.AddComponent<BoxCollider2D>();
+        col.isTrigger = true;
+        if (town != null) { col.size = town.bounds.size; col.offset = town.bounds.center; }
+
+        var loc = go.AddComponent<Location>();
+        loc.locationId = id;
+        loc.displayName = displayName;
+        loc.locationType = Location.LocationType.Port;
+        loc.hasShop = true;
+        loc.discovered = true;
+        loc.worldPosition = pos;
+
+        var zone = go.AddComponent<PortZone>();
+        zone.portName = displayName;
+        zone.location = loc;
     }
 
     static void ApplyLocationSprite(string objectName, string spriteName, float worldWidth)
