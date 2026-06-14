@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 /// <summary>
@@ -23,6 +24,8 @@ public class FlyingDutchman : MonoBehaviour
     private SpriteRenderer sr;
     private Color baseColor;
     private float orbitAngle, fireTimer, summonTimer, contactCd, flashTimer, repositionTimer;
+    private float lockTimer, fadeCd;
+    private bool fading;
     private int lastPhase = 1;
 
     void Start()
@@ -48,8 +51,18 @@ public class FlyingDutchman : MonoBehaviour
     void Update()
     {
         if (player == null || hp == null) return;
+        if (fading) return; // the PhantomFade coroutine drives it while vanished
         int phase = Phase();
         if (phase != lastPhase) lastPhase = phase; // (hook for phase-change FX later)
+
+        // Phantom Fade: keep it on your broadside (horizontally aligned) too long
+        // and the ghost ship dissolves into mist and re-forms elsewhere.
+        if (fadeCd > 0f) fadeCd -= Time.deltaTime;
+        if (phase < 3 && fadeCd <= 0f && Mathf.Abs(player.position.y - transform.position.y) < 2f)
+            lockTimer += Time.deltaTime;
+        else
+            lockTimer = Mathf.Max(0f, lockTimer - Time.deltaTime);
+        if (lockTimer >= 3f) { lockTimer = 0f; StartCoroutine(PhantomFade()); return; }
 
         float speed = phase == 3 ? moveSpeed * 1.7f : moveSpeed;
 
@@ -111,6 +124,43 @@ public class FlyingDutchman : MonoBehaviour
         }
 
         if (contactCd > 0f) contactCd -= Time.deltaTime;
+    }
+
+    /// <summary>Dissolve into mist (intangible), drift to a new bearing across
+    /// the arena, and re-form — the ghost ship that can't be pinned down.</summary>
+    IEnumerator PhantomFade()
+    {
+        fading = true;
+        if (hp != null) hp.invulnerable = true;
+
+        // dissolve
+        float t = 0f;
+        while (t < 0.4f) { t += Time.deltaTime; SetAlpha(Mathf.Lerp(baseColor.a, 0.08f, t / 0.4f)); yield return null; }
+        SetAlpha(0.08f);
+
+        // reappear at a fresh bearing off the player
+        float ang = Random.Range(0f, 360f);
+        orbitAngle = ang;
+        Vector2 off = new Vector2(Mathf.Cos(ang * Mathf.Deg2Rad), Mathf.Sin(ang * Mathf.Deg2Rad)) * (orbitRadius + 1.5f);
+        transform.position = (Vector3)((Vector2)player.position + off);
+        repositionTimer = 2.5f;
+
+        yield return new WaitForSeconds(0.45f);
+
+        // re-form
+        t = 0f;
+        while (t < 0.4f) { t += Time.deltaTime; SetAlpha(Mathf.Lerp(0.08f, baseColor.a, t / 0.4f)); yield return null; }
+        SetAlpha(baseColor.a);
+
+        if (hp != null) hp.invulnerable = false;
+        fading = false;
+        fadeCd = 4f;
+    }
+
+    void SetAlpha(float a)
+    {
+        if (sr == null) return;
+        Color c = baseColor; c.a = a; sr.color = c;
     }
 
     void FireVolley(int shots)
