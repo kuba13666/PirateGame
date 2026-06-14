@@ -104,6 +104,7 @@ public class ZoneSpawnManager : MonoBehaviour
     {
         if (player == null || spawner == null) return;
         if (SpawningDisabled) return;                     // dev peace mode (press P)
+        if (BossArenaManager.InArena) return;             // boss fight in an off-map pocket
         if (Time.timeScale == 0f) return;                 // port / dialogue pause
         if (!spawner.enabled) return;                     // port disables spawning
         if (IsAwakeningActive()) return;                  // WaveManager owns the onslaught

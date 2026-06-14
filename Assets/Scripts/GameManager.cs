@@ -135,6 +135,11 @@ public class GameManager : MonoBehaviour
         deathCount++;
         Debug.Log($"Death #{deathCount} — The curse pulls Davy Jones back...");
 
+        // If we died inside a boss arena, bail out so the normal respawn flow
+        // (which restores map bounds at home) takes over cleanly.
+        if (BossArenaManager.Instance != null)
+            BossArenaManager.Instance.AbortArena();
+
         // ── 1. Close any open shop / port ──
         PortZone activePort = PortZone.GetActivePort();
         if (activePort != null)

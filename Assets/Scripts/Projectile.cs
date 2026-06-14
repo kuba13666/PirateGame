@@ -53,8 +53,15 @@ public class Projectile : MonoBehaviour
     /// </summary>
     void OnTriggerEnter2D(Collider2D collision)
     {
-        Debug.Log($"Projectile triggered by: {collision.gameObject.name} with tag: {collision.tag}");
-        
+        // Boss-tier targets (own health component, not the Enemy tag)
+        BossHealth boss = collision.GetComponent<BossHealth>();
+        if (boss != null)
+        {
+            boss.TakeDamage(damage);
+            Destroy(gameObject);
+            return;
+        }
+
         // Check if we hit an enemy
         if (collision.CompareTag("Enemy"))
         {

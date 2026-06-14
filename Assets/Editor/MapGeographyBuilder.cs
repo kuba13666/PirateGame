@@ -348,6 +348,13 @@ public static class MapGeographyBuilder
         // The Gunsmith's Wreck stages a rescue encounter (captive + ambush)
         if (id == "gunsmith_wreck")
             go.AddComponent<WreckEncounter>();
+
+        // Boss POIs hand off to the arena when their DefeatBoss objective is active
+        if (id == "dutchmans_drift" || id == "white_island")
+        {
+            var bt = go.AddComponent<BossPoiTrigger>();
+            bt.locationId = id;
+        }
     }
 
     static void ApplyLocationSprite(string objectName, string spriteName, float worldWidth)

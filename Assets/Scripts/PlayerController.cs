@@ -256,6 +256,14 @@ public class PlayerController : MonoBehaviour
     /// <summary>Clears the respawn protection so the port can open immediately.</summary>
     public void ClearRespawnProtection() => respawnProtected = false;
 
+    /// <summary>Halt movement and re-anchor the target to the current spot
+    /// (used after teleports so the ship doesn't sail back to an old target).</summary>
+    public void StopMoving()
+    {
+        isMoving = false;
+        targetPosition = transform.position;
+    }
+
     /// <summary>
     /// Respawn: heal to full, teleport to safe position, clear enemies
     /// </summary>
