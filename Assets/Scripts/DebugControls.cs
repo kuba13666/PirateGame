@@ -5,6 +5,7 @@ using UnityEngine.InputSystem;
 /// Dev/playtest helpers (editor + builds). Keys:
 ///   P — toggle "peace mode": stop all enemy spawning and clear current enemies.
 ///   K — kill all enemies currently on screen (one-shot).
+///   B — jump straight into the Flying Dutchman boss arena (skip the quest chain).
 /// </summary>
 public class DebugControls : MonoBehaviour
 {
@@ -28,6 +29,13 @@ public class DebugControls : MonoBehaviour
 
         if (kb.kKey.wasPressedThisFrame)
             DespawnAll();
+
+        if (kb.bKey.wasPressedThisFrame && BossArenaManager.Instance != null && !BossArenaManager.InArena)
+        {
+            var p = GameObject.FindGameObjectWithTag("Player");
+            Vector3 ret = p != null ? p.transform.position : Vector3.zero;
+            BossArenaManager.Instance.EnterArena("flying_dutchman", ret);
+        }
     }
 
     static void DespawnAll()
@@ -41,8 +49,8 @@ public class DebugControls : MonoBehaviour
         var style = new GUIStyle(GUI.skin.label) { fontSize = 14, fontStyle = FontStyle.Bold };
         style.normal.textColor = ZoneSpawnManager.SpawningDisabled ? Color.yellow : new Color(1f, 1f, 1f, 0.5f);
         string txt = ZoneSpawnManager.SpawningDisabled
-            ? "PEACE MODE — no spawns  (P toggle · K kill all)"
-            : "P peace · K kill all";
+            ? "PEACE MODE — no spawns  (P toggle · K kill all · B Dutchman fight)"
+            : "P peace · K kill all · B Dutchman fight";
         GUI.Label(new Rect(10, Screen.height - 26, 500, 22), txt, style);
     }
 }
