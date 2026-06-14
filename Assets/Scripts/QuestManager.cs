@@ -522,7 +522,9 @@ public class QuestManager : MonoBehaviour
                 locMgr.DiscoverLocation("gunsmith_wreck");
                 break;
             case "rescue_gunsmith":
-                locMgr.DiscoverLocation("naval_outpost");
+                // Naval Outpost has no quest purpose in the reframed chain yet
+                // (its old "recruit the Pilot" role moved to Dutchman's Drift),
+                // so don't flag it as a destination — only the next target.
                 locMgr.DiscoverLocation("dutchmans_drift");
                 break;
             case "ghost_light":
