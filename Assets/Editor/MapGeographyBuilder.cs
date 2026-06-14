@@ -344,6 +344,10 @@ public static class MapGeographyBuilder
 
         var zone = go.AddComponent<PoiZone>();
         zone.location = loc;
+
+        // The Gunsmith's Wreck stages a rescue encounter (captive + ambush)
+        if (id == "gunsmith_wreck")
+            go.AddComponent<WreckEncounter>();
     }
 
     static void ApplyLocationSprite(string objectName, string spriteName, float worldWidth)

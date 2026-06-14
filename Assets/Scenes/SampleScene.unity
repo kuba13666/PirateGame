@@ -15995,6 +15995,7 @@ GameObject:
   - component: {fileID: 2074244878}
   - component: {fileID: 2074244877}
   - component: {fileID: 2074244876}
+  - component: {fileID: 2074244880}
   m_Layer: 0
   m_Name: Loc_gunsmith_wreck
   m_TagString: Untagged
@@ -16154,6 +16155,22 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &2074244880
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2074244874}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41b23b9814d6704438cf0ee5989bb411, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WreckEncounter
+  questId: rescue_gunsmith
+  triggerRadius: 7
+  ambushCount: 10
+  ambushRing: 5.5
 --- !u!1 &2079879577
 GameObject:
   m_ObjectHideFlags: 0
