@@ -19,13 +19,14 @@ public class MochaDick : MonoBehaviour
 
     public float moveSpeed = 2.0f;
     public float chargeSpeed = 7f;
+    public float turnSpeed = 110f; // deg/sec — gentle turning, not a snap
 
     private BossHealth hp;
     private Rigidbody2D rb;
     private Transform player;
     private SpriteRenderer sr;
     private Color baseColor;
-    private float flashTimer, contactCd;
+    private float flashTimer, contactCd, geyserTimer = 2f;
     private bool submerged;
     private int lastPhase = 1;
 
@@ -56,6 +57,32 @@ public class MochaDick : MonoBehaviour
             else sr.color = baseColor;
         }
         if (contactCd > 0f) contactCd -= Time.deltaTime;
+
+        // Geysers erupt from below (mainly the phase-1 ranged threat, also during
+        // surface windows later). Skip while submerged (the breach has its own beat).
+        if (!submerged && player != null && hp != null)
+        {
+            geyserTimer -= Time.deltaTime;
+            if (geyserTimer <= 0f)
+            {
+                int ph = Phase();
+                SpawnGeysers(ph == 1 ? 3 : 2);
+                geyserTimer = ph == 1 ? 2.4f : 3.8f;
+            }
+        }
+    }
+
+    // Telegraphed seawater geysers: one near the player, the rest spread around.
+    void SpawnGeysers(int n)
+    {
+        for (int i = 0; i < n; i++)
+        {
+            float spread = i == 0 ? 1.6f : 5.5f;
+            Vector2 pos = (Vector2)player.position + Random.insideUnitCircle * spread;
+            var go = new GameObject("Geyser");
+            go.transform.position = (Vector3)pos;
+            go.AddComponent<Geyser>();
+        }
     }
 
     IEnumerator Behaviour()
@@ -224,7 +251,8 @@ public class MochaDick : MonoBehaviour
     {
         if (dir.sqrMagnitude < 0.0001f) return;
         float ang = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg - 90f; // sprite's head points up
-        transform.rotation = Quaternion.Euler(0f, 0f, ang);
+        Quaternion target = Quaternion.Euler(0f, 0f, ang);
+        transform.rotation = Quaternion.RotateTowards(transform.rotation, target, turnSpeed * Time.deltaTime);
     }
 
     IEnumerator FadeAlpha(float from, float to, float dur)
