@@ -256,6 +256,13 @@ public class BossArenaManager : MonoBehaviour
         float h = sr.sprite != null ? sr.sprite.bounds.size.y : 1f;
         go.transform.localScale = Vector3.one * (4.5f / Mathf.Max(0.01f, h)); // big whale
 
+        // Swim animation (MochaDick_0..N) if present; else the static sprite stands in
+        var anim = go.AddComponent<SpriteAnimator>();
+        anim.resourcePrefix = "MochaDick_";
+        anim.frameCount = 9;
+        anim.fps = 7f;
+        anim.randomizePhase = false;
+
         var rb = go.AddComponent<Rigidbody2D>();
         rb.bodyType = RigidbodyType2D.Kinematic; rb.gravityScale = 0f;
         var col = go.AddComponent<BoxCollider2D>();
