@@ -9,7 +9,7 @@ using UnityEngine;
 /// </summary>
 public class Geyser : MonoBehaviour
 {
-    public float warnTime = 0.85f;
+    public float warnTime = 1.5f; // telegraph window — time to sail clear
     public float radius = 1.7f;
     public int damage = 2;
 
