@@ -21,6 +21,23 @@ public class SpriteAnimator : MonoBehaviour
     private float timer;
     private int index;
 
+    // One-shot overlay clip (e.g. a boss attack) that plays once over the loop.
+    private Sprite[] oneShot;
+    private int oneShotIndex;
+    private float oneShotTimer, oneShotFps;
+    private bool oneShotActive;
+
+    /// <summary>Play a clip (&lt;prefix&gt;0..count-1) once, then resume the loop.</summary>
+    public void PlayOnce(string prefix, int count, float clipFps)
+    {
+        if (count <= 0 || string.IsNullOrEmpty(prefix)) return;
+        oneShot = new Sprite[count];
+        int loaded = 0;
+        for (int i = 0; i < count; i++) { oneShot[i] = Resources.Load<Sprite>(prefix + i); if (oneShot[i] != null) loaded++; }
+        if (loaded == 0) return;
+        oneShotIndex = 0; oneShotTimer = 0f; oneShotFps = Mathf.Max(1f, clipFps); oneShotActive = true;
+    }
+
     void Start()
     {
         sr = GetComponent<SpriteRenderer>();
@@ -45,6 +62,21 @@ public class SpriteAnimator : MonoBehaviour
 
     void Update()
     {
+        // One-shot clip takes over until its frames are exhausted
+        if (oneShotActive)
+        {
+            oneShotTimer += Time.deltaTime;
+            float oneFt = 1f / oneShotFps;
+            while (oneShotTimer >= oneFt)
+            {
+                oneShotTimer -= oneFt;
+                if (oneShotIndex >= oneShot.Length) { oneShotActive = false; break; }
+                if (sr != null && oneShot[oneShotIndex] != null) sr.sprite = oneShot[oneShotIndex];
+                oneShotIndex++;
+            }
+            return;
+        }
+
         if (frames == null || fps <= 0f) return;
         timer += Time.deltaTime;
         float frameTime = 1f / fps;

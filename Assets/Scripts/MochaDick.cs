@@ -25,6 +25,7 @@ public class MochaDick : MonoBehaviour
     private Rigidbody2D rb;
     private Transform player;
     private SpriteRenderer sr;
+    private SpriteAnimator animator;
     private Color baseColor;
     private float flashTimer, contactCd, geyserTimer = 2f;
     private bool submerged;
@@ -37,6 +38,7 @@ public class MochaDick : MonoBehaviour
         var p = GameObject.FindGameObjectWithTag("Player");
         if (p != null) player = p.transform;
         sr = GetComponent<SpriteRenderer>();
+        animator = GetComponent<SpriteAnimator>();
         baseColor = sr != null ? sr.color : Color.white;
         if (hp != null) hp.onHealthChanged += (c, m) => flashTimer = 0.12f;
         StartCoroutine(Behaviour());
@@ -195,6 +197,7 @@ public class MochaDick : MonoBehaviour
     // Tail slam: a full ring of projectiles bursting outward.
     void TailSlam()
     {
+        if (animator != null) animator.PlayOnce("MochaDick_tail_", 7, 11f); // the slam animation
         if (projectilePrefab == null) return;
         const int n = 14;
         for (int i = 0; i < n; i++)
