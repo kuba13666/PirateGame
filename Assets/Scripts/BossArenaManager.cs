@@ -238,8 +238,46 @@ public class BossArenaManager : MonoBehaviour
         switch (bossId)
         {
             case "flying_dutchman": return SpawnFlyingDutchman(center);
+            case "mocha_dick": return SpawnMochaDick(center);
             default: return SpawnPlaceholder(bossId, center);
         }
+    }
+
+    GameObject SpawnMochaDick(Vector2 center)
+    {
+        var go = new GameObject("Boss_mocha_dick");
+        go.transform.position = new Vector3(center.x, center.y + 4f, 0f);
+
+        var sr = go.AddComponent<SpriteRenderer>();
+        Sprite whale = Resources.Load<Sprite>("MochaDick");
+        if (whale != null) { sr.sprite = whale; sr.color = Color.white; }
+        else { sr.sprite = Resources.Load<Sprite>("Galleon_Top"); sr.color = new Color(0.9f, 1f, 0.85f, 1f); } // pale fallback
+        sr.sortingOrder = 2;
+        float h = sr.sprite != null ? sr.sprite.bounds.size.y : 1f;
+        go.transform.localScale = Vector3.one * (4.5f / Mathf.Max(0.01f, h)); // big whale
+
+        var rb = go.AddComponent<Rigidbody2D>();
+        rb.bodyType = RigidbodyType2D.Kinematic; rb.gravityScale = 0f;
+        var col = go.AddComponent<BoxCollider2D>();
+        col.isTrigger = true;
+        if (sr.sprite != null) { col.size = sr.sprite.bounds.size * 0.7f; col.offset = sr.sprite.bounds.center; }
+
+        var hp = go.AddComponent<BossHealth>();
+        hp.Init(55);
+        hp.onDeath = OnBossDefeated;
+
+        var md = go.AddComponent<MochaDick>();
+        var spawner = FindFirstObjectByType<EnemySpawner>();
+        if (spawner != null)
+        {
+            if (spawner.enemyShipPrefab != null)
+            {
+                var esc = spawner.enemyShipPrefab.GetComponent<EnemyShipController>();
+                if (esc != null) md.projectilePrefab = esc.projectilePrefab;
+            }
+            md.addPrefabs = new[] { spawner.crabEnemyPrefab, spawner.mermaidEnemyPrefab };
+        }
+        return go;
     }
 
     GameObject SpawnFlyingDutchman(Vector2 center)

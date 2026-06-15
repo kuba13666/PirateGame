@@ -6,6 +6,7 @@ using UnityEngine.InputSystem;
 ///   P — toggle "peace mode": stop all enemy spawning and clear current enemies.
 ///   K — kill all enemies currently on screen (one-shot).
 ///   B — jump straight into the Flying Dutchman boss arena (skip the quest chain).
+///   V — jump straight into the Mocha Dick (white whale) boss arena.
 /// </summary>
 public class DebugControls : MonoBehaviour
 {
@@ -31,11 +32,17 @@ public class DebugControls : MonoBehaviour
             DespawnAll();
 
         if (kb.bKey.wasPressedThisFrame && BossArenaManager.Instance != null && !BossArenaManager.InArena)
-        {
-            var p = GameObject.FindGameObjectWithTag("Player");
-            Vector3 ret = p != null ? p.transform.position : Vector3.zero;
-            BossArenaManager.Instance.EnterArena("flying_dutchman", ret);
-        }
+            EnterBoss("flying_dutchman");
+
+        if (kb.vKey.wasPressedThisFrame && BossArenaManager.Instance != null && !BossArenaManager.InArena)
+            EnterBoss("mocha_dick");
+    }
+
+    static void EnterBoss(string bossId)
+    {
+        var p = GameObject.FindGameObjectWithTag("Player");
+        Vector3 ret = p != null ? p.transform.position : Vector3.zero;
+        BossArenaManager.Instance.EnterArena(bossId, ret);
     }
 
     static void DespawnAll()
@@ -49,8 +56,8 @@ public class DebugControls : MonoBehaviour
         var style = new GUIStyle(GUI.skin.label) { fontSize = 14, fontStyle = FontStyle.Bold };
         style.normal.textColor = ZoneSpawnManager.SpawningDisabled ? Color.yellow : new Color(1f, 1f, 1f, 0.5f);
         string txt = ZoneSpawnManager.SpawningDisabled
-            ? "PEACE MODE — no spawns  (P toggle · K kill all · B Dutchman fight)"
-            : "P peace · K kill all · B Dutchman fight";
+            ? "PEACE MODE — no spawns  (P toggle · K kill all · B Dutchman · V Whale)"
+            : "P peace · K kill all · B Dutchman · V Whale";
         GUI.Label(new Rect(10, Screen.height - 26, 500, 22), txt, style);
     }
 }
