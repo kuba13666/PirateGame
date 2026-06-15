@@ -185,6 +185,7 @@ public class MochaDick : MonoBehaviour
         transform.position = (Vector3)shPos;
         if (rb != null) rb.position = shPos;
         submerged = false;
+        if (animator != null) animator.PlayOnce("MochaDick_breach_", 7, 12f); // eruption clip
         yield return FadeAlpha(0f, baseColor.a, 0.22f);
         if (player != null && Vector2.Distance(player.position, transform.position) < 3.5f)
         {
