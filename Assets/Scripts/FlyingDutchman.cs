@@ -22,6 +22,7 @@ public class FlyingDutchman : MonoBehaviour
     private Rigidbody2D rb;
     private Transform player;
     private SpriteRenderer sr;
+    private SpriteAnimator animator;
     private Color baseColor;
     private float orbitAngle, fireTimer, summonTimer, contactCd, flashTimer, repositionTimer;
     private float lockTimer, fadeCd, broadsideTimer, wispTimer;
@@ -37,6 +38,7 @@ public class FlyingDutchman : MonoBehaviour
         var p = GameObject.FindGameObjectWithTag("Player");
         if (p != null) player = p.transform;
         sr = GetComponent<SpriteRenderer>();
+        animator = GetComponent<SpriteAnimator>();
         baseColor = sr != null ? sr.color : Color.white;
         orbitAngle = Random.Range(0f, 360f);
         fireTimer = 1.5f;
@@ -121,20 +123,11 @@ public class FlyingDutchman : MonoBehaviour
         // Doomsday Squall begins once, in phase 3
         if (phase == 3 && !squallActive) StartSquall();
 
-        // Hit flash (bright) over the ghostly alpha pulse
+        // Normal solid colours; only Phantom Fade turns it spectral. Just a hit flash here.
         if (sr != null)
         {
-            if (flashTimer > 0f)
-            {
-                flashTimer -= Time.deltaTime;
-                sr.color = Color.white;
-            }
-            else
-            {
-                Color c = baseColor;
-                c.a = baseColor.a * (0.78f + 0.18f * Mathf.Sin(Time.time * 3.2f));
-                sr.color = c;
-            }
+            if (flashTimer > 0f) { flashTimer -= Time.deltaTime; sr.color = Color.white; }
+            else sr.color = baseColor;
         }
 
         if (contactCd > 0f) contactCd -= Time.deltaTime;
@@ -142,15 +135,19 @@ public class FlyingDutchman : MonoBehaviour
 
     /// <summary>Dissolve into mist (intangible), drift to a new bearing across
     /// the arena, and re-form — the ghost ship that can't be pinned down.</summary>
+    // The cursed ship's only spectral moment: it dissolves into ghostly green
+    // mist (intangible), drifts across the arena, and re-forms solid elsewhere.
+    static readonly Color SpectralMist = new Color(0.45f, 1f, 0.78f, 0.12f);
+
     IEnumerator PhantomFade()
     {
         fading = true;
         if (hp != null) hp.invulnerable = true;
 
-        // dissolve
+        // dissolve from solid into spectral mist
         float t = 0f;
-        while (t < 0.4f) { t += Time.deltaTime; SetAlpha(Mathf.Lerp(baseColor.a, 0.08f, t / 0.4f)); yield return null; }
-        SetAlpha(0.08f);
+        while (t < 0.4f) { t += Time.deltaTime; if (sr != null) sr.color = Color.Lerp(baseColor, SpectralMist, t / 0.4f); yield return null; }
+        if (sr != null) sr.color = SpectralMist;
 
         // reappear at a fresh bearing off the player
         float ang = Random.Range(0f, 360f);
@@ -161,35 +158,42 @@ public class FlyingDutchman : MonoBehaviour
 
         yield return new WaitForSeconds(0.45f);
 
-        // re-form
+        // re-form back into the solid warship
         t = 0f;
-        while (t < 0.4f) { t += Time.deltaTime; SetAlpha(Mathf.Lerp(0.08f, baseColor.a, t / 0.4f)); yield return null; }
-        SetAlpha(baseColor.a);
+        while (t < 0.4f) { t += Time.deltaTime; if (sr != null) sr.color = Color.Lerp(SpectralMist, baseColor, t / 0.4f); yield return null; }
+        if (sr != null) sr.color = baseColor;
 
         if (hp != null) hp.invulnerable = false;
         fading = false;
         fadeCd = 4f;
     }
 
-    void SetAlpha(float a)
-    {
-        if (sr == null) return;
-        Color c = baseColor; c.a = a; sr.color = c;
-    }
-
-    /// <summary>A full broadside — a wide wall of spectral cannonfire toward the player.</summary>
+    /// <summary>A full broadside — the cannons erupt and a sweeping wall of fire
+    /// rolls toward the player, with a few cannonballs punching through it.</summary>
     void SpectralBroadside()
     {
-        if (projectilePrefab == null || player == null) return;
+        if (player == null) return;
         Vector2 toP = ((Vector2)player.position - (Vector2)transform.position).normalized;
-        const int shots = 7;
-        for (int i = 0; i < shots; i++)
+
+        if (animator != null) animator.PlayOnce("Dutchman_fire_", 11, 14f); // the broadside clip
+
+        // The wall of fire, launched just off the ship's flank toward the player.
+        var wallGo = new GameObject("FireWall");
+        wallGo.transform.position = transform.position + (Vector3)(toP * 1.8f);
+        var wall = wallGo.AddComponent<FireWall>();
+        wall.dir = toP;
+
+        // A few cannonballs streaking through the flames.
+        if (projectilePrefab != null)
         {
-            float spread = (i - (shots - 1) * 0.5f) * 11f * Mathf.Deg2Rad;
-            Vector2 d = Rotate(toP, spread);
-            var proj = Instantiate(projectilePrefab, transform.position + (Vector3)(d * 1.6f), Quaternion.identity);
-            var ep = proj.GetComponent<EnemyProjectile>();
-            if (ep != null) ep.SetDirection(d);
+            for (int i = 0; i < 3; i++)
+            {
+                float spread = (i - 1) * 14f * Mathf.Deg2Rad;
+                Vector2 d = Rotate(toP, spread);
+                var proj = Instantiate(projectilePrefab, transform.position + (Vector3)(d * 1.6f), Quaternion.identity);
+                var ep = proj.GetComponent<EnemyProjectile>();
+                if (ep != null) ep.SetDirection(d);
+            }
         }
     }
 

@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: bfdafd40c312aa50e04662664409b2d9
+guid: c9bcea786db1eea6331dbd6b21b11c70
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -3445838240026403974
-    second: Dutchman
+      213: -7706122504428517773
+    second: Dutchman_1
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -87,7 +87,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Dutchman
+      name: Dutchman_1
       rect:
         serializedVersion: 2
         x: 0
@@ -102,8 +102,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 88899481219a2a7e0800000000000000
-      internalID: -3445838240026403974
+      spriteID: 78827a006b946f4a0800000000000000
+      internalID: -7706122504428517773
       vertices: []
       indices:
       edges: []
@@ -122,7 +122,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Dutchman: -3445838240026403974
+      Dutchman_1: -7706122504428517773
   mipmapLimitGroupName:
   pSDRemoveMatte: 0
   userData:

@@ -293,13 +293,20 @@ public class BossArenaManager : MonoBehaviour
         go.transform.position = new Vector3(center.x, center.y + 6f, 0f);
 
         var sr = go.AddComponent<SpriteRenderer>();
-        Sprite ghost = Resources.Load<Sprite>("Dutchman"); // generated spectral ship, if present
-        if (ghost != null) { sr.sprite = ghost; sr.color = new Color(1f, 1f, 1f, 0.9f); }
+        Sprite ghost = Resources.Load<Sprite>("Dutchman"); // the cursed warship, if present
+        if (ghost != null) { sr.sprite = ghost; sr.color = Color.white; } // normal colours; spectral only on Phantom Fade
         else { sr.sprite = Resources.Load<Sprite>("Galleon_Top"); sr.color = new Color(0.45f, 0.95f, 0.75f, 0.85f); } // spectral tint fallback
         sr.sortingOrder = 2;
         float h = sr.sprite != null ? sr.sprite.bounds.size.y : 1f;
         float scale = 3.8f / Mathf.Max(0.01f, h);
         go.transform.localScale = new Vector3(scale, scale, 1f);
+
+        // Sail animation (Dutchman_0..N) if present; else the static sprite stands in
+        var anim = go.AddComponent<SpriteAnimator>();
+        anim.resourcePrefix = "Dutchman_";
+        anim.frameCount = 9;
+        anim.fps = 6f;
+        anim.randomizePhase = false;
 
         // Kinematic body + trigger: projectiles hit it, and it can ram the player
         var rb = go.AddComponent<Rigidbody2D>();
