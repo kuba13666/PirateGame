@@ -168,32 +168,32 @@ public class FlyingDutchman : MonoBehaviour
         fadeCd = 4f;
     }
 
-    /// <summary>A full broadside — the cannons erupt and a sweeping wall of fire
-    /// rolls toward the player, with a few cannonballs punching through it.</summary>
+    /// <summary>A full broadside — the cannons erupt (animation + a wall of muzzle
+    /// fire and smoke along the flank) and loose a wide volley of cannonballs.</summary>
     void SpectralBroadside()
     {
-        if (player == null) return;
+        if (projectilePrefab == null || player == null) return;
         Vector2 toP = ((Vector2)player.position - (Vector2)transform.position).normalized;
 
         if (animator != null) animator.PlayOnce("Dutchman_fire_", 11, 14f); // the broadside clip
 
-        // The wall of fire, launched just off the ship's flank toward the player.
-        var wallGo = new GameObject("FireWall");
-        wallGo.transform.position = transform.position + (Vector3)(toP * 1.8f);
-        var wall = wallGo.AddComponent<FireWall>();
-        wall.dir = toP;
+        // Cosmetic muzzle fire + gunsmoke flaring along the side facing the player.
+        var fxGo = new GameObject("BroadsideFire");
+        fxGo.transform.position = transform.position + (Vector3)(toP * 1.8f);
+        var fx = fxGo.AddComponent<BroadsideFire>();
+        fx.dir = toP;
+        fx.span = 5f;
+        fx.puffs = 7;
 
-        // A few cannonballs streaking through the flames.
-        if (projectilePrefab != null)
+        // The actual threat: a wide volley of normal cannonballs.
+        const int shots = 7;
+        for (int i = 0; i < shots; i++)
         {
-            for (int i = 0; i < 3; i++)
-            {
-                float spread = (i - 1) * 14f * Mathf.Deg2Rad;
-                Vector2 d = Rotate(toP, spread);
-                var proj = Instantiate(projectilePrefab, transform.position + (Vector3)(d * 1.6f), Quaternion.identity);
-                var ep = proj.GetComponent<EnemyProjectile>();
-                if (ep != null) ep.SetDirection(d);
-            }
+            float spread = (i - (shots - 1) * 0.5f) * 11f * Mathf.Deg2Rad;
+            Vector2 d = Rotate(toP, spread);
+            var proj = Instantiate(projectilePrefab, transform.position + (Vector3)(d * 1.6f), Quaternion.identity);
+            var ep = proj.GetComponent<EnemyProjectile>();
+            if (ep != null) ep.SetDirection(d);
         }
     }
 
