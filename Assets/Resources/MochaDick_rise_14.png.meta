@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 9a9dc1543ae440e33c8d16cffa450046
+guid: 23709bc7ec4b44ff2b90a53784b2b0cb
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -98485188791530605
-    second: MochaDick_rise_6
+      213: -5571660558751625038
+    second: MochaDick_rise_14
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -87,7 +87,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: MochaDick_rise_6
+      name: MochaDick_rise_14
       rect:
         serializedVersion: 2
         x: 0
@@ -102,8 +102,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 40d13f298dc3df770800000000000000
-      internalID: -98485188791530605
+      spriteID: 4d13466a4712ef350800000000000000
+      internalID: -5571660558751625038
       vertices: []
       indices:
       edges: []
@@ -122,7 +122,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      MochaDick_rise_6: -98485188791530605
+      MochaDick_rise_14: -5571660558751625038
   mipmapLimitGroupName:
   pSDRemoveMatte: 0
   userData:

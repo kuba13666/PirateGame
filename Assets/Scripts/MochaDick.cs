@@ -172,8 +172,8 @@ public class MochaDick : MonoBehaviour
         if (hp != null) hp.invulnerable = true;
         submerged = true;
         // Plunge clip: the whale arches and pitches under as it fades from view.
-        if (animator != null) animator.PlayOnce("MochaDick_dive_", 9, 11f);
-        yield return FadeAlpha(baseColor.a, 0f, 0.7f);
+        if (animator != null) animator.PlayOnce("MochaDick_dive_", 17, 16f);
+        yield return FadeAlpha(baseColor.a, 0f, 0.9f);
 
         var shadow = MakeShadow();
         Vector2 shPos = transform.position;
@@ -193,8 +193,9 @@ public class MochaDick : MonoBehaviour
         submerged = false;
         if (animator != null)
             animator.PlayOnce(breachSurface ? "MochaDick_breach_" : "MochaDick_rise_",
-                              breachSurface ? 7 : 9, breachSurface ? 12f : 11f);
-        yield return FadeAlpha(0f, baseColor.a, breachSurface ? 0.3f : 0.7f);
+                              breachSurface ? 7 : 17, breachSurface ? 12f : 16f);
+        // Short fade so the rise clip plays at full opacity (the motion, not a fade-in, sells the surfacing).
+        yield return FadeAlpha(0f, baseColor.a, breachSurface ? 0.3f : 0.35f);
 
         // Only the violent breach lands an AoE hit.
         if (breachSurface && player != null && Vector2.Distance(player.position, transform.position) < 3.5f)
