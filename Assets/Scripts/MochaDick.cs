@@ -104,14 +104,14 @@ public class MochaDick : MonoBehaviour
             {
                 yield return Charge(chargeSpeed);
                 yield return Reposition(0.8f);
-                yield return Dive(1.9f);
+                yield return Dive(1.9f, false); // surfaces with a smooth rise
                 SpawnParasites(2);
                 yield return Reposition(1.1f);
             }
             else
             {
                 yield return Charge(chargeSpeed * 1.35f);
-                yield return Dive(1.4f);
+                yield return Dive(1.4f, true);  // surfaces with an explosive breach
                 TailSlam();
                 SpawnParasites(3);
                 yield return Reposition(0.7f);
@@ -147,6 +147,9 @@ public class MochaDick : MonoBehaviour
     // Drift to a bearing off the player and hold (the vulnerable window).
     IEnumerator Reposition(float dur)
     {
+        // Catch its breath: a misty blowhole spout now and then while surfaced.
+        if (animator != null && !submerged && Random.value < 0.55f)
+            animator.PlayOnce("MochaDick_spout_", 9, 9f);
         float t = 0f;
         float ang = Random.Range(0f, 360f);
         while (t < dur)
@@ -162,12 +165,15 @@ public class MochaDick : MonoBehaviour
         }
     }
 
-    // Submerge (invulnerable), a shadow tracks the player, then breach (AoE).
-    IEnumerator Dive(float trackTime)
+    // Submerge (invulnerable), a shadow tracks the player, then resurface.
+    // breachSurface=true => an explosive breach (AoE); false => a smooth rise.
+    IEnumerator Dive(float trackTime, bool breachSurface)
     {
         if (hp != null) hp.invulnerable = true;
         submerged = true;
-        yield return FadeAlpha(baseColor.a, 0f, 0.4f);
+        // Plunge clip: the whale arches and pitches under as it fades from view.
+        if (animator != null) animator.PlayOnce("MochaDick_dive_", 9, 11f);
+        yield return FadeAlpha(baseColor.a, 0f, 0.7f);
 
         var shadow = MakeShadow();
         Vector2 shPos = transform.position;
@@ -181,13 +187,17 @@ public class MochaDick : MonoBehaviour
         }
         if (shadow != null) Destroy(shadow);
 
-        // breach at the shadow
+        // Resurface at the shadow with the chosen clip, fading back in as it rises.
         transform.position = (Vector3)shPos;
         if (rb != null) rb.position = shPos;
         submerged = false;
-        if (animator != null) animator.PlayOnce("MochaDick_breach_", 7, 12f); // eruption clip
-        yield return FadeAlpha(0f, baseColor.a, 0.22f);
-        if (player != null && Vector2.Distance(player.position, transform.position) < 3.5f)
+        if (animator != null)
+            animator.PlayOnce(breachSurface ? "MochaDick_breach_" : "MochaDick_rise_",
+                              breachSurface ? 7 : 9, breachSurface ? 12f : 11f);
+        yield return FadeAlpha(0f, baseColor.a, breachSurface ? 0.3f : 0.7f);
+
+        // Only the violent breach lands an AoE hit.
+        if (breachSurface && player != null && Vector2.Distance(player.position, transform.position) < 3.5f)
         {
             var pc = player.GetComponent<PlayerController>();
             if (pc != null) pc.TakeDamage(2);
