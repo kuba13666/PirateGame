@@ -321,7 +321,7 @@ public class BossArenaManager : MonoBehaviour
         hp.onDeath = OnBossDefeated;
 
         var fd = go.AddComponent<FlyingDutchman>();
-        fd.hullAxis = new Vector2(-1f, 0f); // horizontal hull, bow points left
+        fd.hullAxis = new Vector2(0f, 1f); // vertical hull, bow points up (like all ships)
         var spawner = FindFirstObjectByType<EnemySpawner>();
         if (spawner != null)
         {

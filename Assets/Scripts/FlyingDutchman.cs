@@ -125,9 +125,8 @@ public class FlyingDutchman : MonoBehaviour
         // Doomsday Squall begins once, in phase 3
         if (phase == 3 && !squallActive) StartSquall();
 
-        // No rotation — like every other ship it moves on two axes with a fixed
-        // heading, only mirroring horizontally to face the player (base art faces left).
-        if (sr != null) sr.flipX = player.position.x > transform.position.x;
+        // No rotation — like every other ship it holds a fixed bow-up heading and
+        // moves on two axes. flipX is only used to aim the broadside clip's flames.
 
         // Normal solid colours; only Phantom Fade turns it spectral. Just a hit flash here.
         if (sr != null)
@@ -181,12 +180,12 @@ public class FlyingDutchman : MonoBehaviour
         if (projectilePrefab == null || player == null) return;
         Vector2 toP = ((Vector2)player.position - (Vector2)transform.position).normalized;
 
-        // The clip's baked muzzle flashes point down — mirror vertically if the player is above.
-        if (sr != null) sr.flipY = toP.y > 0f;
+        // The clip's baked muzzle flashes point left — mirror if the player is to the right.
+        if (sr != null) sr.flipX = toP.x > 0f;
         if (animator != null) animator.PlayOnce("Dutchman_fire_", 11, 14f); // the broadside clip
 
         // Cosmetic muzzle fire + gunsmoke, anchored along the flank facing the player.
-        Vector2 hull = (sr != null && sr.flipX) ? new Vector2(-hullAxis.x, hullAxis.y).normalized : hullAxis.normalized;
+        Vector2 hull = hullAxis.normalized;
         Vector2 flank = new Vector2(-hull.y, hull.x);            // perpendicular to the hull
         if (Vector2.Dot(flank, toP) < 0f) flank = -flank;        // the side the player is on
         var fxGo = new GameObject("BroadsideFire");
