@@ -9,7 +9,8 @@ using UnityEngine;
 /// </summary>
 public class BroadsideFire : MonoBehaviour
 {
-    public Vector2 dir = Vector2.right; // firing direction (toward the player)
+    public Vector2 dir = Vector2.right; // drift direction: out from the hull, toward the player
+    public Vector2 axis = Vector2.up;   // line direction: along the ship's hull
     public float span = 5f;             // length of the broadside line
     public int puffs = 7;
 
@@ -33,12 +34,12 @@ public class BroadsideFire : MonoBehaviour
 
         Vector2 d = dir.sqrMagnitude > 0.0001f ? dir.normalized : Vector2.right;
         driftDir = d;
-        Vector2 perp = new Vector2(-d.y, d.x);
+        Vector2 hull = axis.sqrMagnitude > 0.0001f ? axis.normalized : new Vector2(-d.y, d.x);
 
         for (int i = 0; i < puffs; i++)
         {
             float f = puffs > 1 ? (i / (float)(puffs - 1) - 0.5f) : 0f; // -0.5..0.5
-            Vector3 along = (Vector3)(perp * f * span);
+            Vector3 along = (Vector3)(hull * f * span); // the gun line runs along the hull
 
             // muzzle flash, just off the hull toward the player
             var fp = MakeSprite(flameSprite, transform.position + along + (Vector3)(d * 0.3f),

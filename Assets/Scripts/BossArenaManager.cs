@@ -297,8 +297,9 @@ public class BossArenaManager : MonoBehaviour
         if (ghost != null) { sr.sprite = ghost; sr.color = Color.white; } // normal colours; spectral only on Phantom Fade
         else { sr.sprite = Resources.Load<Sprite>("Galleon_Top"); sr.color = new Color(0.45f, 0.95f, 0.75f, 0.85f); } // spectral tint fallback
         sr.sortingOrder = 2;
-        float h = sr.sprite != null ? sr.sprite.bounds.size.y : 1f;
-        float scale = 3.8f / Mathf.Max(0.01f, h);
+        // The warship sprite is horizontal (bow left), so scale by its longest side
+        float len = sr.sprite != null ? Mathf.Max(sr.sprite.bounds.size.x, sr.sprite.bounds.size.y) : 1f;
+        float scale = 5.0f / Mathf.Max(0.01f, len);
         go.transform.localScale = new Vector3(scale, scale, 1f);
 
         // Sail animation (Dutchman_0..N) if present; else the static sprite stands in
@@ -320,6 +321,7 @@ public class BossArenaManager : MonoBehaviour
         hp.onDeath = OnBossDefeated;
 
         var fd = go.AddComponent<FlyingDutchman>();
+        fd.hullAxis = new Vector2(-1f, 0f); // horizontal hull, bow points left
         var spawner = FindFirstObjectByType<EnemySpawner>();
         if (spawner != null)
         {

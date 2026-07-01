@@ -17,6 +17,8 @@ public class FlyingDutchman : MonoBehaviour
 
     public float orbitRadius = 6.5f;
     public float moveSpeed = 2.2f;
+    [Tooltip("The sprite's hull direction (stern->bow) before any flip")]
+    public Vector2 hullAxis = Vector2.up;
 
     private BossHealth hp;
     private Rigidbody2D rb;
@@ -123,6 +125,10 @@ public class FlyingDutchman : MonoBehaviour
         // Doomsday Squall begins once, in phase 3
         if (phase == 3 && !squallActive) StartSquall();
 
+        // No rotation — like every other ship it moves on two axes with a fixed
+        // heading, only mirroring horizontally to face the player (base art faces left).
+        if (sr != null) sr.flipX = player.position.x > transform.position.x;
+
         // Normal solid colours; only Phantom Fade turns it spectral. Just a hit flash here.
         if (sr != null)
         {
@@ -175,14 +181,20 @@ public class FlyingDutchman : MonoBehaviour
         if (projectilePrefab == null || player == null) return;
         Vector2 toP = ((Vector2)player.position - (Vector2)transform.position).normalized;
 
+        // The clip's baked muzzle flashes point down — mirror vertically if the player is above.
+        if (sr != null) sr.flipY = toP.y > 0f;
         if (animator != null) animator.PlayOnce("Dutchman_fire_", 11, 14f); // the broadside clip
 
-        // Cosmetic muzzle fire + gunsmoke flaring along the side facing the player.
+        // Cosmetic muzzle fire + gunsmoke, anchored along the flank facing the player.
+        Vector2 hull = (sr != null && sr.flipX) ? new Vector2(-hullAxis.x, hullAxis.y).normalized : hullAxis.normalized;
+        Vector2 flank = new Vector2(-hull.y, hull.x);            // perpendicular to the hull
+        if (Vector2.Dot(flank, toP) < 0f) flank = -flank;        // the side the player is on
         var fxGo = new GameObject("BroadsideFire");
-        fxGo.transform.position = transform.position + (Vector3)(toP * 1.8f);
+        fxGo.transform.position = transform.position + (Vector3)(flank * 1.4f);
         var fx = fxGo.AddComponent<BroadsideFire>();
-        fx.dir = toP;
-        fx.span = 5f;
+        fx.dir = flank;   // smoke rolls out from the hull
+        fx.axis = hull;   // the gun line runs along the hull
+        fx.span = 4.5f;
         fx.puffs = 7;
 
         // The actual threat: a wide volley of normal cannonballs.
